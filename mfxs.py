@@ -12,9 +12,10 @@ from influxdb import InfluxDBClient
 MFXS_HTTP_PORT = 65000
 
 # Sigfox frame lengths.
+SIGFOX_OOB_DATA = "OOB"
+SIGFOX_MONITORING_FRAME_LENGTH_BYTES = 9
 SIGFOX_INTERMITTENT_WEATHER_DATA_FRAME_LENGTH_BYTES = 6
 SIGFOX_CONTINUOUS_WEATHER_DATA_FRAME_LENGTH_BYTES = 10
-SIGFOX_MONITORING_FRAME_LENGTH_BYTES = 9
 SIGFOX_GEOLOCATION_FRAME_LENGTH_BYTES = 11
 
 # Backend JSON headers.
@@ -26,12 +27,14 @@ SIGFOX_BACKEND_JSON_HEADER_DATA = "data"
 INFLUXDB_DATABASE_NAME = 'mfxdb'
 INFLUXDB_DATABASE_HTTP_PORT = 8086
 
-# Influx DB measurements names.
-INFLUXDB_MEASUREMENT_WEATHER = "weather"
-INFLUXDB_MEASUREMENT_MONITORING = "monitoring"
-INFLUXDB_MEASUREMENT_GEOLOC = "geoloc"
+# Influx DB global measurements names.
+INFLUXDB_MEASUREMENT_GLOBAL = "global"
+INFLUXDB_FIELD_LAST_STARTUP_TIMESTAMP = "last_startup_timestamp"
+INFLUXDB_FIELD_LAST_COMMUNICATION_TIMESTAMP = "last_communication_timestamp"
 
-# Influx DB measurements fields.
+# Influx DB weather measurements names.
+INFLUXDB_MEASUREMENT_WEATHER = "weather"
+INFLUXDB_FIELD_LAST_WEATHER_DATA_TIMESTAMP = "last_weather_data_timestamp"
 INFLUXDB_FIELD_TEMPERATURE = "temperature"
 INFLUXDB_FIELD_HUMIDITY = "humidity"
 INFLUXDB_FIELD_LIGHT = "light"
@@ -41,6 +44,10 @@ INFLUXDB_FIELD_AVERAGE_WIND_SPEED = "average_wind_speed"
 INFLUXDB_FIELD_PEAK_WIND_SPEED = "peak_wind_speed"
 INFLUXDB_FIELD_AVERAGE_WIND_DIRECTION = "average_wind_direction"
 INFLUXDB_FIELD_RAIN = "rain"
+
+# Influx DB monitoring measurements names.
+INFLUXDB_MEASUREMENT_MONITORING = "monitoring"
+INFLUXDB_FIELD_LAST_MONITORING_DATA_TIMESTAMP = "last_monitoring_data_timestamp"
 INFLUXDB_FIELD_MCU_TEMPERATURE = "mcu_temperature"
 INFLUXDB_FIELD_PCB_TEMPERATURE = "pcb_temperature"
 INFLUXDB_FIELD_PCB_HUMIDITY = "pcb_humidity"
@@ -48,6 +55,10 @@ INFLUXDB_FIELD_SOLAR_CELL_VOLTAGE = "solar_cell_voltage"
 INFLUXDB_FIELD_SUPERCAP_VOLTAGE = "supercap_voltage"
 INFLUXDB_FIELD_MCU_VOLTAGE = "mcu_voltage"
 INFLUXDB_FIELD_STATUS_BYTE = "status_byte"
+
+# Influx DB geoloc measurements names.
+INFLUXDB_MEASUREMENT_GEOLOC = "geoloc"
+INFLUXDB_FIELD_LAST_GEOLOC_DATA_TIMESTAMP = "last_geoloc_data_timestamp"
 INFLUXDB_FIELD_LATITUDE = "latitude"
 INFLUXDB_FIELD_LONGITUDE = "longitude"
 INFLUXDB_FIELD_ALTITUDE = "altitude"
@@ -79,11 +90,28 @@ def MFXS_GetSite(device_id):
 
 # Function for parsing Sigfox payload and fill database.
 def MFXS_FillDataBase(timestamp, device_id, data):
-    
     # Format parameters.
     influxdb_device_id = device_id.upper()
     influxdb_timestamp = int(timestamp)
-    
+    # OOB frame.
+    if data == SIGFOX_OOB_DATA:
+        # Create JSON object.
+        json_body = [
+        {
+            "measurement": INFLUXDB_MEASUREMENT_GLOBAL,
+            "time": influxdb_timestamp,
+            "fields": {
+                INFLUXDB_FIELD_LAST_STARTUP_TIMESTAMP : influxdb_timestamp,
+                INFLUXDB_FIELD_LAST_COMMUNICATION_TIMESTAMP : influxdb_timestamp
+            },
+            "tags": {
+                INFLUXDB_TAG_SIGFOX_DEVICE_ID : influxdb_device_id,
+                INFLUXDB_TAG_METEOFOX_SITE : MFXS_GetSite(influxdb_device_id)
+            }
+        }]
+        print(MFXS_GetCurrentTimestamp() + "ID=" + str(device_id) + " * OOB frame (start up).")
+        # Fill data base.
+        influxdb_client.write_points(json_body, time_precision='s')
     # Monitoring frame.
     if len(data) == (2 * SIGFOX_MONITORING_FRAME_LENGTH_BYTES):
         # Parse fields.
@@ -106,18 +134,28 @@ def MFXS_FillDataBase(timestamp, device_id, data):
                 INFLUXDB_FIELD_SOLAR_CELL_VOLTAGE : solar_cell_voltage,
                 INFLUXDB_FIELD_SUPERCAP_VOLTAGE : supercap_voltage,
                 INFLUXDB_FIELD_MCU_VOLTAGE : mcu_voltage,
-                INFLUXDB_FIELD_STATUS_BYTE : status_byte
+                INFLUXDB_FIELD_STATUS_BYTE : status_byte,
+                INFLUXDB_FIELD_LAST_MONITORING_DATA_TIMESTAMP : influxdb_timestamp
+            },
+            "tags": {
+                INFLUXDB_TAG_SIGFOX_DEVICE_ID : influxdb_device_id,
+                INFLUXDB_TAG_METEOFOX_SITE : MFXS_GetSite(influxdb_device_id)
+            }
+        },
+        {
+            "measurement": INFLUXDB_MEASUREMENT_GLOBAL,
+            "time": influxdb_timestamp,
+            "fields": {
+                INFLUXDB_FIELD_LAST_COMMUNICATION_TIMESTAMP : influxdb_timestamp
             },
             "tags": {
                 INFLUXDB_TAG_SIGFOX_DEVICE_ID : influxdb_device_id,
                 INFLUXDB_TAG_METEOFOX_SITE : MFXS_GetSite(influxdb_device_id)
             }
         }]
-        print(MFXS_GetCurrentTimestamp() + "SITE=" + MFXS_GetSite(device_id) + ", MCU_T=" + str(mcu_temperature) + "dC, PCB_T=" + str(pcb_temperature) + "dC, PCB_H=" + str(pcb_humidity) + "%, SOLAR_V=" + str(solar_cell_voltage) + "mV, SUPERCAP_V=" + str(supercap_voltage) + "mV, MCU_V=" + str(mcu_voltage) + "mV, STAT=" + str(status_byte))
+        print(MFXS_GetCurrentTimestamp() + "ID=" + str(device_id) + " * Monitoring data * McuTemp=" + str(mcu_temperature) + "C, PcbTemp=" + str(pcb_temperature) + "C, PcbHum=" + str(pcb_humidity) + "%, SolarVolt=" + str(solar_cell_voltage) + ", SupercapVolt=" + str(supercap_voltage) + "mV, McuVolt=" + str(mcu_voltage) + "mV, Status=" + str(status_byte) + ".")
         # Fill data base.
         influxdb_client.write_points(json_body, time_precision='s')
-        print(MFXS_GetCurrentTimestamp() + "Monitoring data stored in database.")
-    
     # Intermittent eather data frame.
     if len(data) == (2 * SIGFOX_INTERMITTENT_WEATHER_DATA_FRAME_LENGTH_BYTES):
         # Parse fields.
@@ -137,17 +175,27 @@ def MFXS_FillDataBase(timestamp, device_id, data):
                 INFLUXDB_FIELD_LIGHT : light,
                 INFLUXDB_FIELD_UV_INDEX : uv_index,
                 INFLUXDB_FIELD_PRESSURE : pressure,
+                INFLUXDB_FIELD_LAST_WEATHER_DATA_TIMESTAMP : influxdb_timestamp
+            },
+            "tags": {
+                INFLUXDB_TAG_SIGFOX_DEVICE_ID : influxdb_device_id,
+                INFLUXDB_TAG_METEOFOX_SITE : MFXS_GetSite(influxdb_device_id)
+            }
+        },
+        {
+            "measurement": INFLUXDB_MEASUREMENT_GLOBAL,
+            "time": influxdb_timestamp,
+            "fields": {
+                INFLUXDB_FIELD_LAST_COMMUNICATION_TIMESTAMP : influxdb_timestamp
             },
             "tags": {
                 INFLUXDB_TAG_SIGFOX_DEVICE_ID : influxdb_device_id,
                 INFLUXDB_TAG_METEOFOX_SITE : MFXS_GetSite(influxdb_device_id)
             }
         }]
-        print(MFXS_GetCurrentTimestamp() + "SITE=" + MFXS_GetSite(device_id) + ", T=" + str(temperature) + "dC, H=" + str(humidity) + "%, L=" + str(light) + "%, UV=" + str(uv_index) + ", P=" + str(pressure) + "hPa")
+        print(MFXS_GetCurrentTimestamp() + "ID=" + str(device_id) + " * Weather data * Temp=" + str(temperature) + "C, Hum=" + str(humidity) + "%, Light=" + str(light) + "%, UV=" + str(uv_index) + ", Pres=" + str(pressure) + "hPa.")
         # Fill data base.
         influxdb_client.write_points(json_body, time_precision='s')
-        print(MFXS_GetCurrentTimestamp() + "Intermittent weather data stored in database.")
-        
     # Continuous eather data frame.
     if len(data) == (2 * SIGFOX_CONTINUOUS_WEATHER_DATA_FRAME_LENGTH_BYTES):
         # Parse fields.
@@ -174,18 +222,28 @@ def MFXS_FillDataBase(timestamp, device_id, data):
                 INFLUXDB_FIELD_AVERAGE_WIND_SPEED : average_wind_speed,
                 INFLUXDB_FIELD_PEAK_WIND_SPEED : peak_wind_speed,
                 INFLUXDB_FIELD_AVERAGE_WIND_DIRECTION : average_wind_direction,
-                INFLUXDB_FIELD_RAIN : rain
+                INFLUXDB_FIELD_RAIN : rain,
+                INFLUXDB_FIELD_LAST_WEATHER_DATA_TIMESTAMP : influxdb_timestamp
+            },
+            "tags": {
+                INFLUXDB_TAG_SIGFOX_DEVICE_ID : influxdb_device_id,
+                INFLUXDB_TAG_METEOFOX_SITE : MFXS_GetSite(influxdb_device_id)
+            }
+        },
+        {
+            "measurement": INFLUXDB_MEASUREMENT_GLOBAL,
+            "time": influxdb_timestamp,
+            "fields": {
+                INFLUXDB_FIELD_LAST_COMMUNICATION_TIMESTAMP : influxdb_timestamp
             },
             "tags": {
                 INFLUXDB_TAG_SIGFOX_DEVICE_ID : influxdb_device_id,
                 INFLUXDB_TAG_METEOFOX_SITE : MFXS_GetSite(influxdb_device_id)
             }
         }]
-        print(MFXS_GetCurrentTimestamp() + "SITE=" + MFXS_GetSite(device_id) + ", T=" + str(temperature) + "dC, H=" + str(humidity) + "%, L=" + str(light) + "%, UV=" + str(uv_index) + ", P=" + str(pressure) + "hPa, AWS=" + str(average_wind_speed) + "km/h, PWS=" + str(peak_wind_speed) + "km/h, AWD=" + str(average_wind_direction) + "d, R=" + str(rain) + "mm")
+        print(MFXS_GetCurrentTimestamp() + "ID=" + str(device_id) + " * Weather data * Temp=" + str(temperature) + "C, Hum=" + str(humidity) + "%, Light=" + str(light) + "%, UV=" + str(uv_index) + ", Pres=" + str(pressure) + "hPa, AvWindSp=" + str(average_wind_speed) + "km/h, PeakWindSp=" + str(peak_wind_speed) + "km/h, AvWindDir=" + str(average_wind_direction) + "d, Rain=" + str(rain) + "mm.")
         # Fill data base.
         influxdb_client.write_points(json_body, time_precision='s')
-        print(MFXS_GetCurrentTimestamp() + "Continuous weather data stored in database.")
-        
     # Geolocation frame.
     if len(data) == (2 * SIGFOX_GEOLOCATION_FRAME_LENGTH_BYTES):
         # Parse fields.
@@ -214,41 +272,51 @@ def MFXS_FillDataBase(timestamp, device_id, data):
                 INFLUXDB_FIELD_LATITUDE : latitude,
                 INFLUXDB_FIELD_LONGITUDE : longitude,
                 INFLUXDB_FIELD_ALTITUDE : altitude,
-                INFLUXDB_FIELD_GPS_FIX_DURATION : gps_fix_duration
+                INFLUXDB_FIELD_GPS_FIX_DURATION : gps_fix_duration,
+                INFLUXDB_FIELD_LAST_GEOLOC_DATA_TIMESTAMP : influxdb_timestamp
+            },
+            "tags": {
+                INFLUXDB_TAG_SIGFOX_DEVICE_ID : influxdb_device_id,
+                INFLUXDB_TAG_METEOFOX_SITE : MFXS_GetSite(influxdb_device_id)
+            }
+        },
+        {
+            "measurement": INFLUXDB_MEASUREMENT_GLOBAL,
+            "time": influxdb_timestamp,
+            "fields": {
+                INFLUXDB_FIELD_LAST_COMMUNICATION_TIMESTAMP : influxdb_timestamp
             },
             "tags": {
                 INFLUXDB_TAG_SIGFOX_DEVICE_ID : influxdb_device_id,
                 INFLUXDB_TAG_METEOFOX_SITE : MFXS_GetSite(influxdb_device_id)
             }
         }]
-        print(MFXS_GetCurrentTimestamp() + "SITE=" + MFXS_GetSite(device_id) + ", LAT=" + str(latitude) + ", LONG=" + str(longitude) + ", ALT=" + str(altitude) + "m, GPS=" + str(gps_fix_duration) + "s")
+        print(MFXS_GetCurrentTimestamp() + "ID=" + str(device_id) + " * Geoloc data * Lat=" + str(latitude) + ", Long=" + str(longitude) + ", Alt=" + str(altitude) + "m, GpsFixDur=" + str(gps_fix_duration) + "s.")
         # Fill data base.
         influxdb_client.write_points(json_body, time_precision='s')
-        print(MFXS_GetCurrentTimestamp() + "Geolocation data stored in database.")
 
 ### CLASS DECLARATIONS ###
 
 class ServerHandler(BaseHTTPRequestHandler):
-
     def do_GET(self):
-        print(MFXS_GetCurrentTimestamp() + "\nGET request received.")
-        self.send_response(200)
-        
+        print("")
+        print(MFXS_GetCurrentTimestamp() + "GET request received.")
+        self.send_response(200)     
     def do_HEAD(self):
-        print(MFXS_GetCurrentTimestamp() + "\nHEAD request received.")
-        self.send_response(200)
-        
+        print("")
+        print(MFXS_GetCurrentTimestamp() + "HEAD request received.")
+        self.send_response(200)   
     def do_POST(self):
         # Get JSON content.
         post_length = int(self.headers.getheader('content-length', 0))
         post_json = json.loads(self.rfile.read(post_length))
-        print(MFXS_GetCurrentTimestamp() + "\nPOST request received.")
+        print("")
+        print(MFXS_GetCurrentTimestamp() + "POST request received.")
         # Parse data.
         callback_timestamp = post_json[SIGFOX_BACKEND_JSON_HEADER_TIME]
-        #timestamp = timestamp + "000000000" # Convert Unix timestamp to nanoseconds for InfluxDB.
         callback_device_id = post_json[SIGFOX_BACKEND_JSON_HEADER_DEVICE_ID]
         callback_data = post_json[SIGFOX_BACKEND_JSON_HEADER_DATA]
-        print(MFXS_GetCurrentTimestamp() + "Uplink message: TIME=" + callback_timestamp + " SFX_ID=" + callback_device_id + " DATA=" + callback_data)
+        print(MFXS_GetCurrentTimestamp() + "SIGFOX backend callback * Timestamp=" + callback_timestamp + " ID=" + callback_device_id + " Data=" + callback_data)
         # Fill database.
         MFXS_FillDataBase(int(callback_timestamp), callback_device_id, callback_data)
         # Send HTTP response.
@@ -268,21 +336,21 @@ influxdb_database_list = influxdb_client.get_list_database()
 influxdb_mfxdb_found = False
 for influxdb_database in influxdb_database_list:
     if (influxdb_database['name'].find(INFLUXDB_DATABASE_NAME) >= 0):
-        print(MFXS_GetCurrentTimestamp() + "MeteoFox database found")
+        print(MFXS_GetCurrentTimestamp() + "MeteoFox database found.")
         influxdb_mfxdb_found = True
 
 # Create MeteoFox database if it does not exist.   
 if (influxdb_mfxdb_found == False):
-    print(MFXS_GetCurrentTimestamp() + "Creating database " + INFLUXDB_DATABASE_NAME)
+    print(MFXS_GetCurrentTimestamp() + "Creating database " + INFLUXDB_DATABASE_NAME + ".")
     influxdb_client.create_database(INFLUXDB_DATABASE_NAME)
 
-# Swtich to MeteoFox database.
-print(MFXS_GetCurrentTimestamp() + "Switching to database " + INFLUXDB_DATABASE_NAME)
+# Switch to MeteoFox database.
+print(MFXS_GetCurrentTimestamp() + "Switching to database " + INFLUXDB_DATABASE_NAME + ".")
 influxdb_client.switch_database(INFLUXDB_DATABASE_NAME)
         
 # Start server.
 SocketServer.TCPServer.allow_reuse_address = True
 mfxs_handler = ServerHandler
 mfxs = SocketServer.TCPServer(("", MFXS_HTTP_PORT), mfxs_handler)
-print (MFXS_GetCurrentTimestamp() + "Starting server at port", MFXS_HTTP_PORT)
+print (MFXS_GetCurrentTimestamp() + "Starting server at port " + str(MFXS_HTTP_PORT) + ".")
 mfxs.serve_forever()

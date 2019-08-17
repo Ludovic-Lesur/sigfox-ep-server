@@ -17,6 +17,14 @@ SIGFOX_MONITORING_FRAME_LENGTH_BYTES = 9
 SIGFOX_INTERMITTENT_WEATHER_DATA_FRAME_LENGTH_BYTES = 6
 SIGFOX_CONTINUOUS_WEATHER_DATA_FRAME_LENGTH_BYTES = 10
 SIGFOX_GEOLOCATION_FRAME_LENGTH_BYTES = 11
+SIGFOX_GEOLOCATION_TIMEOUT_FRAME_LENGTH_BYTES = 1
+
+# Error values.
+SIGFOX_TEMPERATURE_ERROR = 0x7F
+SIGFOX_HUMIDITY_ERROR = 0xFF
+SIGFOX_UV_INDEX_ERROR = 0xFF
+SIGFOX_PRESSURE_ERROR = 0xFFFF
+INFLUXDB_FIELD_ERROR = "error"
 
 # Backend JSON headers.
 SIGFOX_BACKEND_JSON_HEADER_TIME = "time"
@@ -116,11 +124,11 @@ def MFXS_FillDataBase(timestamp, device_id, data):
     if len(data) == (2 * SIGFOX_MONITORING_FRAME_LENGTH_BYTES):
         # Parse fields.
         mcu_temperature = int(data[0:2], 16)
-        pcb_temperature = int(data[2:4], 16)
-        pcb_humidity = int(data[4:6], 16)
+        pcb_temperature = int(data[2:4], 16) if (int(data[2:4], 16) != SIGFOX_TEMPERATURE_ERROR) else INFLUXDB_FIELD_ERROR
+        pcb_humidity = int(data[4:6], 16) if (int(data[4:6], 16) != SIGFOX_HUMIDITY_ERROR) else INFLUXDB_FIELD_ERROR
         solar_cell_voltage = int(data[6:10], 16)
-        supercap_voltage = int(data[10:13], 16)
-        mcu_voltage = int(data[13:16], 16)
+        supercap_voltage = int(data[10:14], 16)
+        mcu_voltage = int(data[14:16], 16)
         status_byte = int(data[16:18], 16)
         # Create JSON object.
         json_body = [
@@ -159,11 +167,11 @@ def MFXS_FillDataBase(timestamp, device_id, data):
     # Intermittent eather data frame.
     if len(data) == (2 * SIGFOX_INTERMITTENT_WEATHER_DATA_FRAME_LENGTH_BYTES):
         # Parse fields.
-        temperature = int(data[0:2], 16)
-        humidity = int(data[2:4], 16)
+        temperature = int(data[0:2], 16) if (int(data[0:2], 16) != SIGFOX_TEMPERATURE_ERROR) else INFLUXDB_FIELD_ERROR
+        humidity = int(data[2:4], 16) if (int(data[2:4], 16) != SIGFOX_HUMIDITY_ERROR) else INFLUXDB_FIELD_ERROR
         light = int(data[4:6], 16)
-        uv_index = int(data[6:8], 16)
-        pressure = int(data[8:12], 16) / 10.0
+        uv_index = int(data[6:8], 16) if (int(data[6:8], 16) != SIGFOX_UV_INDEX_ERROR) else INFLUXDB_FIELD_ERROR
+        pressure = (int(data[8:12], 16) / 10.0) if (int(data[8:12], 16) != SIGFOX_PRESSURE_ERROR) else INFLUXDB_FIELD_ERROR
         # Create JSON object.
         json_body = [
         {
@@ -199,11 +207,11 @@ def MFXS_FillDataBase(timestamp, device_id, data):
     # Continuous eather data frame.
     if len(data) == (2 * SIGFOX_CONTINUOUS_WEATHER_DATA_FRAME_LENGTH_BYTES):
         # Parse fields.
-        temperature = int(data[0:2], 16)
-        humidity = int(data[2:4], 16)
+        temperature = int(data[0:2], 16) if (int(data[0:2], 16) != SIGFOX_TEMPERATURE_ERROR) else INFLUXDB_FIELD_ERROR
+        humidity = int(data[2:4], 16) if (int(data[2:4], 16) != SIGFOX_HUMIDITY_ERROR) else INFLUXDB_FIELD_ERROR
         light = int(data[4:6], 16)
-        uv_index = int(data[6:8], 16)
-        pressure = int(data[8:12], 16) / 10.0
+        uv_index = int(data[6:8], 16) if (int(data[6:8], 16) != SIGFOX_UV_INDEX_ERROR) else INFLUXDB_FIELD_ERROR
+        pressure = (int(data[8:12], 16) / 10.0) if (int(data[8:12], 16) != SIGFOX_PRESSURE_ERROR) else INFLUXDB_FIELD_ERROR
         average_wind_speed = int(data[12:14], 16)
         peak_wind_speed = int(data[14:16], 16)
         average_wind_direction = int(data[16:18], 16)
@@ -292,6 +300,36 @@ def MFXS_FillDataBase(timestamp, device_id, data):
             }
         }]
         print(MFXS_GetCurrentTimestamp() + "ID=" + str(device_id) + " * Geoloc data * Lat=" + str(latitude) + ", Long=" + str(longitude) + ", Alt=" + str(altitude) + "m, GpsFixDur=" + str(gps_fix_duration) + "s.")
+        # Fill data base.
+        influxdb_client.write_points(json_body, time_precision='s')
+    # Geolocation timeout frame.
+    if len(data) == (2 * SIGFOX_GEOLOCATION_TIMEOUT_FRAME_LENGTH_BYTES):
+        gps_fix_duration = int(data[0:2], 16)
+        # Create JSON object.
+        json_body = [
+        {
+            "measurement": INFLUXDB_MEASUREMENT_GEOLOC,
+            "time": influxdb_timestamp,
+            "fields": {
+                INFLUXDB_FIELD_GPS_FIX_DURATION : gps_fix_duration,
+            },
+            "tags": {
+                INFLUXDB_TAG_SIGFOX_DEVICE_ID : influxdb_device_id,
+                INFLUXDB_TAG_METEOFOX_SITE : MFXS_GetSite(influxdb_device_id)
+            }
+        },
+        {
+            "measurement": INFLUXDB_MEASUREMENT_GLOBAL,
+            "time": influxdb_timestamp,
+            "fields": {
+                INFLUXDB_FIELD_LAST_COMMUNICATION_TIMESTAMP : influxdb_timestamp
+            },
+            "tags": {
+                INFLUXDB_TAG_SIGFOX_DEVICE_ID : influxdb_device_id,
+                INFLUXDB_TAG_METEOFOX_SITE : MFXS_GetSite(influxdb_device_id)
+            }
+        }]
+        print(MFXS_GetCurrentTimestamp() + "ID=" + str(device_id) + " * Geoloc timeout * GpsFixDur=" + str(gps_fix_duration) + "s.")
         # Fill data base.
         influxdb_client.write_points(json_body, time_precision='s')
 

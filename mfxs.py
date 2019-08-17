@@ -1,6 +1,7 @@
 from __future__ import print_function
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 import SocketServer
+import math
 import datetime
 import time
 import json
@@ -47,7 +48,8 @@ INFLUXDB_FIELD_TEMPERATURE = "temperature"
 INFLUXDB_FIELD_HUMIDITY = "humidity"
 INFLUXDB_FIELD_LIGHT = "light"
 INFLUXDB_FIELD_UV_INDEX = "uv_index"
-INFLUXDB_FIELD_PRESSURE = "pressure"
+INFLUXDB_FIELD_ABSOLUTE_PRESSURE = "absolute_pressure"
+INFLUXDB_FIELD_SEA_LEVEL_PRESSURE = "sea_level_pressure"
 INFLUXDB_FIELD_AVERAGE_WIND_SPEED = "average_wind_speed"
 INFLUXDB_FIELD_PEAK_WIND_SPEED = "peak_wind_speed"
 INFLUXDB_FIELD_AVERAGE_WIND_DIRECTION = "average_wind_direction"
@@ -76,6 +78,10 @@ INFLUXDB_FIELD_GPS_FIX_DURATION = "gps_fix_duration"
 INFLUXDB_TAG_SIGFOX_DEVICE_ID = "sigfox_device_id"
 INFLUXDB_TAG_METEOFOX_SITE = "meteofox_site"
 
+### GLOBAL VARIABLES ###
+
+mfxs_altitude_table = {}
+
 ### FUNCTIONS DEFINITIONS ###
 
 # Function to get current timestamp in pretty format.
@@ -95,6 +101,12 @@ def MFXS_GetSite(device_id):
     elif device_id == "5477":
         meteofox_site = "Prat d'Albis (Ariege)"
     return meteofox_site
+
+# Function to compute sea-level pressure (barometric formula).
+def MFXS_GetSeaLevelPressure(absolute_pressure, altitude, temperature):
+    # a^(x) = exp(x*ln(a))
+    temperature_kelvin = temperature + 273.15
+    return (absolute_pressure * math.exp(-5.255 * math.log((temperature_kelvin) / (temperature_kelvin + 0.0065 * altitude))))
 
 # Function for parsing Sigfox payload and fill database.
 def MFXS_FillDataBase(timestamp, device_id, data):
@@ -171,7 +183,14 @@ def MFXS_FillDataBase(timestamp, device_id, data):
         humidity = int(data[2:4], 16) if (int(data[2:4], 16) != SIGFOX_HUMIDITY_ERROR) else INFLUXDB_FIELD_ERROR
         light = int(data[4:6], 16)
         uv_index = int(data[6:8], 16) if (int(data[6:8], 16) != SIGFOX_UV_INDEX_ERROR) else INFLUXDB_FIELD_ERROR
-        pressure = (int(data[8:12], 16) / 10.0) if (int(data[8:12], 16) != SIGFOX_PRESSURE_ERROR) else INFLUXDB_FIELD_ERROR
+        absolute_pressure = (int(data[8:12], 16) / 10.0) if (int(data[8:12], 16) != SIGFOX_PRESSURE_ERROR) else INFLUXDB_FIELD_ERROR
+        sea_level_pressure = INFLUXDB_FIELD_ERROR
+        try:
+            altitude = mfxs_altitude_table[influxdb_device_id]
+            sea_level_pressure = MFXS_GetSeaLevelPressure(absolute_pressure, temperature, altitude)
+        except:
+            # Altitude is not available yet for this device.
+            sea_level_pressure = INFLUXDB_FIELD_ERROR
         # Create JSON object.
         json_body = [
         {
@@ -182,7 +201,8 @@ def MFXS_FillDataBase(timestamp, device_id, data):
                 INFLUXDB_FIELD_HUMIDITY : humidity,
                 INFLUXDB_FIELD_LIGHT : light,
                 INFLUXDB_FIELD_UV_INDEX : uv_index,
-                INFLUXDB_FIELD_PRESSURE : pressure,
+                INFLUXDB_FIELD_ABSOLUTE_PRESSURE : absolute_pressure,
+                INFLUXDB_FIELD_SEA_LEVEL_PRESSURE : sea_level_pressure,
                 INFLUXDB_FIELD_LAST_WEATHER_DATA_TIMESTAMP : influxdb_timestamp
             },
             "tags": {
@@ -201,7 +221,7 @@ def MFXS_FillDataBase(timestamp, device_id, data):
                 INFLUXDB_TAG_METEOFOX_SITE : MFXS_GetSite(influxdb_device_id)
             }
         }]
-        print(MFXS_GetCurrentTimestamp() + "ID=" + str(device_id) + " * Weather data * Temp=" + str(temperature) + "C, Hum=" + str(humidity) + "%, Light=" + str(light) + "%, UV=" + str(uv_index) + ", Pres=" + str(pressure) + "hPa.")
+        print(MFXS_GetCurrentTimestamp() + "ID=" + str(device_id) + " * Weather data * Temp=" + str(temperature) + "C, Hum=" + str(humidity) + "%, Light=" + str(light) + "%, UV=" + str(uv_index) + ", AbsPres=" + str(absolute_pressure) + "hPa, SeaPres=" + str(sea_level_pressure) + "hpa.")
         # Fill data base.
         influxdb_client.write_points(json_body, time_precision='s')
     # Continuous eather data frame.
@@ -211,7 +231,14 @@ def MFXS_FillDataBase(timestamp, device_id, data):
         humidity = int(data[2:4], 16) if (int(data[2:4], 16) != SIGFOX_HUMIDITY_ERROR) else INFLUXDB_FIELD_ERROR
         light = int(data[4:6], 16)
         uv_index = int(data[6:8], 16) if (int(data[6:8], 16) != SIGFOX_UV_INDEX_ERROR) else INFLUXDB_FIELD_ERROR
-        pressure = (int(data[8:12], 16) / 10.0) if (int(data[8:12], 16) != SIGFOX_PRESSURE_ERROR) else INFLUXDB_FIELD_ERROR
+        absolute_pressure = (int(data[8:12], 16) / 10.0) if (int(data[8:12], 16) != SIGFOX_PRESSURE_ERROR) else INFLUXDB_FIELD_ERROR
+        sea_level_pressure = INFLUXDB_FIELD_ERROR
+        try:
+            altitude = mfxs_altitude_table[influxdb_device_id]
+            sea_level_pressure = MFXS_GetSeaLevelPressure(absolute_pressure, temperature, altitude)
+        except:
+            # Altitude is not available yet for this device.
+            sea_level_pressure = INFLUXDB_FIELD_ERROR
         average_wind_speed = int(data[12:14], 16)
         peak_wind_speed = int(data[14:16], 16)
         average_wind_direction = int(data[16:18], 16)
@@ -226,7 +253,8 @@ def MFXS_FillDataBase(timestamp, device_id, data):
                 INFLUXDB_FIELD_HUMIDITY : humidity,
                 INFLUXDB_FIELD_LIGHT : light,
                 INFLUXDB_FIELD_UV_INDEX : uv_index,
-                INFLUXDB_FIELD_PRESSURE : pressure,
+                INFLUXDB_FIELD_ABSOLUTE_PRESSURE : absolute_pressure,
+                INFLUXDB_FIELD_SEA_LEVEL_PRESSURE : sea_level_pressure,
                 INFLUXDB_FIELD_AVERAGE_WIND_SPEED : average_wind_speed,
                 INFLUXDB_FIELD_PEAK_WIND_SPEED : peak_wind_speed,
                 INFLUXDB_FIELD_AVERAGE_WIND_DIRECTION : average_wind_direction,
@@ -249,7 +277,7 @@ def MFXS_FillDataBase(timestamp, device_id, data):
                 INFLUXDB_TAG_METEOFOX_SITE : MFXS_GetSite(influxdb_device_id)
             }
         }]
-        print(MFXS_GetCurrentTimestamp() + "ID=" + str(device_id) + " * Weather data * Temp=" + str(temperature) + "C, Hum=" + str(humidity) + "%, Light=" + str(light) + "%, UV=" + str(uv_index) + ", Pres=" + str(pressure) + "hPa, AvWindSp=" + str(average_wind_speed) + "km/h, PeakWindSp=" + str(peak_wind_speed) + "km/h, AvWindDir=" + str(average_wind_direction) + "d, Rain=" + str(rain) + "mm.")
+        print(MFXS_GetCurrentTimestamp() + "ID=" + str(device_id) + " * Weather data * Temp=" + str(temperature) + "C, Hum=" + str(humidity) + "%, Light=" + str(light) + "%, UV=" + str(uv_index) + ", Pres=" + str(absolute_pressure) + "hPa, SeaPres=" + str(sea_level_pressure) + "hPa, AvWindSp=" + str(average_wind_speed) + "km/h, PeakWindSp=" + str(peak_wind_speed) + "km/h, AvWindDir=" + str(average_wind_direction) + "d, Rain=" + str(rain) + "mm.")
         # Fill data base.
         influxdb_client.write_points(json_body, time_precision='s')
     # Geolocation frame.
@@ -270,6 +298,7 @@ def MFXS_FillDataBase(timestamp, device_id, data):
         if (longitude_east == 0):
             longitude = -longitude
         altitude = int(data[16:20], 16)
+        mfxs_altitude_table[influxdb_device_id] = altitude
         gps_fix_duration = int(data[20:22], 16)
         # Create JSON object.
         json_body = [

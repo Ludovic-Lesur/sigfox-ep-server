@@ -140,8 +140,8 @@ def MFXS_FillDataBase(timestamp, device_id, data):
         # Parse fields.
         mcu_temperature = int(data[0:2], 16)
         solar_cell_voltage = int(data[6:10], 16)
-        supercap_voltage = int(data[10:14], 16)
-        mcu_voltage = int(data[14:16], 16)
+        supercap_voltage = int(data[10:13], 16)
+        mcu_voltage = int(data[13:16], 16)
         status_byte = int(data[16:18], 16)
         # Create JSON object.
         json_body = [
@@ -250,7 +250,7 @@ def MFXS_FillDataBase(timestamp, device_id, data):
         light = int(data[4:6], 16)
         average_wind_speed = int(data[12:14], 16)
         peak_wind_speed = int(data[14:16], 16)
-        average_wind_direction = int(data[16:18], 16)
+        average_wind_direction = 2 * int(data[16:18], 16)
         rain = int(data[18:20], 16)
         # Create JSON object.
         json_body = [

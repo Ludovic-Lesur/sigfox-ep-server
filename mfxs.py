@@ -80,10 +80,6 @@ INFLUXDB_FIELD_GPS_FIX_DURATION = "gps_fix_duration"
 INFLUXDB_TAG_SIGFOX_DEVICE_ID = "sigfox_device_id"
 INFLUXDB_TAG_METEOFOX_SITE = "meteofox_site"
 
-### GLOBAL VARIABLES ###
-
-mfxs_altitude_table = {}
-
 ### FUNCTIONS DEFINITIONS ###
 
 # Function to get current timestamp in pretty format.
@@ -234,7 +230,11 @@ def MFXS_FillDataBase(timestamp, device_id, data):
             json_body[0]["fields"][INFLUXDB_FIELD_ABSOLUTE_PRESSURE] = absolute_pressure
             if (int(data[0:2], 16) != SIGFOX_TEMPERATURE_ERROR):
                 try:
-                    altitude = mfxs_altitude_table[influxdb_device_id]
+                    altitude_query = "SELECT last(altitude) FROM geoloc WHERE sigfox_device_id='" + influxdb_device_id + "'"
+                    altitude_query_result = influxdb_client.query(altitude_query)
+                    altitude_points = altitude_query_result.get_points()
+                    for point in altitude_points:
+                        altitude = int(point["last"])
                     sea_level_pressure = MFXS_GetSeaLevelPressure(absolute_pressure, altitude, temperature)
                     json_body[0]["fields"][INFLUXDB_FIELD_SEA_LEVEL_PRESSURE] = sea_level_pressure
                 except:
@@ -244,7 +244,7 @@ def MFXS_FillDataBase(timestamp, device_id, data):
             print(MFXS_GetCurrentTimestamp() + "ID=" + str(device_id) + " * Weather data * Temp=" + str(temperature) + "C, Hum=" + str(humidity) + "%, Light=" + str(light) + "%, UV=" + str(uv_index) + ", AbsPres=" + str(absolute_pressure) + "hPa, SeaPres=" + str(sea_level_pressure) + "hpa.")
         # Fill data base.
         influxdb_client.write_points(json_body, time_precision='s')
-    # Continuous eather data frame.
+    # Continuous weather data frame.
     if len(data) == (2 * SIGFOX_CONTINUOUS_WEATHER_DATA_FRAME_LENGTH_BYTES):
         # Parse fields.
         light = int(data[4:6], 16)
@@ -301,7 +301,11 @@ def MFXS_FillDataBase(timestamp, device_id, data):
             json_body[0]["fields"][INFLUXDB_FIELD_ABSOLUTE_PRESSURE] = absolute_pressure
             if (int(data[0:2], 16) != SIGFOX_TEMPERATURE_ERROR):
                 try:
-                    altitude = mfxs_altitude_table[influxdb_device_id]
+                    altitude_query = "SELECT last(altitude) FROM geoloc WHERE sigfox_device_id='" + influxdb_device_id + "'"
+                    altitude_query_result = influxdb_client.query(altitude_query)
+                    altitude_points = altitude_query_result.get_points()
+                    for point in altitude_points:
+                        altitude = int(point["last"])
                     sea_level_pressure = MFXS_GetSeaLevelPressure(absolute_pressure, altitude, temperature)
                     json_body[0]["fields"][INFLUXDB_FIELD_SEA_LEVEL_PRESSURE] = sea_level_pressure
                 except:
@@ -329,7 +333,6 @@ def MFXS_FillDataBase(timestamp, device_id, data):
         if (longitude_east == 0):
             longitude = -longitude
         altitude = int(data[16:20], 16)
-        mfxs_altitude_table[influxdb_device_id] = altitude
         gps_fix_duration = int(data[20:22], 16)
         # Create JSON object.
         json_body = [

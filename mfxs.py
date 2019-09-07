@@ -437,8 +437,16 @@ if LOG == True:
     print("--------------- MeteoFox Server (MFXS) ----------------")
     print("*******************************************************\n")
 
-# Create Influx DB client.
-influxdb_client = InfluxDBClient(host='localhost', port=INFLUXDB_DATABASE_HTTP_PORT)
+# Wait for InfluxDB to be availabmle and create client.
+influxdb_found = False
+while influxdb_found == False:
+    try:
+        influxdb_client = InfluxDBClient(host='localhost', port=INFLUXDB_DATABASE_HTTP_PORT)
+        influxdb_found = True
+        if LOG == True:
+            print(MFXS_GetCurrentTimestamp() + "InfluxDB connection OK.")
+    except:
+        influxdb_found = False
 
 # Get list of existing databases.
 influxdb_database_list = influxdb_client.get_list_database()

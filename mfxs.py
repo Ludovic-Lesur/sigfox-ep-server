@@ -28,6 +28,7 @@ SIGFOX_TEMPERATURE_ERROR = 0x7F
 SIGFOX_HUMIDITY_ERROR = 0xFF
 SIGFOX_UV_INDEX_ERROR = 0xFF
 SIGFOX_PRESSURE_ERROR = 0xFFFF
+SIGFOX_WIND_ERROR = 0xFF
 
 # Backend JSON headers.
 SIGFOX_BACKEND_JSON_HEADER_TIME = "time"
@@ -250,7 +251,6 @@ def MFXS_FillDataBase(timestamp, device_id, data):
         light = int(data[4:6], 16)
         average_wind_speed = int(data[12:14], 16)
         peak_wind_speed = int(data[14:16], 16)
-        average_wind_direction = 2 * int(data[16:18], 16)
         rain = int(data[18:20], 16)
         # Create JSON object.
         json_body = [
@@ -261,7 +261,6 @@ def MFXS_FillDataBase(timestamp, device_id, data):
                 INFLUXDB_FIELD_LIGHT : light,
                 INFLUXDB_FIELD_AVERAGE_WIND_SPEED : average_wind_speed,
                 INFLUXDB_FIELD_PEAK_WIND_SPEED : peak_wind_speed,
-                INFLUXDB_FIELD_AVERAGE_WIND_DIRECTION : average_wind_direction,
                 INFLUXDB_FIELD_RAIN : rain,
                 INFLUXDB_FIELD_LAST_WEATHER_DATA_TIMESTAMP : influxdb_timestamp
             },
@@ -311,6 +310,10 @@ def MFXS_FillDataBase(timestamp, device_id, data):
                 except:
                     # Altitude is not available yet for this device.
                     sea_level_pressure = "error"
+        average_wind_direction = "error"
+        if (int(data[16:18], 16) != SIGFOX_WIND_ERROR):
+            average_wind_direction = 2 * int(data[16:18], 16)
+            json_body[0]["fields"][INFLUXDB_FIELD_AVERAGE_WIND_DIRECTION] = average_wind_direction
         if LOG == True:
             print(MFXS_GetCurrentTimestamp() + "ID=" + str(device_id) + " * Weather data * Temp=" + str(temperature) + "C, Hum=" + str(humidity) + "%, Light=" + str(light) + "%, UV=" + str(uv_index) + ", Pres=" + str(absolute_pressure) + "hPa, SeaPres=" + str(sea_level_pressure) + "hPa, AvWindSp=" + str(average_wind_speed) + "km/h, PeakWindSp=" + str(peak_wind_speed) + "km/h, AvWindDir=" + str(average_wind_direction) + "d, Rain=" + str(rain) + "mm.")
         # Fill data base.

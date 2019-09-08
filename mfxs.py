@@ -320,14 +320,14 @@ def MFXS_FillDataBase(timestamp, device_id, data):
         # Parse fields.
         latitude_degrees = int(data[0:2], 16)
         latitude_minutes = (int(data[2:4], 16) >> 2) & 0x3F
-        latitude_seconds = ((((int(data[2:8], 16) & 0x03FFFE) >> 1) & 0x01FFF) / (100000.0)) * 60.0
+        latitude_seconds = ((((int(data[2:8], 16) & 0x03FFFE) >> 1) & 0x01FFFF) / (100000.0)) * 60.0
         latitude_north = int(data[6:8], 16) & 0x01
         latitude = latitude_degrees + (latitude_minutes / 60.0) + (latitude_seconds / 3600.0)
         if (latitude_north == 0):
             latitude = -latitude
         longitude_degrees = int(data[8:10], 16)
         longitude_minutes = (int(data[10:12], 16) >> 2) & 0x3F
-        longitude_seconds = ((((int(data[10:16], 16) & 0x03FFFE) >> 1) & 0x01FFF) / (100000.0)) * 60.0
+        longitude_seconds = ((((int(data[10:16], 16) & 0x03FFFE) >> 1) & 0x01FFFF) / (100000.0)) * 60.0
         longitude_east = int(data[14:16], 16) & 0x01
         longitude = longitude_degrees + (longitude_minutes / 60.0) + (longitude_seconds / 3600.0)
         if (longitude_east == 0):

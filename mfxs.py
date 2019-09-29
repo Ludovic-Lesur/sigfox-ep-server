@@ -92,13 +92,17 @@ def MFXS_GetSite(device_id):
     # Default is unknown.
     meteofox_site = "Unknown site (" + str(device_id) + ")"
     if device_id == "53B5":
-        meteofox_site = "Proto HW1.0"
+        meteofox_site = "Proto V1"
     elif device_id == "5436":
-        meteofox_site = "Proto HW2.0"
+        meteofox_site = "Proto V2"
     elif device_id == "546C":
-        meteofox_site = "Le Vigan (Lot)"
+        meteofox_site = "Le Vigan"
     elif device_id == "5477":
-        meteofox_site = "Prat d'Albis (Ariege)"
+        meteofox_site = "Prat d'Albis"
+    elif device_id == "5497":
+        meteofox_site = "Eaunes"
+    elif device_id == "549D":
+        meteofox_site = "Sigfox"
     return meteofox_site
 
 # Function to compute sea-level pressure (barometric formula).

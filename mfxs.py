@@ -141,7 +141,10 @@ def MFXS_FillDataBase(timestamp, device_id, data):
     # Monitoring frame.
     if len(data) == (2 * SIGFOX_MONITORING_FRAME_LENGTH_BYTES):
         # Parse fields.
-        mcu_temperature = int(data[0:2], 16)
+        mcu_temperature_raw = int(data[0:2], 16)
+        mcu_temperature = mcu_temperature_raw & 0x7F
+        if ((mcu_temperature_raw & 0x80) != 0):
+            mcu_temperature = (-1) * mcu_temperature
         solar_cell_voltage = int(data[6:10], 16)
         supercap_voltage = int(data[10:13], 16)
         mcu_voltage = int(data[13:16], 16)
@@ -178,7 +181,10 @@ def MFXS_FillDataBase(timestamp, device_id, data):
         # Manage error values.
         pcb_temperature = "error"
         if (int(data[2:4], 16) != SIGFOX_TEMPERATURE_ERROR):
-            pcb_temperature = int(data[2:4], 16)
+            pcb_temperature_raw = int(data[2:4], 16)
+            pcb_temperature = pcb_temperature_raw & 0x7F
+            if ((pcb_temperature_raw & 0x80) != 0):
+                pcb_temperature = (-1) * pcb_temperature
             json_body[0]["fields"][INFLUXDB_FIELD_PCB_TEMPERATURE] = pcb_temperature
         pcb_humidity = "error"
         if (int(data[4:6], 16) != SIGFOX_HUMIDITY_ERROR):
@@ -220,7 +226,10 @@ def MFXS_FillDataBase(timestamp, device_id, data):
         # Manage error values.
         temperature = "error"
         if (int(data[0:2], 16) != SIGFOX_TEMPERATURE_ERROR):
-            temperature = int(data[0:2], 16)
+            temperature_raw = int(data[0:2], 16)
+            temperature = temperature_raw & 0x7F
+            if ((temperature_raw & 0x80) != 0):
+                temperature = (-1) * temperature
             json_body[0]["fields"][INFLUXDB_FIELD_TEMPERATURE] = temperature
         humidity = "error"
         if (int(data[2:4], 16) != SIGFOX_HUMIDITY_ERROR):
@@ -289,7 +298,10 @@ def MFXS_FillDataBase(timestamp, device_id, data):
         # Manage error values.
         temperature = "error"
         if (int(data[0:2], 16) != SIGFOX_TEMPERATURE_ERROR):
-            temperature = int(data[0:2], 16)
+            temperature_raw = int(data[0:2], 16)
+            temperature = temperature_raw & 0x7F
+            if ((temperature_raw & 0x80) != 0):
+                temperature = (-1) * temperature
             json_body[0]["fields"][INFLUXDB_FIELD_TEMPERATURE] = temperature
         humidity = "error"
         if (int(data[2:4], 16) != SIGFOX_HUMIDITY_ERROR):

@@ -98,13 +98,13 @@ def MFXS_GetSite(device_id):
     elif device_id == "546C":
         meteofox_site = "Le Vigan"
     elif device_id == "5477":
-        meteofox_site = "Prat Albis"
+        meteofox_site = "Saint-Simon"
     elif device_id == "5497":
         meteofox_site = "Eaunes"
     elif device_id == "549D":
         meteofox_site = "Labege"
     elif device_id == "54B6":
-        meteofox_site = "Saint-Clar"
+        meteofox_site = "Grust"
     return meteofox_site
 
 # Function to compute sea-level pressure (barometric formula).

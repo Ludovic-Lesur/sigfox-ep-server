@@ -29,6 +29,9 @@ ATXFX_SIGFOX_DEVICES_ID = ["868E", "869E", "87A5", "87EE", "87F1", "87F6", "87F4
 ATXFX_SIGFOX_DEVICES_RACK = ["1", "1", "1", "1", "1", "2", "2", "2", "2", "2"]
 ATXFX_SIGFOX_DEVICES_FRONT_END = ["+3.3V", "+5.0V", "+12.0V", "Adjustable", "Battery charger", "+3.3V", "+5.0V", "+12.0V", "Adjustable", "Battery charger"]
 
+SLFX_SIGFOX_DEVICES_ID = ["44AA", "44D2", "4505", "45A0", "45AB"]
+SLFX_SIGFOX_DEVICES_SITE = ["INSA Toulouse", "Le Vigan", "Unknown", "Unknown", "Unknown"]
+
 # Sigfox frame lengths.
 MFX_SIGFOX_OOB_DATA = "OOB"
 MFX_SIGFOX_MONITORING_FRAME_LENGTH_BYTES = 9
@@ -39,6 +42,8 @@ MFX_SIGFOX_GEOLOCATION_TIMEOUT_FRAME_LENGTH_BYTES = 1
 
 ATXFX_SIGFOX_START_STOP_FRAME_LENGTH_BYTES = 1
 ATXFX_SIGFOX_MONITORING_FRAME_LENGTH_BYTES = 8
+
+SLFX_SIGFOX_MONITORING_DATA_FRAME_LENGTH_BYTES = 10
 
 # Error values.
 MFX_TEMPERATURE_ERROR = 0x7F
@@ -53,6 +58,7 @@ ATXFX_OUTPUT_CURRENT_ERROR = 0xFFFFFF
 INFLUXDB_DATABASE_HTTP_PORT = 8086
 INFLUXDB_MFX_DATABASE_NAME = 'mfxdb'
 INFLUXDB_ATXFX_DATABASE_NAME = 'atxfxdb'
+INFLUXDB_SLFX_DATABASE_NAME = 'slfxdb'
 INFLUXDB_NULL_DATABASE_NAME = 'nulldb'
 
 # Influx DB measurements name.
@@ -102,6 +108,7 @@ INFLUXDB_TAG_SIGFOX_DEVICE_ID = "sigfox_device_id"
 INFLUXDB_TAG_METEOFOX_SITE = "meteofox_site"
 INFLUXDB_TAG_ATXFOX_RACK = "atxfox_rack"
 INFLUXDB_TAG_ATXFOX_FRONT_END = "atxfox_front_end"
+INFLUXDB_TAG_SOLARFOX_SITE = "solarfox_site"
 
 ### FUNCTIONS DEFINITIONS ###
 
@@ -116,6 +123,8 @@ def SFXS_GetDataBase(device_id):
         sfxs_db = INFLUXDB_MFX_DATABASE_NAME
     elif (device_id in ATXFX_SIGFOX_DEVICES_ID):
         sfxs_db = INFLUXDB_ATXFX_DATABASE_NAME
+    elif (device_id in SLFX_SIGFOX_DEVICES_ID):
+        sfxs_db = INFLUXDB_SLFX_DATABASE_NAME
     return sfxs_db
 
 # Function performing Sigfox ID to MeteoFox site conversion.
@@ -142,13 +151,21 @@ def ATXFX_GetFrontEnd(device_id):
         atxfox_front_end = ATXFX_SIGFOX_DEVICES_FRONT_END[ATXFX_SIGFOX_DEVICES_ID.index(device_id)]
     return atxfox_front_end
 
+# Function performing Sigfox ID to SolarFox site conversion.
+def SLFX_GetSite(device_id):
+    # Default is unknown.
+    solarfox_site = "Unknown site (" + str(device_id) + ")"
+    if (device_id in SLFX_SIGFOX_DEVICES_ID):
+        solarfox_site = SLFX_SIGFOX_DEVICES_SITE[SLFX_SIGFOX_DEVICES_ID.index(device_id)]
+    return solarfox_site
+
 # Function to compute sea-level pressure (barometric formula).
 def MFX_GetSeaLevelPressure(absolute_pressure, altitude, temperature):
     # a^(x) = exp(x*ln(a))
     temperature_kelvin = temperature + 273.15
     return (absolute_pressure * math.exp(-5.255 * math.log((temperature_kelvin) / (temperature_kelvin + 0.0065 * altitude))))
 
-# Function for parsing Sigfox payload and fill database.
+# Function for parsing MeteoFox device payload and fill database.
 def MFX_FillDataBase(timestamp, device_id, data):
     # Format parameters.
     influxdb_device_id = device_id.upper()
@@ -454,7 +471,8 @@ def MFX_FillDataBase(timestamp, device_id, data):
             print(SFXS_GetCurrentTimestamp() + "MFX ID=" + str(device_id) + " * Geoloc timeout * GpsFixDur=" + str(gps_fix_duration) + "s.")
         # Fill data base.
         influxdb_client.write_points(json_body, time_precision='s')
-        
+
+# Function for parsing ATXFox device payload and fill database.      
 def ATXFX_FillDataBase(timestamp, device_id, data):
     # Format parameters.
     influxdb_device_id = device_id.upper()
@@ -505,6 +523,7 @@ def ATXFX_FillDataBase(timestamp, device_id, data):
                 print(SFXS_GetCurrentTimestamp() + "ATXFX ID=" + str(device_id) + " * Start-up.")
             # Fill data base.
             influxdb_client.write_points(json_body, time_precision='s')
+    # Monitoring frame.
     if len(data) == (2 * ATXFX_SIGFOX_MONITORING_FRAME_LENGTH_BYTES):
         # Parse fields.
         output_voltage = ((int(data[0:4], 16)) >> 2) & 0x3FFF
@@ -557,6 +576,56 @@ def ATXFX_FillDataBase(timestamp, device_id, data):
             print(SFXS_GetCurrentTimestamp() + "ATXFX ID=" + str(device_id) + " * Monitoring data * U=" + str(output_voltage) + "mV, Range=" + str(current_sense_range) + ", I=" + str(output_current) + "uA, P=" + str(output_power) + "nW, McuVoltage=" + str(mcu_voltage) + "mV, McuTemp=" + str(mcu_temperature) + "dC.")
         # Fill data base.
         influxdb_client.write_points(json_body, time_precision='s')
+
+# Function for parsing SolarFox device payload and fill database.      
+def SLFX_FillDataBase(timestamp, device_id, data):
+    # Format parameters.
+    influxdb_device_id = device_id.upper()
+    influxdb_timestamp = int(timestamp)
+    # Monitoring frame.
+    if len(data) == (2 * SLFX_SIGFOX_MONITORING_DATA_FRAME_LENGTH_BYTES):
+        # Parse fields.
+        solar_cell_voltage = int(data[0:4], 16)
+        output_voltage = int(data[4:8], 16)
+        output_current = int(data[8:14], 16)
+        mcu_voltage = int(data[14:18], 16)
+        mcu_temperature_raw = int(data[18:20], 16)
+        mcu_temperature = mcu_temperature_raw & 0x7F
+        if ((mcu_temperature_raw & 0x80) != 0):
+            mcu_temperature = (-1) * mcu_temperature
+        # Create JSON object.
+        json_body = [
+        {
+            "measurement": INFLUXDB_MEASUREMENT_MONITORING,
+            "time": influxdb_timestamp,
+            "fields": {
+                INFLUXDB_FIELD_SOLAR_CELL_VOLTAGE : solar_cell_voltage,
+                INFLUXDB_FIELD_OUTPUT_VOLTAGE : output_voltage,
+                INFLUXDB_FIELD_OUTPUT_CURRENT : output_current,
+                INFLUXDB_FIELD_MCU_VOLTAGE : mcu_voltage,
+                INFLUXDB_FIELD_MCU_TEMPERATURE : mcu_temperature,
+                INFLUXDB_FIELD_LAST_MONITORING_DATA_TIMESTAMP : influxdb_timestamp
+            },
+            "tags": {
+                INFLUXDB_TAG_SIGFOX_DEVICE_ID : influxdb_device_id,
+                INFLUXDB_TAG_SOLARFOX_SITE : SLFX_GetSite(influxdb_device_id)
+            }
+        },
+        {
+            "measurement": INFLUXDB_MEASUREMENT_GLOBAL,
+            "time": influxdb_timestamp,
+            "fields": {
+                INFLUXDB_FIELD_LAST_COMMUNICATION_TIMESTAMP : influxdb_timestamp
+            },
+            "tags": {
+                INFLUXDB_TAG_SIGFOX_DEVICE_ID : influxdb_device_id,
+                INFLUXDB_TAG_SOLARFOX_SITE : SLFX_GetSite(influxdb_device_id)
+            }
+        }]
+        if SFXS_LOG == True:
+            print(SFXS_GetCurrentTimestamp() + "SLFX ID=" + str(device_id) + " * Monitoring data * Vpv=" + str(solar_cell_voltage) + "mV, Vout=" + str(output_voltage) + "mV, Iout=" + str(output_current) + "uA, McuVoltage=" + str(mcu_voltage) + "mV, McuTemp=" + str(mcu_temperature) + "dC.")
+        # Fill data base.
+        influxdb_client.write_points(json_body, time_precision='s')
         
 ### CLASS DECLARATIONS ###
 
@@ -596,6 +665,11 @@ class ServerHandler(BaseHTTPRequestHandler):
             if SFXS_LOG == True:
                 print(SFXS_GetCurrentTimestamp() + "Switching to database " + INFLUXDB_ATXFX_DATABASE_NAME + ".")
             ATXFX_FillDataBase(int(callback_timestamp), callback_device_id, callback_data)
+        elif (sfxs_database == INFLUXDB_SLFX_DATABASE_NAME):
+            influxdb_client.switch_database(INFLUXDB_SLFX_DATABASE_NAME)
+            if SFXS_LOG == True:
+                print(SFXS_GetCurrentTimestamp() + "Switching to database " + INFLUXDB_SLFX_DATABASE_NAME + ".")
+            SLFX_FillDataBase(int(callback_timestamp), callback_device_id, callback_data)
         else:
             if SFXS_LOG == True:
                 print(SFXS_GetCurrentTimestamp() + "Unknown Sigfox device ID.")
@@ -624,6 +698,7 @@ while influxdb_found == False:
 influxdb_database_list = influxdb_client.get_list_database()
 influxdb_mfxdb_found = False
 influxdb_atxfxdb_found = False
+influxdb_slfxdb_found = False
 for influxdb_database in influxdb_database_list:
     if (influxdb_database['name'].find(INFLUXDB_MFX_DATABASE_NAME) >= 0):
         if SFXS_LOG == True:
@@ -633,6 +708,10 @@ for influxdb_database in influxdb_database_list:
         if SFXS_LOG == True:
             print(SFXS_GetCurrentTimestamp() + "ATXFox database found.")
         influxdb_atxfxdb_found = True
+    if (influxdb_database['name'].find(INFLUXDB_SLFX_DATABASE_NAME) >= 0):
+        if SFXS_LOG == True:
+            print(SFXS_GetCurrentTimestamp() + "SolarFox database found.")
+        influxdb_slfxdb_found = True
 
 # Create MeteoFox database if it does not exist.   
 if (influxdb_mfxdb_found == False):
@@ -644,6 +723,11 @@ if (influxdb_atxfxdb_found == False):
     if SFXS_LOG == True:
         print(SFXS_GetCurrentTimestamp() + "Creating database " + INFLUXDB_ATXFX_DATABASE_NAME + ".")
     influxdb_client.create_database(INFLUXDB_ATXFX_DATABASE_NAME)
+# Create SolarFox database if it does not exist.   
+if (influxdb_slfxdb_found == False):
+    if SFXS_LOG == True:
+        print(SFXS_GetCurrentTimestamp() + "Creating database " + INFLUXDB_SLFX_DATABASE_NAME + ".")
+    influxdb_client.create_database(INFLUXDB_SLFX_DATABASE_NAME)
         
 # Start server.
 SocketServer.TCPServer.allow_reuse_address = True

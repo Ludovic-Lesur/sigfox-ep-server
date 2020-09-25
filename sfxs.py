@@ -6,6 +6,7 @@ import datetime
 import time
 import json
 from influxdb import InfluxDBClient
+from Tkconstants import CURRENT
 
 ### MACROS ###
 
@@ -37,7 +38,7 @@ MFX_SIGFOX_GEOLOCATION_FRAME_LENGTH_BYTES = 11
 MFX_SIGFOX_GEOLOCATION_TIMEOUT_FRAME_LENGTH_BYTES = 1
 
 ATXFX_SIGFOX_START_STOP_FRAME_LENGTH_BYTES = 1
-ATXFX_SIGFOX_MONITORING_FRAME_LENGTH_BYTES = 6
+ATXFX_SIGFOX_MONITORING_FRAME_LENGTH_BYTES = 8
 
 # Error values.
 MFX_TEMPERATURE_ERROR = 0x7F
@@ -45,6 +46,8 @@ MFX_HUMIDITY_ERROR = 0xFF
 MFX_UV_INDEX_ERROR = 0xFF
 MFX_PRESSURE_ERROR = 0xFFFF
 MFX_WIND_ERROR = 0xFF
+
+ATXFX_OUTPUT_CURRENT_ERROR = 0xFFFFFF
 
 # Influx DB parameters.
 INFLUXDB_DATABASE_HTTP_PORT = 8086
@@ -124,7 +127,7 @@ def MFX_GetSite(device_id):
     return meteofox_site
 
 # Function performing Sigfox ID to ATX rack conversion
-def AFXFX_GetRack(device_id):
+def ATXFX_GetRack(device_id):
     # Default is unknown.
     atxfox_rack = "Unknown rack (" + str(device_id) + ")"
     if (device_id in ATXFX_SIGFOX_DEVICES_ID):
@@ -132,7 +135,7 @@ def AFXFX_GetRack(device_id):
     return atxfox_rack
 
 # Function performing Sigfox ID to ATX front end conversion
-def AFXFX_GetFrontEnd(device_id):
+def ATXFX_GetFrontEnd(device_id):
     # Default is unknown.
     atxfox_front_end = "Unknown front-end (" + str(device_id) + ")"
     if (device_id in ATXFX_SIGFOX_DEVICES_ID):
@@ -167,7 +170,7 @@ def MFX_FillDataBase(timestamp, device_id, data):
             }
         }]
         if SFXS_LOG == True:
-            print(SFXS_GetCurrentTimestamp() + "ID=" + str(device_id) + " * OOB frame (start up).")
+            print(SFXS_GetCurrentTimestamp() + "MFX ID=" + str(device_id) + " * OOB frame (start up).")
         # Fill data base.
         influxdb_client.write_points(json_body, time_precision='s')
     # Monitoring frame.
@@ -223,7 +226,7 @@ def MFX_FillDataBase(timestamp, device_id, data):
             pcb_humidity = int(data[4:6], 16)
             json_body[0]["fields"][INFLUXDB_FIELD_PCB_HUMIDITY] = pcb_humidity
         if SFXS_LOG == True:
-            print(SFXS_GetCurrentTimestamp() + "ID=" + str(device_id) + " * Monitoring data * McuTemp=" + str(mcu_temperature) + "C, PcbTemp=" + str(pcb_temperature) + "C, PcbHum=" + str(pcb_humidity) + "%, SolarVolt=" + str(solar_cell_voltage) + "mV, SupercapVolt=" + str(supercap_voltage) + "mV, McuVolt=" + str(mcu_voltage) + "mV, Status=" + str(status_byte) + ".")
+            print(SFXS_GetCurrentTimestamp() + "MFX ID=" + str(device_id) + " * Monitoring data * McuTemp=" + str(mcu_temperature) + "dC, PcbTemp=" + str(pcb_temperature) + "dC, PcbHum=" + str(pcb_humidity) + "%, SolarVolt=" + str(solar_cell_voltage) + "mV, SupercapVolt=" + str(supercap_voltage) + "mV, McuVolt=" + str(mcu_voltage) + "mV, Status=" + str(status_byte) + ".")
         # Fill data base.
         influxdb_client.write_points(json_body, time_precision='s')
     # Intermittent eather data frame.
@@ -289,7 +292,7 @@ def MFX_FillDataBase(timestamp, device_id, data):
                     # Altitude is not available yet for this device.
                     sea_level_pressure = "error"
         if SFXS_LOG == True:
-            print(SFXS_GetCurrentTimestamp() + "ID=" + str(device_id) + " * Weather data * Temp=" + str(temperature) + "C, Hum=" + str(humidity) + "%, Light=" + str(light) + "%, UV=" + str(uv_index) + ", AbsPres=" + str(absolute_pressure) + "hPa, SeaPres=" + str(sea_level_pressure) + "hpa.")
+            print(SFXS_GetCurrentTimestamp() + "MFX ID=" + str(device_id) + " * Weather data * Temp=" + str(temperature) + "dC, Hum=" + str(humidity) + "%, Light=" + str(light) + "%, UV=" + str(uv_index) + ", AbsPres=" + str(absolute_pressure) + "hPa, SeaPres=" + str(sea_level_pressure) + "hpa.")
         # Fill data base.
         influxdb_client.write_points(json_body, time_precision='s')
     # Continuous weather data frame.
@@ -365,7 +368,7 @@ def MFX_FillDataBase(timestamp, device_id, data):
             average_wind_direction = 2 * int(data[16:18], 16)
             json_body[0]["fields"][INFLUXDB_FIELD_AVERAGE_WIND_DIRECTION] = average_wind_direction
         if SFXS_LOG == True:
-            print(SFXS_GetCurrentTimestamp() + "ID=" + str(device_id) + " * Weather data * Temp=" + str(temperature) + "C, Hum=" + str(humidity) + "%, Light=" + str(light) + "%, UV=" + str(uv_index) + ", Pres=" + str(absolute_pressure) + "hPa, SeaPres=" + str(sea_level_pressure) + "hPa, AvWindSp=" + str(average_wind_speed) + "km/h, PeakWindSp=" + str(peak_wind_speed) + "km/h, AvWindDir=" + str(average_wind_direction) + "d, Rain=" + str(rain) + "mm.")
+            print(SFXS_GetCurrentTimestamp() + "MFX ID=" + str(device_id) + " * Weather data * Temp=" + str(temperature) + "C, Hum=" + str(humidity) + "%, Light=" + str(light) + "%, UV=" + str(uv_index) + ", Pres=" + str(absolute_pressure) + "hPa, SeaPres=" + str(sea_level_pressure) + "hPa, AvWindSp=" + str(average_wind_speed) + "km/h, PeakWindSp=" + str(peak_wind_speed) + "km/h, AvWindDir=" + str(average_wind_direction) + "d, Rain=" + str(rain) + "mm.")
         # Fill data base.
         influxdb_client.write_points(json_body, time_precision='s')
     # Geolocation frame.
@@ -416,7 +419,7 @@ def MFX_FillDataBase(timestamp, device_id, data):
             }
         }]
         if SFXS_LOG == True:
-            print(SFXS_GetCurrentTimestamp() + "ID=" + str(device_id) + " * Geoloc data * Lat=" + str(latitude) + ", Long=" + str(longitude) + ", Alt=" + str(altitude) + "m, GpsFixDur=" + str(gps_fix_duration) + "s.")
+            print(SFXS_GetCurrentTimestamp() + "MFX ID=" + str(device_id) + " * Geoloc data * Lat=" + str(latitude) + ", Long=" + str(longitude) + ", Alt=" + str(altitude) + "m, GpsFixDur=" + str(gps_fix_duration) + "s.")
         # Fill data base.
         influxdb_client.write_points(json_body, time_precision='s')
     # Geolocation timeout frame.
@@ -448,10 +451,111 @@ def MFX_FillDataBase(timestamp, device_id, data):
             }
         }]
         if SFXS_LOG == True:
-            print(SFXS_GetCurrentTimestamp() + "ID=" + str(device_id) + " * Geoloc timeout * GpsFixDur=" + str(gps_fix_duration) + "s.")
+            print(SFXS_GetCurrentTimestamp() + "MFX ID=" + str(device_id) + " * Geoloc timeout * GpsFixDur=" + str(gps_fix_duration) + "s.")
         # Fill data base.
         influxdb_client.write_points(json_body, time_precision='s')
-
+        
+def ATXFX_FillDataBase(timestamp, device_id, data):
+    # Format parameters.
+    influxdb_device_id = device_id.upper()
+    influxdb_timestamp = int(timestamp)
+    # Start-stop frame.
+    if len(data) == (2 * ATXFX_SIGFOX_START_STOP_FRAME_LENGTH_BYTES):
+        status_raw = (int(data[0:2], 16)) & 0xFF
+        # Check status.
+        if (status_raw == 0x00):  
+            # Create JSON object.
+            json_body = [
+            {
+                "measurement": INFLUXDB_MEASUREMENT_GLOBAL,
+                "time": influxdb_timestamp,
+                "fields": {
+                    INFLUXDB_FIELD_LAST_SHUTDOWN_TIMESTAMP : influxdb_timestamp,
+                    INFLUXDB_FIELD_LAST_COMMUNICATION_TIMESTAMP : influxdb_timestamp
+                },
+                "tags": {
+                    INFLUXDB_TAG_SIGFOX_DEVICE_ID : influxdb_device_id,
+                    INFLUXDB_TAG_ATXFOX_RACK : ATXFX_GetRack(influxdb_device_id),
+                    INFLUXDB_TAG_ATXFOX_FRONT_END : ATXFX_GetFrontEnd(influxdb_device_id)
+                }
+            }]
+            if SFXS_LOG == True:
+                print(SFXS_GetCurrentTimestamp() + "ATXFX ID=" + str(device_id) + " * Shutdown.")
+            # Fill data base.
+            influxdb_client.write_points(json_body, time_precision='s')
+        if (status_raw == 0x01):
+            # Create JSON object.
+            json_body = [
+            {
+                "measurement": INFLUXDB_MEASUREMENT_GLOBAL,
+                "time": influxdb_timestamp,
+                "fields": {
+                    INFLUXDB_FIELD_LAST_STARTUP_TIMESTAMP : influxdb_timestamp,
+                    INFLUXDB_FIELD_LAST_COMMUNICATION_TIMESTAMP : influxdb_timestamp
+                },
+                "tags": {
+                    INFLUXDB_TAG_SIGFOX_DEVICE_ID : influxdb_device_id,
+                    INFLUXDB_TAG_ATXFOX_RACK : ATXFX_GetRack(influxdb_device_id),
+                    INFLUXDB_TAG_ATXFOX_FRONT_END : ATXFX_GetFrontEnd(influxdb_device_id)
+                }
+            }]
+            if SFXS_LOG == True:
+                print(SFXS_GetCurrentTimestamp() + "ATXFX ID=" + str(device_id) + " * Start-up.")
+            # Fill data base.
+            influxdb_client.write_points(json_body, time_precision='s')
+    if len(data) == (2 * ATXFX_SIGFOX_MONITORING_FRAME_LENGTH_BYTES):
+        # Parse fields.
+        output_voltage = ((int(data[0:4], 16)) >> 2) & 0x3FFF
+        current_sense_range = ((int(data[0:4], 16)) >> 0) & 0x0003
+        mcu_voltage = int(data[10:14], 16)
+        mcu_temperature_raw = int(data[14:16], 16)
+        mcu_temperature = mcu_temperature_raw & 0x7F
+        if ((mcu_temperature_raw & 0x80) != 0):
+            mcu_temperature = (-1) * mcu_temperature
+        # Create JSON object.
+        json_body = [
+        {
+            "measurement": INFLUXDB_MEASUREMENT_MONITORING,
+            "time": influxdb_timestamp,
+            "fields": {
+                INFLUXDB_FIELD_OUTPUT_VOLTAGE : output_voltage,
+                INFLUXDB_FIELD_CURRENT_SENSE_RANGE : current_sense_range,
+                INFLUXDB_FIELD_MCU_VOLTAGE : mcu_voltage,
+                INFLUXDB_FIELD_MCU_TEMPERATURE : mcu_temperature,
+                INFLUXDB_FIELD_LAST_MONITORING_DATA_TIMESTAMP : influxdb_timestamp
+            },
+            "tags": {
+                INFLUXDB_TAG_SIGFOX_DEVICE_ID : influxdb_device_id,
+                INFLUXDB_TAG_ATXFOX_RACK : ATXFX_GetRack(influxdb_device_id),
+                INFLUXDB_TAG_ATXFOX_FRONT_END : ATXFX_GetFrontEnd(influxdb_device_id)
+            }
+        },
+        {
+            "measurement": INFLUXDB_MEASUREMENT_GLOBAL,
+            "time": influxdb_timestamp,
+            "fields": {
+                INFLUXDB_FIELD_LAST_COMMUNICATION_TIMESTAMP : influxdb_timestamp
+            },
+            "tags": {
+                INFLUXDB_TAG_SIGFOX_DEVICE_ID : influxdb_device_id,
+                INFLUXDB_TAG_ATXFOX_RACK : ATXFX_GetRack(influxdb_device_id),
+                INFLUXDB_TAG_ATXFOX_FRONT_END : ATXFX_GetFrontEnd(influxdb_device_id)
+            }
+        }]
+        # Manage error values.
+        output_current = "unknown"
+        output_power = "unknown"
+        if (int(data[4:10], 16) != ATXFX_OUTPUT_CURRENT_ERROR):
+            output_current = int(data[4:10], 16)
+            json_body[0]["fields"][INFLUXDB_FIELD_OUTPUT_CURRENT] = output_current
+            # Compute output power in nW (uA * mV).
+            output_power = (output_voltage * output_current)
+            json_body[0]["fields"][INFLUXDB_FIELD_OUTPUT_POWER] = output_power
+        if SFXS_LOG == True:
+            print(SFXS_GetCurrentTimestamp() + "ATXFX ID=" + str(device_id) + " * Monitoring data * U=" + str(output_voltage) + "mV, Range=" + str(current_sense_range) + ", I=" + str(output_current) + "uA, P=" + str(output_power) + "nW, McuVoltage=" + str(mcu_voltage) + "mV, McuTemp=" + str(mcu_temperature) + "dC.")
+        # Fill data base.
+        influxdb_client.write_points(json_body, time_precision='s')
+        
 ### CLASS DECLARATIONS ###
 
 class ServerHandler(BaseHTTPRequestHandler):
@@ -489,7 +593,7 @@ class ServerHandler(BaseHTTPRequestHandler):
             influxdb_client.switch_database(INFLUXDB_ATXFX_DATABASE_NAME)
             if SFXS_LOG == True:
                 print(SFXS_GetCurrentTimestamp() + "Switching to database " + INFLUXDB_ATXFX_DATABASE_NAME + ".")
-            #ATXFX_FillDataBase(int(callback_timestamp), callback_device_id, callback_data)
+            ATXFX_FillDataBase(int(callback_timestamp), callback_device_id, callback_data)
         else:
             if SFXS_LOG == True:
                 print(SFXS_GetCurrentTimestamp() + "Unknown Sigfox device ID.")

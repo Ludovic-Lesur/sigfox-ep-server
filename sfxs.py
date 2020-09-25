@@ -471,7 +471,8 @@ def ATXFX_FillDataBase(timestamp, device_id, data):
                 "time": influxdb_timestamp,
                 "fields": {
                     INFLUXDB_FIELD_LAST_SHUTDOWN_TIMESTAMP : influxdb_timestamp,
-                    INFLUXDB_FIELD_LAST_COMMUNICATION_TIMESTAMP : influxdb_timestamp
+                    INFLUXDB_FIELD_LAST_COMMUNICATION_TIMESTAMP : influxdb_timestamp,
+                    INFLUXDB_FIELD_STATE : status_raw
                 },
                 "tags": {
                     INFLUXDB_TAG_SIGFOX_DEVICE_ID : influxdb_device_id,
@@ -491,7 +492,8 @@ def ATXFX_FillDataBase(timestamp, device_id, data):
                 "time": influxdb_timestamp,
                 "fields": {
                     INFLUXDB_FIELD_LAST_STARTUP_TIMESTAMP : influxdb_timestamp,
-                    INFLUXDB_FIELD_LAST_COMMUNICATION_TIMESTAMP : influxdb_timestamp
+                    INFLUXDB_FIELD_LAST_COMMUNICATION_TIMESTAMP : influxdb_timestamp,
+                    INFLUXDB_FIELD_STATE : status_raw
                 },
                 "tags": {
                     INFLUXDB_TAG_SIGFOX_DEVICE_ID : influxdb_device_id,

@@ -593,6 +593,8 @@ def SLFX_FillDataBase(timestamp, device_id, data):
         mcu_temperature = mcu_temperature_raw & 0x7F
         if ((mcu_temperature_raw & 0x80) != 0):
             mcu_temperature = (-1) * mcu_temperature
+        # Compute power in nW (mV * uA)
+        output_power = (output_voltage * output_current)
         # Create JSON object.
         json_body = [
         {
@@ -602,6 +604,7 @@ def SLFX_FillDataBase(timestamp, device_id, data):
                 INFLUXDB_FIELD_SOLAR_CELL_VOLTAGE : solar_cell_voltage,
                 INFLUXDB_FIELD_OUTPUT_VOLTAGE : output_voltage,
                 INFLUXDB_FIELD_OUTPUT_CURRENT : output_current,
+                INFLUXDB_FIELD_OUTPUT_POWER : output_power,
                 INFLUXDB_FIELD_MCU_VOLTAGE : mcu_voltage,
                 INFLUXDB_FIELD_MCU_TEMPERATURE : mcu_temperature,
                 INFLUXDB_FIELD_LAST_MONITORING_DATA_TIMESTAMP : influxdb_timestamp

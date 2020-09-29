@@ -25,7 +25,7 @@ SIGFOX_BACKEND_JSON_HEADER_DATA = "data"
 MFX_SIGFOX_DEVICES_ID = ["53B5", "5436", "546C", "5477", "5497", "549D", "54B6", "54E4"]
 MFX_SIGFOX_DEVICES_SITE = ["INSA Toulouse", "Proto V2", "Le Vigan", "Prat Albis", "Eaunes", "Labege", "Grust", "Concarneau"]
 
-ATXFX_SIGFOX_DEVICES_ID = ["868E", "869E", "87A5", "87EE", "87F1", "87F6", "87F4", "87F6", "87FC", "8922"]
+ATXFX_SIGFOX_DEVICES_ID = ["868E", "869E", "87A5", "87EE", "87F1", "87F3", "87F4", "87F6", "87FC", "8922"]
 ATXFX_SIGFOX_DEVICES_RACK = ["1", "1", "1", "1", "1", "2", "2", "2", "2", "2"]
 ATXFX_SIGFOX_DEVICES_FRONT_END = ["+3.3V", "+5.0V", "+12.0V", "Adjustable", "Battery charger", "+3.3V", "+5.0V", "+12.0V", "Adjustable", "Battery charger"]
 

@@ -33,7 +33,7 @@ SLFX_SIGFOX_DEVICES_ID = ["44AA", "44D2", "4505", "45A0", "45AB"]
 SLFX_SIGFOX_DEVICES_SITE = ["INSA Toulouse", "Le Vigan", "Unknown", "Unknown", "Unknown"]
 
 TKFX_SIGFOX_DEVICES_ID = ["4761", "479C", "47A7", "47EA", "4894"]
-TKFX_SIGFOX_DEVICES_ASSET = ["Car", "Bike", "Hiking", "Unknown", "Unknown"]
+TKFX_SIGFOX_DEVICES_ASSET = ["Car", "Hiking", "Unknown", "Unknown", "Unknown"]
 
 SYNCFX_SIGFOX_DEVICES_ID = ["4016", "405B", "40A7", "4151", "41CE"]
 SYNCFX_SIGFOX_DEVICES_SITE = ["Proto Labo", "Labege", "Prat Albis", "Unknown", "Unknown"]

@@ -143,6 +143,7 @@ INFLUXDB_FIELD_LATITUDE = "latitude"
 INFLUXDB_FIELD_LONGITUDE = "longitude"
 INFLUXDB_FIELD_ALTITUDE = "altitude"
 INFLUXDB_FIELD_GPS_FIX_DURATION = "gps_fix_duration"
+INFLUXDB_FIELD_GPS_TIMEOUT_DURATION = "gps_timeout_duration"
 INFLUXDB_FIELD_GPSDO_LOCK_DURATION = "gpsdo_lock_duration"
 
 # Influx DB tags.
@@ -505,15 +506,14 @@ def MFX_FillDataBase(timestamp, device_id, data):
         influxdb_client.write_points(json_body, time_precision='s')
     # Geolocation timeout frame.
     if len(data) == (2 * MFX_SIGFOX_GEOLOCATION_TIMEOUT_FRAME_LENGTH_BYTES):
-        gps_fix_duration = int(data[0:2], 16)
+        gps_timeout_duration = int(data[0:2], 16)
         # Create JSON object.
         json_body = [
         {
             "measurement": INFLUXDB_MEASUREMENT_GEOLOC,
             "time": influxdb_timestamp,
             "fields": {
-                INFLUXDB_FIELD_GPS_FIX_DURATION : gps_fix_duration,
-                INFLUXDB_FIELD_LAST_GEOLOC_DATA_TIMESTAMP : influxdb_timestamp
+                INFLUXDB_FIELD_GPS_TIMEOUT_DURATION : gps_timeout_duration
             },
             "tags": {
                 INFLUXDB_TAG_SIGFOX_DEVICE_ID : influxdb_device_id,
@@ -824,15 +824,14 @@ def TKFX_FillDataBase(timestamp, device_id, data):
         influxdb_client.write_points(json_body, time_precision='s')
     # Geolocation timeout frame.
     if len(data) == (2 * TKFX_SIGFOX_GEOLOCATION_TIMEOUT_FRAME_LENGTH_BYTES):
-        gps_fix_duration = int(data[0:2], 16)
+        gps_timeout_duration = int(data[0:2], 16)
         # Create JSON object.
         json_body = [
         {
             "measurement": INFLUXDB_MEASUREMENT_GEOLOC,
             "time": influxdb_timestamp,
             "fields": {
-                INFLUXDB_FIELD_GPS_FIX_DURATION : gps_fix_duration,
-                INFLUXDB_FIELD_LAST_GEOLOC_DATA_TIMESTAMP : influxdb_timestamp
+                INFLUXDB_FIELD_GPS_TIMEOUT_DURATION : gps_timeout_duration
             },
             "tags": {
                 INFLUXDB_TAG_SIGFOX_DEVICE_ID : influxdb_device_id,
@@ -1018,15 +1017,14 @@ def SYNCFX_FillDataBase(timestamp, device_id, data):
         influxdb_client.write_points(json_body, time_precision='s')
     # Geolocation timeout frame.
     if len(data) == (2 * SYNCFX_SIGFOX_GEOLOCATION_TIMEOUT_FRAME_LENGTH_BYTES):
-        gps_fix_duration = int(data[0:2], 16)
+        gps_timeout_duration = int(data[0:2], 16)
         # Create JSON object.
         json_body = [
         {
             "measurement": INFLUXDB_MEASUREMENT_GEOLOC,
             "time": influxdb_timestamp,
             "fields": {
-                INFLUXDB_FIELD_GPS_FIX_DURATION : gps_fix_duration,
-                INFLUXDB_FIELD_LAST_GEOLOC_DATA_TIMESTAMP : influxdb_timestamp
+                INFLUXDB_FIELD_GPS_TIMEOUT_DURATION : gps_timeout_duration
             },
             "tags": {
                 INFLUXDB_TAG_SIGFOX_DEVICE_ID : influxdb_device_id,

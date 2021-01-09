@@ -38,6 +38,9 @@ TKFX_SIGFOX_DEVICES_ASSET = ["Car", "Hiking", "Unknown", "Unknown", "Unknown"]
 SYNCFX_SIGFOX_DEVICES_ID = ["4016", "405B", "40A7", "4151", "41CE"]
 SYNCFX_SIGFOX_DEVICES_SITE = ["Proto Labo", "Labege", "Prat Albis", "Unknown", "Unknown"]
 
+SENSIT_SIGFOX_DEVICES_ID = ["1C8330", "20F815", "86BD75", "B437B2", "B4384E"]
+SENSIT_SIGFOX_DEVICES_SITE = ["Labege", "INSA Toulouse", "Prat Albis", "Le Vigan (maison)", "Le Vigan (atelier)"]
+
 # Sigfox frame lengths.
 MFX_SIGFOX_OOB_DATA = "OOB"
 MFX_SIGFOX_MONITORING_FRAME_LENGTH_BYTES = 9
@@ -62,6 +65,9 @@ SYNCFX_SIGFOX_MONITORING_FRAME_LENGTH_BYTES = 7
 SYNCFX_SIGFOX_GEOLOCATION_FRAME_LENGTH_BYTES = 11
 SYNCFX_SIGFOX_GEOLOCATION_TIMEOUT_FRAME_LENGTH_BYTES = 1
 
+SENSIT_SIGFOX_DATA_FRAME_LENGTH_BYTES = 4
+SENSIT_SIGFOX_CONFIGURATION_FRAME_LENGTH_BYTES = 12
+
 # Error values.
 MFX_TEMPERATURE_ERROR = 0x7F
 MFX_HUMIDITY_ERROR = 0xFF
@@ -80,6 +86,7 @@ INFLUXDB_ATXFX_DATABASE_NAME = 'atxfxdb'
 INFLUXDB_SLFX_DATABASE_NAME = 'slfxdb'
 INFLUXDB_SYNCFX_DATABASE_NAME = 'syncfxdb'
 INFLUXDB_TKFX_DATABASE_NAME = 'tkfxdb'
+INFLUXDB_SENSIT_DATABASE_NAME = 'sensitdb'
 INFLUXDB_NULL_DATABASE_NAME = 'nulldb'
 
 # Influx DB measurements name.
@@ -107,6 +114,7 @@ INFLUXDB_FIELD_FREQUENCY = "frequency"
 # Status.
 INFLUXDB_FIELD_STATE = "state"
 INFLUXDB_FIELD_STATUS_BYTE = "status_byte"
+INFLUXDB_FIELD_MODE = "mode"
 # Temperature.
 INFLUXDB_FIELD_TEMPERATURE = "temperature"
 INFLUXDB_FIELD_MCU_TEMPERATURE = "mcu_temperature"
@@ -154,6 +162,7 @@ INFLUXDB_TAG_ATXFOX_FRONT_END = "atxfox_front_end"
 INFLUXDB_TAG_SOLARFOX_SITE = "solarfox_site"
 INFLUXDB_TAG_SYNCHROFOX_SITE = "synchrofox_site"
 INFLUXDB_TAG_TRACKFOX_ASSET = "trackfox_asset"
+INFLUXDB_TAG_SENSIT_SITE = "sensit_site"
 
 ### FUNCTIONS DEFINITIONS ###
 
@@ -174,6 +183,8 @@ def SFXS_GetDataBase(device_id):
         sfxs_db = INFLUXDB_SYNCFX_DATABASE_NAME
     elif (device_id in TKFX_SIGFOX_DEVICES_ID):
         sfxs_db = INFLUXDB_TKFX_DATABASE_NAME
+    elif (device_id in SENSIT_SIGFOX_DEVICES_ID):
+        sfxs_db = INFLUXDB_SENSIT_DATABASE_NAME
     return sfxs_db
 
 # Function performing Sigfox ID to MeteoFox site conversion.
@@ -223,6 +234,14 @@ def SYNCFX_GetSite(device_id):
     if (device_id in SYNCFX_SIGFOX_DEVICES_ID):
         synchrofox_site = SYNCFX_SIGFOX_DEVICES_SITE[SYNCFX_SIGFOX_DEVICES_ID.index(device_id)]
     return synchrofox_site
+
+# Function performing Sigfox ID to Sensit site conversion.
+def SENSIT_GetSite(device_id):
+    # Default is unknown.
+    sensit_site = "Unknown site (" + str(device_id) + ")"
+    if (device_id in SENSIT_SIGFOX_DEVICES_ID):
+        sensit_site = SENSIT_SIGFOX_DEVICES_SITE[SENSIT_SIGFOX_DEVICES_ID.index(device_id)]
+    return sensit_site
 
 # Function to compute sea-level pressure (barometric formula).
 def MFX_GetSeaLevelPressure(absolute_pressure, altitude, temperature):
@@ -1047,6 +1066,53 @@ def SYNCFX_FillDataBase(timestamp, device_id, data):
         # Fill data base.
         influxdb_client.write_points(json_body, time_precision='s')
         
+# Function for parsing Sensit device payload and fill database.      
+def SENSIT_FillDataBase(timestamp, device_id, data):
+    # Format parameters.
+    influxdb_device_id = device_id.upper()
+    influxdb_timestamp = int(timestamp)
+    # Monitoring frame.
+    if (len(data) == (2 * SENSIT_SIGFOX_DATA_FRAME_LENGTH_BYTES)) or (len(data) == (2 * SENSIT_SIGFOX_CONFIGURATION_FRAME_LENGTH_BYTES)):
+        # Parse fields.
+        battery_voltage = ((((int(data[0:2], 16) >> 3) & 0x10) + (int(data[2:4], 16) & 0x0F)) * 50) + 2700
+        mode = (int(data[0:2], 16) & 0x07)
+        # Create JSON object.
+        json_body = [
+        {
+            "measurement": INFLUXDB_MEASUREMENT_MONITORING,
+            "time": influxdb_timestamp,
+            "fields": {
+                INFLUXDB_FIELD_BATTERY_VOLTAGE : battery_voltage,
+                INFLUXDB_FIELD_MODE : mode
+            },
+            "tags": {
+                INFLUXDB_TAG_SIGFOX_DEVICE_ID : influxdb_device_id,
+                INFLUXDB_TAG_SENSIT_SITE : SLFX_GetSite(influxdb_device_id)
+            }
+        },
+        {
+            "measurement": INFLUXDB_MEASUREMENT_GLOBAL,
+            "time": influxdb_timestamp,
+            "fields": {
+                INFLUXDB_FIELD_LAST_COMMUNICATION_TIMESTAMP : influxdb_timestamp
+            },
+            "tags": {
+                INFLUXDB_TAG_SIGFOX_DEVICE_ID : influxdb_device_id,
+                INFLUXDB_TAG_SENSIT_SITE : SLFX_GetSite(influxdb_device_id)
+            }
+        }]
+        temperature = "error"
+        humidity = "error"
+        if (mode == 0x01):
+            temperature = ((((int(data[2:4], 16) << 2) & 0x3C0) + (int(data[4:6], 16) & 0x3F)) - 200.0) / (8.0)
+            humidity = (int(data[6:8], 16)) / (2.0)
+            json_body[0]["fields"][INFLUXDB_FIELD_TEMPERATURE] = temperature
+            json_body[0]["fields"][INFLUXDB_FIELD_HUMIDITY] = humidity
+        if SFXS_LOG == True:
+            print(SFXS_GetCurrentTimestamp() + "SENSIT ID=" + str(device_id) + " * Monitoring data * BattVolt=" + str(battery_voltage), "mV, Mode=" + str(mode) + ", Temp=" + str(temperature) + "dC, Hum=" + str(humidity) + "%.")
+        # Fill data base.
+        influxdb_client.write_points(json_body, time_precision='s')
+        
 ### CLASS DECLARATIONS ###
 
 class ServerHandler(BaseHTTPRequestHandler):
@@ -1100,6 +1166,11 @@ class ServerHandler(BaseHTTPRequestHandler):
             if SFXS_LOG == True:
                 print(SFXS_GetCurrentTimestamp() + "Switching to database " + INFLUXDB_TKFX_DATABASE_NAME + ".")
             TKFX_FillDataBase(int(callback_timestamp), callback_device_id, callback_data)
+        elif (sfxs_database == INFLUXDB_SENSIT_DATABASE_NAME):
+            influxdb_client.switch_database(INFLUXDB_SENSIT_DATABASE_NAME)
+            if SFXS_LOG == True:
+                print(SFXS_GetCurrentTimestamp() + "Switching to database " + INFLUXDB_SENSIT_DATABASE_NAME + ".")
+            SENSIT_FillDataBase(int(callback_timestamp), callback_device_id, callback_data)
         else:
             if SFXS_LOG == True:
                 print(SFXS_GetCurrentTimestamp() + "Unknown Sigfox device ID.")
@@ -1131,6 +1202,7 @@ influxdb_atxfxdb_found = False
 influxdb_slfxdb_found = False
 influxdb_syncfxdb_found = False
 influxdb_tkfxdb_found = False
+influxdb_sensitdb_found = False
 for influxdb_database in influxdb_database_list:
     if (influxdb_database['name'].find(INFLUXDB_MFX_DATABASE_NAME) >= 0):
         if SFXS_LOG == True:
@@ -1152,6 +1224,10 @@ for influxdb_database in influxdb_database_list:
         if SFXS_LOG == True:
             print(SFXS_GetCurrentTimestamp() + "TrackFox database found.")
         influxdb_tkfxdb_found = True
+    if (influxdb_database['name'].find(INFLUXDB_SENSIT_DATABASE_NAME) >= 0):
+        if SFXS_LOG == True:
+            print(SFXS_GetCurrentTimestamp() + "Sensit database found.")
+        influxdb_sensitdb_found = True
 
 # Create MeteoFox database if it does not exist.   
 if (influxdb_mfxdb_found == False):
@@ -1168,14 +1244,21 @@ if (influxdb_slfxdb_found == False):
     if SFXS_LOG == True:
         print(SFXS_GetCurrentTimestamp() + "Creating database " + INFLUXDB_SLFX_DATABASE_NAME + ".")
     influxdb_client.create_database(INFLUXDB_SLFX_DATABASE_NAME)
+# Create SynchroFox database if it does not exist.  
 if (influxdb_syncfxdb_found == False):
     if SFXS_LOG == True:
         print(SFXS_GetCurrentTimestamp() + "Creating database " + INFLUXDB_SYNCFX_DATABASE_NAME + ".")
     influxdb_client.create_database(INFLUXDB_SYNCFX_DATABASE_NAME)
+# Create TrackFox database if it does not exist.  
 if (influxdb_tkfxdb_found == False):
     if SFXS_LOG == True:
         print(SFXS_GetCurrentTimestamp() + "Creating database " + INFLUXDB_TKFX_DATABASE_NAME + ".")
     influxdb_client.create_database(INFLUXDB_TKFX_DATABASE_NAME)
+# Create Sensit database if it does not exist.
+if (influxdb_sensitdb_found == False):
+    if SFXS_LOG == True:
+        print(SFXS_GetCurrentTimestamp() + "Creating database " + INFLUXDB_SENSIT_DATABASE_NAME + ".")
+    influxdb_client.create_database(INFLUXDB_SENSIT_DATABASE_NAME)
         
 # Start server.
 SocketServer.TCPServer.allow_reuse_address = True

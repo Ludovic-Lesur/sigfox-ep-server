@@ -1087,7 +1087,7 @@ def SENSIT_FillDataBase(timestamp, device_id, data):
             },
             "tags": {
                 INFLUXDB_TAG_SIGFOX_DEVICE_ID : influxdb_device_id,
-                INFLUXDB_TAG_SENSIT_SITE : SLFX_GetSite(influxdb_device_id)
+                INFLUXDB_TAG_SENSIT_SITE : SENSIT_GetSite(influxdb_device_id)
             }
         },
         {
@@ -1098,7 +1098,7 @@ def SENSIT_FillDataBase(timestamp, device_id, data):
             },
             "tags": {
                 INFLUXDB_TAG_SIGFOX_DEVICE_ID : influxdb_device_id,
-                INFLUXDB_TAG_SENSIT_SITE : SLFX_GetSite(influxdb_device_id)
+                INFLUXDB_TAG_SENSIT_SITE : SENSIT_GetSite(influxdb_device_id)
             }
         }]
         temperature = "error"

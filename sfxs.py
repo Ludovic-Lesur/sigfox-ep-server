@@ -39,7 +39,8 @@ SYNCFX_SIGFOX_DEVICES_ID = ["4016", "405B", "40A7", "4151", "41CE"]
 SYNCFX_SIGFOX_DEVICES_SITE = ["Proto Labo", "Labege", "Prat Albis", "Unknown", "Unknown"]
 
 SENSIT_SIGFOX_DEVICES_ID = ["1C8330", "20F815", "86BD75", "B437B2", "B4384E"]
-SENSIT_SIGFOX_DEVICES_SITE = ["Labege", "INSA Toulouse", "Prat Albis", "Le Vigan (maison)", "Le Vigan (atelier)"]
+SENSIT_SIGFOX_DEVICES_SITE = ["Sigfox (bureau)", "Sigfox (cagibi)", "Prat Albis", "Le Vigan (maison)", "Le Vigan (atelier)"]
+SENSIT_SIGFOX_DEVICES_VERSION = ["V2", "V2", "V2", "V3", "V3"]
 
 # Sigfox frame lengths.
 MFX_SIGFOX_OOB_DATA = "OOB"
@@ -242,6 +243,14 @@ def SENSIT_GetSite(device_id):
     if (device_id in SENSIT_SIGFOX_DEVICES_ID):
         sensit_site = SENSIT_SIGFOX_DEVICES_SITE[SENSIT_SIGFOX_DEVICES_ID.index(device_id)]
     return sensit_site
+
+# Function performing Sigfox ID to Sensit version conversion.
+def SENSIT_GetVersion(device_id):
+    # Default is unknown.
+    sensit_version = "Unknown version"
+    if (device_id in SENSIT_SIGFOX_DEVICES_ID):
+        sensit_version = SENSIT_SIGFOX_DEVICES_VERSION[SENSIT_SIGFOX_DEVICES_ID.index(device_id)]
+    return sensit_version
 
 # Function to compute sea-level pressure (barometric formula).
 def MFX_GetSeaLevelPressure(absolute_pressure, altitude, temperature):
@@ -1071,11 +1080,16 @@ def SENSIT_FillDataBase(timestamp, device_id, data):
     # Format parameters.
     influxdb_device_id = device_id.upper()
     influxdb_timestamp = int(timestamp)
+    sensit_version = SENSIT_GetVersion(device_id)
     # Monitoring frame.
     if (len(data) == (2 * SENSIT_SIGFOX_DATA_FRAME_LENGTH_BYTES)) or (len(data) == (2 * SENSIT_SIGFOX_CONFIGURATION_FRAME_LENGTH_BYTES)):
         # Parse fields.
-        battery_voltage = ((((int(data[0:2], 16) >> 3) & 0x10) + (int(data[2:4], 16) & 0x0F)) * 50) + 2700
-        mode = (int(data[0:2], 16) & 0x07)
+        if (sensit_version.find("V3") >= 0):
+            battery_voltage = (((int(data[0:2], 16) >> 3) & 0x1F) * 50) + 2700
+            mode = ((int(data[2:4], 16) >> 3) & 0x0F)
+        else:
+            battery_voltage = ((((int(data[0:2], 16) >> 3) & 0x10) + (int(data[2:4], 16) & 0x0F)) * 50) + 2700
+            mode = (int(data[0:2], 16) & 0x07)
         # Create JSON object.
         json_body = [
         {
@@ -1104,7 +1118,10 @@ def SENSIT_FillDataBase(timestamp, device_id, data):
         temperature = "error"
         humidity = "error"
         if (mode == 0x01):
-            temperature = ((((int(data[2:4], 16) << 2) & 0x3C0) + (int(data[4:6], 16) & 0x3F)) - 200.0) / (8.0)
+            if (sensit_version.find("V3") >= 0):
+                temperature = ((((int(data[2:4], 16) << 8) & 0x300) + (int(data[4:6], 16))) - 200.0) / (8.0)
+            else:
+                temperature = ((((int(data[2:4], 16) << 2) & 0x3C0) + (int(data[4:6], 16) & 0x3F)) - 200.0) / (8.0)
             humidity = (int(data[6:8], 16)) / (2.0)
             json_body[0]["fields"][INFLUXDB_FIELD_TEMPERATURE] = temperature
             json_body[0]["fields"][INFLUXDB_FIELD_HUMIDITY] = humidity

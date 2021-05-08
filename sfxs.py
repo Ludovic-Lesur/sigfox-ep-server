@@ -560,7 +560,7 @@ def MFX_FillDataBase(timestamp, device_id, data):
             }
         }]
         if SFXS_LOG == True:
-            print(SFXS_GetCurrentTimestamp() + "MFX ID=" + str(device_id) + " * Geoloc timeout * GpsFixDur=" + str(gps_fix_duration) + "s.")
+            print(SFXS_GetCurrentTimestamp() + "MFX ID=" + str(device_id) + " * Geoloc timeout * GpsFixDur=" + str(gps_timeout_duration) + "s.")
         # Fill data base.
         influxdb_client.write_points(json_body, time_precision='s')
 

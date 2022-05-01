@@ -23,6 +23,12 @@ INFLUX_DB_MEASUREMENT_GEOLOC = "geoloc"
 INFLUX_DB_MEASUREMENT_SYNCHRO = "synchro"
 
 # Influx DB fields name.
+# Software version.
+INFLUX_DB_FIELD_VERSION_MAJOR = "version_major"
+INFLUX_DB_FIELD_VERSION_MINOR = "version_minor"
+INFLUX_DB_FIELD_VERSION_COMMIT_INDEX = "version_commit_index"
+INFLUX_DB_FIELD_VERSION_COMMIT_ID = "version_commit_id"
+INFLUX_DB_FIELD_VERSION_DIRTY_FLAG = "version_dirty_flag"
 # Timestamps.
 INFLUX_DB_FIELD_LAST_STARTUP_TIMESTAMP = "last_startup_timestamp"
 INFLUX_DB_FIELD_LAST_SHUTDOWN_TIMESTAMP = "last_shutdown_timestamp"
@@ -38,9 +44,11 @@ INFLUX_DB_FIELD_SECONDS = "seconds"
 # Frequency.
 INFLUX_DB_FIELD_FREQUENCY = "frequency"
 # Status.
+INFLUX_DB_FIELD_RESET_BYTE = "reset_byte"
 INFLUX_DB_FIELD_STATE = "state"
 INFLUX_DB_FIELD_STATUS_BYTE = "status_byte"
 INFLUX_DB_FIELD_MODE = "mode"
+INFLUX_DB_FIELD_ERROR = "error"
 # Temperature.
 INFLUX_DB_FIELD_TEMPERATURE = "temperature"
 INFLUX_DB_FIELD_MCU_TEMPERATURE = "mcu_temperature"

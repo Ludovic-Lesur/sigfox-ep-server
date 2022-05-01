@@ -8,15 +8,17 @@ from log import *
 
 # Devices ID and associated informations.
 MFX_SIGFOX_DEVICES_ID = ["53B5", "5436", "546C", "5477", "5497", "549D", "54B6", "54E4"]
-MFX_SIGFOX_DEVICES_SITE = ["INSA Toulouse", "Proto V2", "Le Vigan", "Prat Albis", "Eaunes", "Labege", "Grust", "Concarneau"]
+MFX_SIGFOX_DEVICES_SITE = ["INSA Toulouse", "Proto V2", "Le Vigan", "Prat Albis", "Eaunes", "Labege", "Le Lien", "Concarneau"]
 
 # Sigfox frame lengths.
 MFX_SIGFOX_OOB_DATA = "OOB"
+MFX_SIGFOX_STARTUP_FRAME_LENGTH_BYTES = 8
 MFX_SIGFOX_MONITORING_FRAME_LENGTH_BYTES = 9
 MFX_SIGFOX_INTERMITTENT_WEATHER_DATA_FRAME_LENGTH_BYTES = 6
 MFX_SIGFOX_CONTINUOUS_WEATHER_DATA_FRAME_LENGTH_BYTES = 10
 MFX_SIGFOX_GEOLOCATION_FRAME_LENGTH_BYTES = 11
 MFX_SIGFOX_GEOLOCATION_TIMEOUT_FRAME_LENGTH_BYTES = 1
+MFX_SIGFOX_ERROR_STACK_FRAME_LENGTH_BYTES = 12
 
 # Error values.
 MFX_TEMPERATURE_ERROR = 0x7F
@@ -64,6 +66,39 @@ def MFX_FillDataBase(timestamp, device_id, data):
         }]
         if LOG == True:
             print(LOG_GetCurrentTimestamp() + "MFX ID=" + str(device_id) + " * Start up.")
+        # Fill data base.
+        INFLUX_DB_WriteData(INFLUX_DB_MFX_DATABASE_NAME, json_body)
+    # Startup frame.
+    if len(data) == (2 * MFX_SIGFOX_STARTUP_FRAME_LENGTH_BYTES):
+        # Parse fields.
+        reset_byte = int(data[0:2], 16)
+        major_version = int(data[2:4], 16)
+        minor_version = int(data[4:6], 16)
+        commit_index = int(data[6:8], 16)
+        commit_id = int(data[8:15], 16)
+        dirty_flag = int(data[15:16], 16)
+        # Create JSON object.
+        json_body = [
+        {
+            "measurement": INFLUX_DB_MEASUREMENT_GLOBAL,
+            "time": influxdb_timestamp,
+            "fields": {
+                INFLUX_DB_FIELD_LAST_COMMUNICATION_TIMESTAMP : influxdb_timestamp,
+                INFLUX_DB_FIELD_LAST_STARTUP_TIMESTAMP : influxdb_timestamp,
+                INFLUX_DB_FIELD_RESET_BYTE : reset_byte,
+                INFLUX_DB_FIELD_VERSION_MAJOR : major_version,
+                INFLUX_DB_FIELD_VERSION_MINOR : minor_version,
+                INFLUX_DB_FIELD_VERSION_COMMIT_INDEX : commit_index,
+                INFLUX_DB_FIELD_VERSION_COMMIT_ID : commit_id,
+                INFLUX_DB_FIELD_VERSION_DIRTY_FLAG : dirty_flag
+            },
+            "tags": {
+                INFLUX_DB_TAG_SIGFOX_DEVICE_ID : influxdb_device_id,
+                INFLUX_DB_TAG_METEOFOX_SITE : MFX_GetSite(influxdb_device_id)
+            }
+        }]
+        if LOG == True:
+            print(LOG_GetCurrentTimestamp() + "MFX ID=" + str(device_id) + " * Startup data * Reset=" + hex(reset_byte) + " * Version=" + str(major_version) + "." + str(minor_version) + "." + str(commit_index) + " (" + hex(commit_id) + ", " + str(dirty_flag) + ")")
         # Fill data base.
         INFLUX_DB_WriteData(INFLUX_DB_MFX_DATABASE_NAME, json_body)
     # Monitoring frame.
@@ -317,6 +352,7 @@ def MFX_FillDataBase(timestamp, device_id, data):
         INFLUX_DB_WriteData(INFLUX_DB_MFX_DATABASE_NAME, json_body)
     # Geolocation timeout frame.
     if len(data) == (2 * MFX_SIGFOX_GEOLOCATION_TIMEOUT_FRAME_LENGTH_BYTES):
+        # Parse field.
         gps_timeout_duration = int(data[0:2], 16)
         # Create JSON object.
         json_body = [
@@ -346,3 +382,28 @@ def MFX_FillDataBase(timestamp, device_id, data):
             print(LOG_GetCurrentTimestamp() + "MFX ID=" + str(device_id) + " * Geoloc timeout * GpsFixDur=" + str(gps_timeout_duration) + "s.")
         # Fill data base.
         INFLUX_DB_WriteData(INFLUX_DB_MFX_DATABASE_NAME, json_body)
+    # Error stack frame.
+    if len(data) == (2 * MFX_SIGFOX_ERROR_STACK_FRAME_LENGTH_BYTES):
+        # Parse field.
+        for idx in range(0, (MFX_SIGFOX_ERROR_STACK_FRAME_LENGTH_BYTES / 2)):
+            error = int(data[(idx * 4) : ((idx * 4) + 4)], 16)
+            # Store error code if not null.
+            if (error != 0):
+                # Create JSON object.
+                json_body = [
+                {
+                    "measurement": INFLUX_DB_MEASUREMENT_GLOBAL,
+                    "time": (influxdb_timestamp - idx),
+                    "fields": {
+                        INFLUX_DB_FIELD_LAST_COMMUNICATION_TIMESTAMP : influxdb_timestamp,
+                        INFLUX_DB_FIELD_ERROR : error
+                    },
+                    "tags": {
+                        INFLUX_DB_TAG_SIGFOX_DEVICE_ID : influxdb_device_id,
+                        INFLUX_DB_TAG_METEOFOX_SITE : MFX_GetSite(influxdb_device_id)
+                    }
+                }]
+                if LOG == True:
+                    print(LOG_GetCurrentTimestamp() + "MFX ID=" + str(device_id) + " * Error stack * Code=" + hex(error))
+                # Fill data base.
+                INFLUX_DB_WriteData(INFLUX_DB_MFX_DATABASE_NAME, json_body)

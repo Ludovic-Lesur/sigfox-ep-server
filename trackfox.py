@@ -6,7 +6,7 @@ from log import *
 ### MACROS ###
 
 TKFX_SIGFOX_DEVICES_ID = ["4761", "479C", "47A7", "47EA", "4894"]
-TKFX_SIGFOX_DEVICES_ASSET = ["Car", "Bike", "Hiking", "Unknown", "Unknown"]
+TKFX_SIGFOX_DEVICES_ASSET = ["Car", "Bike", "Hiking", "Hiking_backup", "Unknown"]
 
 TKFX_SIGFOX_OOB_DATA = "OOB"
 TKFX_SIGFOX_MONITORING_FRAME_LENGTH_BYTES = 8

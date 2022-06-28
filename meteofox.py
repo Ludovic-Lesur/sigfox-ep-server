@@ -8,7 +8,7 @@ from log import *
 
 # Devices ID and associated informations.
 MFX_SIGFOX_DEVICES_ID = ["53B5", "5436", "546C", "5477", "5497", "549D", "54B6", "54E4"]
-MFX_SIGFOX_DEVICES_SITE = ["INSA Toulouse", "Proto V2", "Le Vigan", "Prat Albis", "Eaunes", "Labege", "Le Lien", "Concarneau"]
+MFX_SIGFOX_DEVICES_SITE = ["INSA Toulouse", "Proto V2", "Le Vigan", "Prat Albis", "Eaunes", "Labege", "Le Lien", "Kourou"]
 
 # Sigfox frame lengths.
 MFX_SIGFOX_OOB_DATA = "OOB"

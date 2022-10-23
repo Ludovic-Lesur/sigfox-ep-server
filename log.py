@@ -1,13 +1,20 @@
 import datetime
 import time
 
-### MACROS ###
+### LOCAL MACROS ###
 
 # Enable or disable debug prints.
-LOG = False
+__LOG = False
 
-### FUNCTIONS ###
+### PUBLIC FUNCTIONS ###
 
-# Function to get current timestamp in pretty format.
-def LOG_GetCurrentTimestamp():
-    return datetime.datetime.fromtimestamp(int(time.time())).strftime('%Y-%m-%d %H:%M:%S') + " *** "
+# Function to print a log line.
+def LOG_print(message) :
+    if (__LOG == True) :
+        print(message)
+
+# Function to print a log line with timestamp.
+def LOG_print_timestamp(message) :
+    log_timestamp = datetime.datetime.fromtimestamp(int(time.time())).strftime('%Y-%m-%d %H:%M:%S') + " *** "
+    if (__LOG == True) :
+        print(log_timestamp + message)

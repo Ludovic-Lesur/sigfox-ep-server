@@ -7,7 +7,7 @@ from log import *
 ### LOCAL MACROS ###
 
 # TrackFox tags.
-__TRACKFOX_ASSET = ["Car", "Bike", "Hiking", "Hiking_backup", "Unknown"]
+__TRACKFOX_ASSET = ["Car", "Bike", "Hiking", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A"]
 # Sigfox frames length.
 __TRACKFOX_MONITORING_DATA_LENGTH_BYTES = 9
 __TRACKFOX_ERROR_STACK_DATA_LENGTH_BYTES = 12
@@ -15,7 +15,7 @@ __TRACKFOX_ERROR_STACK_DATA_LENGTH_BYTES = 12
 ### PUBLIC MACROS ###
 
 # TrackFox EP-IDs.
-TRACKFOX_EP_ID = ["4257", "428D", "42F1", "43B9", "43CD"]
+TRACKFOX_EP_ID = ["4257", "428D", "42F1", "43B9", "43CD", "44AA", "44D2", "4505", "45A0", "45AB"]
 
 ### LOCAL FUNCTIONS ###
 

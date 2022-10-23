@@ -8,7 +8,7 @@ from log import *
 ### LOCAL MACROS ###
 
 # MeteoFox tags.
-__METEOFOX_SITE = ["Proto_HW1.0", "Proto_HW2.0", "Le_Vigan", "Prat_Albis", "Eaunes", "Labege", "Le_Lien", "Kourou"]
+__METEOFOX_SITE = ["Proto_HW1.0", "Proto_HW2.0", "Le_Vigan", "Prat_Albis", "Eaunes", "Labege", "Le_Lien", "Kourou", "N/A", "N/A", "N/A", "N/A"]
 # Sigfox frame lengths.
 __METEOFOX_MONITORING_DATA_LENGTH_BYTES = 9
 __METEOFOX_IM_WEATHER_DATA_LENGTH_BYTES = 6
@@ -18,7 +18,7 @@ __METEOFOX_ERROR_STACK_DATA_LENGTH_BYTES = 12
 ### PUBLIC MACROS ###
 
 # MeteoFox EP-IDs.
-METEOFOX_EP_ID = ["53B5", "5436", "546C", "5477", "5497", "549D", "54B6", "54E4"]
+METEOFOX_EP_ID = ["53B5", "5436", "546C", "5477", "5497", "549D", "54B6", "54E4", "5521", "557B", "592C", "595E"]
 
 ### LOCAL FUNCTIONS ###
 

@@ -7,7 +7,7 @@ from log import *
 ### LOCAL MACROS ###
 
 # Sensit tags.
-__SENSIT_SITE = ["Sigfox_bureau", "Sigfox_cagibi", "Prat_Albis", "Le_Vigan_maison", "Le_Vigan_atelier)"]
+__SENSIT_SITE = ["Sigfox_bureau", "Sigfox_cagibi", "Prat_Albis", "Le_Vigan_maison", "Le_Vigan_atelier"]
 __SENSIT_VERSION = ["V2", "V2", "V2", "V3", "V3"]
 # Sigfox frames length.
 __SENSIT_MONITORING_DATA_LENGTH_BYTES = 4

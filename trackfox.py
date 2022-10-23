@@ -85,12 +85,6 @@ def TRACKFOX_fill_data_base(timestamp, sigfox_ep_id, data):
             "measurement": INFLUX_DB_MEASUREMENT_MONITORING,
             "time": timestamp,
             "fields": {
-                INFLUX_DB_FIELD_TAMB : tamb_degrees,
-                INFLUX_DB_FIELD_HAMB : hamb_percent,
-                INFLUX_DB_FIELD_TMCU : tmcu_degrees,
-                INFLUX_DB_FIELD_VSRC : vsrc_mv,
-                INFLUX_DB_FIELD_VCAP : vcap_mv,
-                INFLUX_DB_FIELD_VMCU : vmcu_mv,
                 INFLUX_DB_FIELD_STATUS : status,
                 INFLUX_DB_FIELD_TIME_LAST_MONITORING_DATA : timestamp
             },
@@ -102,6 +96,19 @@ def TRACKFOX_fill_data_base(timestamp, sigfox_ep_id, data):
                 INFLUX_DB_FIELD_TIME_LAST_COMMUNICATION : timestamp
             },
         }]
+        # Add valid fields to JSON.
+        if (tamb_degrees != COMMON_ERROR_DATA) :
+            json_body[0]["fields"][INFLUX_DB_FIELD_TAMB] = tamb_degrees
+        if (hamb_percent != COMMON_ERROR_DATA) :
+            json_body[0]["fields"][INFLUX_DB_FIELD_HAMB] = hamb_percent
+        if (tmcu_degrees != COMMON_ERROR_DATA) :
+            json_body[0]["fields"][INFLUX_DB_FIELD_TMCU] = tmcu_degrees
+        if (vsrc_mv != COMMON_ERROR_DATA) :
+            json_body[0]["fields"][INFLUX_DB_FIELD_VSRC] = vsrc_mv
+        if (vcap_mv != COMMON_ERROR_DATA) :
+            json_body[0]["fields"][INFLUX_DB_FIELD_VCAP] = vcap_mv
+        if (vmcu_mv != COMMON_ERROR_DATA) :
+            json_body[0]["fields"][INFLUX_DB_FIELD_VMCU] = vmcu_mv
         LOG_print_timestamp("[TRACKFOX] * Monitoring data * asset=" + __TRACKFOX_get_asset(sigfox_ep_id) + " tamb=" + str(tamb_degrees) + "dC hamb=" + str(hamb_percent) + "% tmcu=" + str(tmcu_degrees) + "dC vsrc=" + str(vsrc_mv) + "mV vcap=" + str(vcap_mv) + "mV vmcu=" + str(vmcu_mv) + "mV status=" + hex(status))
     # Fill data base.
     if (len(json_body) > 0) :

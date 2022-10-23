@@ -106,8 +106,8 @@ def ATXFOX_fill_data_base(timestamp, sigfox_ep_id, data):
         vmcu_mv = int(data[12:16], 16) if (int(data[12:16], 16) != COMMON_ERROR_VALUE_ANALOG_16BITS) else COMMON_ERROR_DATA
         tmcu_degrees = COMMON_one_complement_to_value(int(data[16:18], 16), 7) if (int(data[16:18], 16) != COMMON_ERROR_VALUE_TEMPERATURE) else COMMON_ERROR_DATA
         # Compute output power in nW (uA * mV).
-        pout_nw = "error"
-        if (vout_mv != "error") and (iout_ua != "error") :
+        pout_nw = COMMON_ERROR_DATA
+        if (vout_mv != COMMON_ERROR_DATA) and (iout_ua != COMMON_ERROR_DATA) :
             pout_nw = (vout_mv * iout_ua)
         # Create JSON object.
         json_body = [
@@ -115,12 +115,7 @@ def ATXFOX_fill_data_base(timestamp, sigfox_ep_id, data):
             "measurement": INFLUX_DB_MEASUREMENT_MONITORING,
             "time": timestamp,
             "fields": {
-                INFLUX_DB_FIELD_VOUT : vout_mv,
                 INFLUX_DB_FIELD_I_RANGE : i_range,
-                INFLUX_DB_FIELD_IOUT : iout_ua,
-                INFLUX_DB_FIELD_POUT : pout_nw,
-                INFLUX_DB_FIELD_VMCU : vmcu_mv,
-                INFLUX_DB_FIELD_TMCU : tmcu_degrees,
                 INFLUX_DB_FIELD_TIME_LAST_MONITORING_DATA : timestamp
             },
         },
@@ -131,6 +126,17 @@ def ATXFOX_fill_data_base(timestamp, sigfox_ep_id, data):
                 INFLUX_DB_FIELD_TIME_LAST_COMMUNICATION : timestamp
             },
         }]
+        # Add valid fields to JSON.
+        if (vout_mv != COMMON_ERROR_DATA) :
+            json_body[0]["fields"][INFLUX_DB_FIELD_VOUT] = vout_mv
+        if (iout_ua != COMMON_ERROR_DATA) :
+            json_body[0]["fields"][INFLUX_DB_FIELD_IOUT] = iout_ua
+        if (vmcu_mv != COMMON_ERROR_DATA) :
+            json_body[0]["fields"][INFLUX_DB_FIELD_VMCU] = vmcu_mv
+        if (tmcu_degrees != COMMON_ERROR_DATA) :
+            json_body[0]["fields"][INFLUX_DB_FIELD_TMCU] = tmcu_degrees
+        if (pout_nw != COMMON_ERROR_DATA) :
+            json_body[0]["fields"][INFLUX_DB_FIELD_POUT] = pout_nw
         LOG_print_timestamp("[ATXFOX] * Monitoring data * rack=" + __ATXFOX_get_rack(sigfox_ep_id) + " psfe=" + __ATXFOX_get_psfe(sigfox_ep_id) + " vout=" + str(vout_mv) + "mV i_range=" + str(i_range) + " iout=" + str(iout_ua) + "ua pout=" + str(pout_nw) + "nW vmcu=" + str(vmcu_mv) + "mV tmcu=" + str(tmcu_degrees) + "dC")
     # Fill data base.
     if (len(json_body) > 0) :

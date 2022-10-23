@@ -107,12 +107,6 @@ def METEOFOX_fill_data_base(timestamp, sigfox_ep_id, data) :
             "time" : timestamp,
             "measurement": INFLUX_DB_MEASUREMENT_MONITORING,
             "fields": {
-                INFLUX_DB_FIELD_TMCU : tmcu_degrees,
-                INFLUX_DB_FIELD_TPCB : tpcb_degrees,
-                INFLUX_DB_FIELD_HPCB : hpcb_percent,
-                INFLUX_DB_FIELD_VSRC : vsrc_mv,
-                INFLUX_DB_FIELD_VCAP : vcap_mv,
-                INFLUX_DB_FIELD_VMCU : vmcu_mv,
                 INFLUX_DB_FIELD_STATUS : status,
                 INFLUX_DB_FIELD_TIME_LAST_MONITORING_DATA : timestamp
             },
@@ -124,6 +118,19 @@ def METEOFOX_fill_data_base(timestamp, sigfox_ep_id, data) :
                 INFLUX_DB_FIELD_TIME_LAST_COMMUNICATION : timestamp
             },
         }]
+        # Add valid fields to JSON.
+        if (tmcu_degrees != COMMON_ERROR_DATA) :
+            json_body[0]["fields"][INFLUX_DB_FIELD_TMCU] = tmcu_degrees
+        if (tpcb_degrees != COMMON_ERROR_DATA) :
+            json_body[0]["fields"][INFLUX_DB_FIELD_TPCB] = tpcb_degrees
+        if (hpcb_percent != COMMON_ERROR_DATA) :
+            json_body[0]["fields"][INFLUX_DB_FIELD_HPCB] = hpcb_percent
+        if (vsrc_mv != COMMON_ERROR_DATA) :
+            json_body[0]["fields"][INFLUX_DB_FIELD_VSRC] = vsrc_mv
+        if (vcap_mv != COMMON_ERROR_DATA) :
+            json_body[0]["fields"][INFLUX_DB_FIELD_VCAP] = vcap_mv
+        if (vmcu_mv != COMMON_ERROR_DATA) :
+            json_body[0]["fields"][INFLUX_DB_FIELD_VMCU] = vmcu_mv
         LOG_print_timestamp("[METEOFOX] * Monitoring data * site=" + __METEOFOX_get_site(sigfox_ep_id) + " tmcu=" + str(tmcu_degrees) + "dC tpcb=" + str(tpcb_degrees) + "dC hpcb=" + str(hpcb_percent) + "% vsrc=" + str(vsrc_mv) + "mV vcap=" + str(vcap_mv) + "mV vmcu=" + str(vmcu_mv) + "mV status=" + hex(status))
     # IM weather data frame.
     if (len(data) == (2 * __METEOFOX_IM_WEATHER_DATA_LENGTH_BYTES)) :
@@ -134,6 +141,7 @@ def METEOFOX_fill_data_base(timestamp, sigfox_ep_id, data) :
         uv_index = int(data[6:8], 16) if (int(data[6:8], 16) != COMMON_ERROR_VALUE_UV_INDEX) else COMMON_ERROR_DATA
         patm_abs_hpa = (int(data[8:12], 16) / 10.0) if (int(data[8:12], 16) != COMMON_ERROR_VALUE_PRESSURE) else COMMON_ERROR_DATA
         # Compute sea level pressure.
+        patm_sea_hpa = COMMON_ERROR_DATA
         try :
             altitude_query = "SELECT last(altitude) FROM geoloc WHERE sigfox_sigfox_ep_id='" + sigfox_ep_id + "'"
             altitude_query_result = INFLUX_DB_read_data(INFLUX_DB_DATABASE_METEOFOX, altitude_query)
@@ -143,19 +151,13 @@ def METEOFOX_fill_data_base(timestamp, sigfox_ep_id, data) :
             patm_sea_hpa = __METEOFOX_compute_sea_level_pressure(patm_abs_hpa, altitude, tamb_degrees)
         except:
             # Altitude not available.
-            patm_sea_hpa = "error"    
+            patm_sea_hpa = COMMON_ERROR_DATA
         # Create JSON object.
         json_body = [
         {
             "time" : timestamp,
             "measurement": INFLUX_DB_MEASUREMENT_WEATHER,
             "fields": {
-                INFLUX_DB_FIELD_TAMB : tamb_degrees,
-                INFLUX_DB_FIELD_HAMB : hamb_percent,
-                INFLUX_DB_FIELD_LIGHT : light_percent,
-                INFLUX_DB_FIELD_UV_INDEX : uv_index,
-                INFLUX_DB_FIELD_PATM_ABS : patm_abs_hpa,
-                INFLUX_DB_FIELD_PATM_SEA : patm_sea_hpa,
                 INFLUX_DB_FIELD_TIME_LAST_WEATHER_DATA : timestamp
             },
         },
@@ -166,6 +168,18 @@ def METEOFOX_fill_data_base(timestamp, sigfox_ep_id, data) :
                 INFLUX_DB_FIELD_TIME_LAST_COMMUNICATION : timestamp
             },
         }]
+        if (tamb_degrees != COMMON_ERROR_DATA) :
+            json_body[0]["fields"][INFLUX_DB_FIELD_TAMB] = tamb_degrees
+        if (hamb_percent != COMMON_ERROR_DATA) :
+            json_body[0]["fields"][INFLUX_DB_FIELD_HAMB] = hamb_percent
+        if (light_percent != COMMON_ERROR_DATA) :
+            json_body[0]["fields"][INFLUX_DB_FIELD_LIGHT] = light_percent
+        if (uv_index != COMMON_ERROR_DATA) :
+            json_body[0]["fields"][INFLUX_DB_FIELD_UV_INDEX] = uv_index
+        if (patm_abs_hpa != COMMON_ERROR_DATA) :
+            json_body[0]["fields"][INFLUX_DB_FIELD_PATM_ABS] = patm_abs_hpa
+        if (patm_sea_hpa != COMMON_ERROR_DATA) :
+            json_body[0]["fields"][INFLUX_DB_FIELD_PATM_SEA] = patm_sea_hpa
         LOG_print_timestamp("[METEOFOX] * IM weather data * site=" + __METEOFOX_get_site(sigfox_ep_id) + " tamb=" + str(tamb_degrees) + "dC hamb=" + str(hamb_percent) + "% light=" + str(light_percent) + "% uv_index=" + str(uv_index) + " patm_abs=" + str(patm_abs_hpa) + "hPa patm_sea=" + str(patm_sea_hpa) + "hpa")
     # CM weather data frame.
     if (len(data) == (2 * __METEOFOX_CM_WEATHER_DATA_LENGTH_BYTES)) :
@@ -176,10 +190,11 @@ def METEOFOX_fill_data_base(timestamp, sigfox_ep_id, data) :
         uv_index = int(data[6:8], 16) if (int(data[6:8], 16) != COMMON_ERROR_VALUE_UV_INDEX) else COMMON_ERROR_DATA
         patm_abs_hpa = (int(data[8:12], 16) / 10.0) if (int(data[8:12], 16) != COMMON_ERROR_VALUE_PRESSURE) else COMMON_ERROR_DATA
         wind_speed_average_kmh = int(data[12:14], 16) if (int(data[12:14], 16) != COMMON_ERROR_VALUE_WIND) else COMMON_ERROR_DATA
-        wind_speed_peak = int(data[14:16], 16) if (int(data[14:16], 16) != COMMON_ERROR_VALUE_WIND) else COMMON_ERROR_DATA
+        wind_speed_peak_kmh = int(data[14:16], 16) if (int(data[14:16], 16) != COMMON_ERROR_VALUE_WIND) else COMMON_ERROR_DATA
         wind_direction_average_degrees = (int(data[16:18], 16) * 2) if (int(data[16:18], 16) != COMMON_ERROR_VALUE_WIND) else COMMON_ERROR_DATA
         rain_mm = int(data[18:20], 16) if (int(data[18:20], 16) != COMMON_ERROR_VALUE_WIND) else COMMON_ERROR_DATA
         # Compute sea level pressure.
+        patm_sea_hpa = COMMON_ERROR_DATA
         try :
             altitude_query = "SELECT last(altitude) FROM geoloc WHERE sigfox_sigfox_ep_id='" + sigfox_ep_id + "'"
             altitude_query_result = INFLUX_DB_read_data(INFLUX_DB_DATABASE_METEOFOX, altitude_query)
@@ -189,23 +204,13 @@ def METEOFOX_fill_data_base(timestamp, sigfox_ep_id, data) :
             patm_sea_hpa = __METEOFOX_compute_sea_level_pressure(patm_abs_hpa, altitude, tamb_degrees)
         except:
             # Altitude not available.
-            patm_sea_hpa = "error"    
+            patm_sea_hpa = COMMON_ERROR_DATA
         # Create JSON object.
         json_body = [
         {
             "time" : timestamp,
             "measurement": INFLUX_DB_MEASUREMENT_WEATHER,
             "fields": {
-                INFLUX_DB_FIELD_TAMB : tamb_degrees,
-                INFLUX_DB_FIELD_HAMB : hamb_percent,
-                INFLUX_DB_FIELD_LIGHT : light_percent,
-                INFLUX_DB_FIELD_UV_INDEX : uv_index,
-                INFLUX_DB_FIELD_PATM_ABS : patm_abs_hpa,
-                INFLUX_DB_FIELD_PATM_SEA : patm_sea_hpa,
-                INFLUX_DB_FIELD_WSPD_AVRG : wind_speed_average_kmh,
-                INFLUX_DB_FIELD_WSPD_PEAK : wind_speed_peak,
-                INFLUX_DB_FIELD_WDIR_AVRG : wind_direction_average_degrees,
-                INFLUX_DB_FIELD_RAIN : rain_mm,
                 INFLUX_DB_FIELD_TIME_LAST_WEATHER_DATA : timestamp
             },
         },
@@ -216,7 +221,27 @@ def METEOFOX_fill_data_base(timestamp, sigfox_ep_id, data) :
                 INFLUX_DB_FIELD_TIME_LAST_COMMUNICATION : timestamp
             },
         }]
-        LOG_print_timestamp("[METEOFOX] * CM weather data * site=" + __METEOFOX_get_site(sigfox_ep_id) + " tamb=" + str(tamb_degrees) + "dC, hamb=" + str(hamb_percent) + "% light=" + str(light_percent) + "% uv_index=" + str(uv_index) + " patm_abs=" + str(patm_abs_hpa) + "hPa patm_sea=" + str(patm_sea_hpa) + "hPa wind_speed_average=" + str(wind_speed_average_kmh) + "km/h wind_speed_peak=" + str(wind_speed_peak) + "km/h, wind_direction_average=" + str(wind_direction_average_degrees) + "d, rain=" + str(rain_mm) + "mm")
+        if (tamb_degrees != COMMON_ERROR_DATA) :
+            json_body[0]["fields"][INFLUX_DB_FIELD_TAMB] = tamb_degrees
+        if (hamb_percent != COMMON_ERROR_DATA) :
+            json_body[0]["fields"][INFLUX_DB_FIELD_HAMB] = hamb_percent
+        if (light_percent != COMMON_ERROR_DATA) :
+            json_body[0]["fields"][INFLUX_DB_FIELD_LIGHT] = light_percent
+        if (uv_index != COMMON_ERROR_DATA) :
+            json_body[0]["fields"][INFLUX_DB_FIELD_UV_INDEX] = uv_index
+        if (patm_abs_hpa != COMMON_ERROR_DATA) :
+            json_body[0]["fields"][INFLUX_DB_FIELD_PATM_ABS] = patm_abs_hpa
+        if (patm_sea_hpa != COMMON_ERROR_DATA) :
+            json_body[0]["fields"][INFLUX_DB_FIELD_PATM_SEA] = patm_sea_hpa
+        if (wind_speed_average_kmh != COMMON_ERROR_DATA) :
+            json_body[0]["fields"][INFLUX_DB_FIELD_WSPD_AVRG] = wind_speed_average_kmh
+        if (wind_speed_peak_kmh != COMMON_ERROR_DATA) :
+            json_body[0]["fields"][INFLUX_DB_FIELD_WSPD_PEAK] = wind_speed_peak_kmh
+        if (wind_direction_average_degrees != COMMON_ERROR_DATA) :
+            json_body[0]["fields"][INFLUX_DB_FIELD_WDIR_AVRG] = wind_direction_average_degrees
+        if (rain_mm != COMMON_ERROR_DATA) :
+            json_body[0]["fields"][INFLUX_DB_FIELD_RAIN] = rain_mm
+        LOG_print_timestamp("[METEOFOX] * CM weather data * site=" + __METEOFOX_get_site(sigfox_ep_id) + " tamb=" + str(tamb_degrees) + "dC, hamb=" + str(hamb_percent) + "% light=" + str(light_percent) + "% uv_index=" + str(uv_index) + " patm_abs=" + str(patm_abs_hpa) + "hPa patm_sea=" + str(patm_sea_hpa) + "hPa wind_speed_average=" + str(wind_speed_average_kmh) + "km/h wind_speed_peak=" + str(wind_speed_peak_kmh) + "km/h, wind_direction_average=" + str(wind_direction_average_degrees) + "d, rain=" + str(rain_mm) + "mm")
     # Fill data base.
     if (len(json_body) > 0) :
         __METEOFOX_add_tags(json_body, sigfox_ep_id)

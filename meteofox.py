@@ -143,7 +143,7 @@ def METEOFOX_fill_data_base(timestamp, sigfox_ep_id, data) :
         # Compute sea level pressure.
         patm_sea_hpa = COMMON_ERROR_DATA
         try :
-            altitude_query = "SELECT last(altitude) FROM geoloc WHERE sigfox_sigfox_ep_id='" + sigfox_ep_id + "'"
+            altitude_query = "SELECT last(altitude) FROM geoloc WHERE sigfox_ep_id='" + sigfox_ep_id + "'"
             altitude_query_result = INFLUX_DB_read_data(INFLUX_DB_DATABASE_METEOFOX, altitude_query)
             altitude_points = altitude_query_result.get_points()
             for point in altitude_points :
@@ -196,7 +196,7 @@ def METEOFOX_fill_data_base(timestamp, sigfox_ep_id, data) :
         # Compute sea level pressure.
         patm_sea_hpa = COMMON_ERROR_DATA
         try :
-            altitude_query = "SELECT last(altitude) FROM geoloc WHERE sigfox_sigfox_ep_id='" + sigfox_ep_id + "'"
+            altitude_query = "SELECT last(altitude) FROM geoloc WHERE sigfox_ep_id='" + sigfox_ep_id + "'"
             altitude_query_result = INFLUX_DB_read_data(INFLUX_DB_DATABASE_METEOFOX, altitude_query)
             altitude_points = altitude_query_result.get_points()
             for point in altitude_points :

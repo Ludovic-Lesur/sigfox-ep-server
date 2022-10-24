@@ -76,7 +76,7 @@ LOG_print("*******************************************************\n")
 # Init Influx DB database.
 INFLUX_DB_init()
 # Add script version in database.
-version = str(GIT_MAJOR_VERSION) + "." + str(GIT_MINOR_VERSION) + "." + str(GIT_COMMIT_INDEX)
+version = "SW" + str(GIT_MAJOR_VERSION) + "." + str(GIT_MINOR_VERSION) + "." + str(GIT_COMMIT_INDEX)
 if (GIT_DIRTY_FLAG != 0) :
     version = version + ".d"
 json_body = [

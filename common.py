@@ -40,7 +40,7 @@ def COMMON_create_json_startup_data(timestamp, data) :
     version_commit_index = int(data[6:8], 16)
     version_commit_id = int(data[8:15], 16)
     version_dirty_flag = int(data[15:16], 16)
-    version = str(version_major) + "." + str(version_minor) + "." + str(version_commit_index)
+    version = "SW" + str(version_major) + "." + str(version_minor) + "." + str(version_commit_index)
     if (version_dirty_flag != 0) :
         version = version + ".d"
     # Create JSON object.

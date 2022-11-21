@@ -39,3 +39,5 @@ echo "GIT_COMMIT_INDEX =	${BASH_REMATCH[3]}" >> version.py
 echo "GIT_COMMIT_ID =    	0x${BASH_REMATCH[4]}" >> version.py
 echo "GIT_DIRTY_FLAG =   	$dirty_flag" >> version.py
 echo "" >> version.py
+
+chmod 777 version.py

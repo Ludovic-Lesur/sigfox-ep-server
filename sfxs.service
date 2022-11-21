@@ -1,0 +1,11 @@
+[Unit]
+Description=SFXS startup script
+After=multi-user.target
+
+[Service]
+Type=simple
+User=ludo
+ExecStart=/usr/bin/python /home/ludo/git/sfxs/sfxs.py
+
+[Install]
+WantedBy=multi-user.target

@@ -46,6 +46,7 @@ def COMMON_create_json_startup_data(timestamp, data) :
     # Create JSON object.
     json_body = [
     {
+        "time" : timestamp,
         "measurement" : INFLUX_DB_MEASUREMENT_GLOBAL,
         "fields" : {
             INFLUX_DB_FIELD_TIME_LAST_STARTUP : timestamp,

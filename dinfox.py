@@ -46,6 +46,10 @@ __DINFOX_BPSM_UL_PAYLOAD_DATA_SIZE = 7
 __DINFOX_DDRM_UL_PAYLOAD_MONITORING_SIZE = 3
 __DINFOX_DDRM_UL_PAYLOAD_DATA_SIZE = 7
 
+__DINFOX_UHFM_UL_PAYLOAD_MONITORING_SIZE = 5
+
+__DINFOX_GPSM_UL_PAYLOAD_MONITORING_SIZE = 7
+
 ### PUBLIC MACROS ###
 
 # TrackFox EP-IDs.
@@ -177,6 +181,8 @@ def DINFOX_fill_data_base(timestamp, sigfox_ep_id, ul_payload):
                 if (iout_ua != COMMON_ERROR_DATA) :
                     json_body[0]["fields"][INFLUX_DB_FIELD_IOUT] = iout_ua 
                 LOG_print_timestamp("[DINFOX LVRM] * Electrical payload * system=" + system_name + " node=" + node_name + " vcom=" + str(vcom_mv) + "mV vout=" + str(vout_mv) + "mV iout=" + str(iout_ua) + "uA relay=" + str(relay_state))
+            else:
+                LOG_print_timestamp("[DINFOX LVRM] * system=" + system_name + " node=" + node_name + " * Invalid payload")
         # BPSM.
         elif (board_id_int == __DINFOX_BOARD_ID_BPSM):
             # Monitoring payload.
@@ -240,6 +246,8 @@ def DINFOX_fill_data_base(timestamp, sigfox_ep_id, ul_payload):
                 if (vbkp_mv != COMMON_ERROR_DATA) :
                     json_body[0]["fields"][INFLUX_DB_FIELD_VBKP] = vbkp_mv
                 LOG_print_timestamp("[DINFOX BPSM] * Electrical payload * system=" + system_name + " node=" + node_name + " vsrc=" + str(vsrc_mv) + "mV vstr=" + str(vstr_mv) + "mV vbkp=" + str(vbkp_mv) + "mV charge_status=" + str(charge_status) + " charge_enable=" + str(charge_enable) + " backup_enable=" + str(backup_enable))
+            else:
+                LOG_print_timestamp("[DINFOX BPSM] * system=" + system_name + " node=" + node_name + " * Invalid payload")
         # DDRM.
         elif (board_id_int == __DINFOX_BOARD_ID_DDRM):
             # Monitoring payload.
@@ -300,6 +308,77 @@ def DINFOX_fill_data_base(timestamp, sigfox_ep_id, ul_payload):
                 if (iout_ua != COMMON_ERROR_DATA) :
                     json_body[0]["fields"][INFLUX_DB_FIELD_IOUT] = iout_ua 
                 LOG_print_timestamp("[DINFOX DDRM] * Electrical payload * system=" + system_name + " node=" + node_name + " vin=" + str(vin_mv) + "mV vout=" + str(vout_mv) + "mV iout=" + str(iout_ua) + "uA dc_dc=" + str(dc_dc_state))
+            else:
+                LOG_print_timestamp("[DINFOX DDRM] * system=" + system_name + " node=" + node_name + " * Invalid payload")
+        # UHFM.
+        if (board_id_int == __DINFOX_BOARD_ID_UHFM):
+            # Monitoring payload.
+            if (node_ul_payload_size == (2 * __DINFOX_UHFM_UL_PAYLOAD_MONITORING_SIZE)):
+                vmcu_mv = int(node_ul_payload[0:4], 16) if (int(node_ul_payload[0:4], 16) != COMMON_ERROR_VALUE_ANALOG_16BITS) else COMMON_ERROR_DATA
+                tmcu_degrees = COMMON_one_complement_to_value(int(node_ul_payload[4:6], 16), 7) if (int(node_ul_payload[4:6], 16) != COMMON_ERROR_VALUE_TEMPERATURE) else COMMON_ERROR_DATA
+                vrf_mv = int(node_ul_payload[6:10], 16) if (int(node_ul_payload[6:10], 16) != COMMON_ERROR_VALUE_ANALOG_16BITS) else COMMON_ERROR_DATA
+                # Create JSON object.
+                json_body = [
+                {
+                    "measurement": INFLUX_DB_MEASUREMENT_MONITORING,
+                    "time": timestamp,
+                    "fields": {
+                        INFLUX_DB_FIELD_TIME_LAST_MONITORING_DATA : timestamp
+                    },
+                },
+                {
+                    "measurement": INFLUX_DB_MEASUREMENT_GLOBAL,
+                    "time": timestamp,
+                    "fields": {
+                        INFLUX_DB_FIELD_TIME_LAST_COMMUNICATION : timestamp
+                    },
+                }]
+                # Add valid fields to JSON.
+                if (vmcu_mv != COMMON_ERROR_DATA) :
+                    json_body[0]["fields"][INFLUX_DB_FIELD_VMCU] = vmcu_mv
+                if (tmcu_degrees != COMMON_ERROR_DATA) :
+                    json_body[0]["fields"][INFLUX_DB_FIELD_TMCU] = tmcu_degrees
+                if (vrf_mv != COMMON_ERROR_DATA) :
+                    json_body[0]["fields"][INFLUX_DB_FIELD_VRF] = vrf_mv
+                LOG_print_timestamp("[DINFOX UHFM] * Monitoring payload * system=" + system_name + " node=" + node_name + " vmcu=" + str(vmcu_mv) + "mV tmcu=" + str(tmcu_degrees) + "dC vrf=" + str(vrf_mv) + "mV")
+            else:
+                LOG_print_timestamp("[DINFOX UHFM] * system=" + system_name + " node=" + node_name + " * Invalid payload")
+        # GPSM.
+        if (board_id_int == __DINFOX_BOARD_ID_GPSM):
+            # Monitoring payload.
+            if (node_ul_payload_size == (2 * __DINFOX_GPSM_UL_PAYLOAD_MONITORING_SIZE)):
+                vmcu_mv = int(node_ul_payload[0:4], 16) if (int(node_ul_payload[0:4], 16) != COMMON_ERROR_VALUE_ANALOG_16BITS) else COMMON_ERROR_DATA
+                tmcu_degrees = COMMON_one_complement_to_value(int(node_ul_payload[4:6], 16), 7) if (int(node_ul_payload[4:6], 16) != COMMON_ERROR_VALUE_TEMPERATURE) else COMMON_ERROR_DATA
+                vgps_mv = int(node_ul_payload[6:10], 16) if (int(node_ul_payload[6:10], 16) != COMMON_ERROR_VALUE_ANALOG_16BITS) else COMMON_ERROR_DATA
+                vant_mv = int(node_ul_payload[10:14], 16) if (int(node_ul_payload[10:14], 16) != COMMON_ERROR_VALUE_ANALOG_16BITS) else COMMON_ERROR_DATA
+                # Create JSON object.
+                json_body = [
+                {
+                    "measurement": INFLUX_DB_MEASUREMENT_MONITORING,
+                    "time": timestamp,
+                    "fields": {
+                        INFLUX_DB_FIELD_TIME_LAST_MONITORING_DATA : timestamp
+                    },
+                },
+                {
+                    "measurement": INFLUX_DB_MEASUREMENT_GLOBAL,
+                    "time": timestamp,
+                    "fields": {
+                        INFLUX_DB_FIELD_TIME_LAST_COMMUNICATION : timestamp
+                    },
+                }]
+                # Add valid fields to JSON.
+                if (vmcu_mv != COMMON_ERROR_DATA) :
+                    json_body[0]["fields"][INFLUX_DB_FIELD_VMCU] = vmcu_mv
+                if (tmcu_degrees != COMMON_ERROR_DATA) :
+                    json_body[0]["fields"][INFLUX_DB_FIELD_TMCU] = tmcu_degrees
+                if (vgps_mv != COMMON_ERROR_DATA) :
+                    json_body[0]["fields"][INFLUX_DB_FIELD_VGPS] = vgps_mv
+                if (vant_mv != COMMON_ERROR_DATA) :
+                    json_body[0]["fields"][INFLUX_DB_FIELD_VANT] = vant_mv
+                LOG_print_timestamp("[DINFOX GPSM] * Monitoring payload * system=" + system_name + " node=" + node_name + " vmcu=" + str(vmcu_mv) + "mV tmcu=" + str(tmcu_degrees) + "dC vgps=" + str(vgps_mv) + "mV vant=" + str(vant_mv) + "mV")
+            else:
+                LOG_print_timestamp("[DINFOX GPSM] * system=" + system_name + " node=" + node_name + " * Invalid payload")
         # Unknwon board ID.
         else:
             LOG_print_timestamp("[DINFOX] * system=" + system_name + " node=" + node_name + " * Unknwon board ID")

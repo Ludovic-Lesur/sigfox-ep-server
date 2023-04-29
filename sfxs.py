@@ -5,6 +5,7 @@ import json
 import time
 
 from atxfox import *
+from dinfox import *
 from influx_db import *
 from log import *
 from meteofox import *
@@ -37,6 +38,9 @@ def SFXS_update_data_base(timestamp, sigfox_ep_id, data):
     # Sensit.
     elif (sigfox_ep_id in SENSIT_EP_ID):
         SENSIT_fill_data_base(timestamp, sigfox_ep_id, data)
+    # DinFox
+    elif (sigfox_ep_id in DINFOX_EP_ID):
+        DINFOX_fill_data_base(timestamp, sigfox_ep_id, data)
     else:
         LOG_print_timestamp("[SFXS] * Unknown Sigfox EP-ID")
         

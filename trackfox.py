@@ -27,7 +27,7 @@ def __TRACKFOX_get_asset(sigfox_ep_id):
         asset = __TRACKFOX_ASSET[TRACKFOX_EP_ID.index(sigfox_ep_id)]
     return asset
 
-# Function adding the specific MeteoFox tags.
+# Function adding the specific TrackFox tags.
 def __TRACKFOX_add_tags(json_body, sigfox_ep_id) :
     for idx in range(len(json_body)) :
         json_body[idx]["tags"] = {

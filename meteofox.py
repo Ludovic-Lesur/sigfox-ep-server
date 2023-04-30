@@ -56,7 +56,7 @@ def METEOFOX_fill_data_base(timestamp, sigfox_ep_id, ul_payload) :
         json_body = [
         {
             "time" : timestamp,
-            "measurement" : INFLUX_DB_MEASUREMENT_GLOBAL,
+            "measurement" : INFLUX_DB_MEASUREMENT_METADATA,
             "fields": {
                 INFLUX_DB_FIELD_TIME_LAST_STARTUP : timestamp,
                 INFLUX_DB_FIELD_TIME_LAST_COMMUNICATION : timestamp
@@ -64,21 +64,21 @@ def METEOFOX_fill_data_base(timestamp, sigfox_ep_id, ul_payload) :
         }]
         LOG_print_timestamp("[METEOFOX] * Startup * site=" + __METEOFOX_get_site(sigfox_ep_id))
     # Startup frame.
-    if (len(ul_payload) == (2 * COMMON_STARTUP_DATA_LENGTH_BYTES)) :
+    if (len(ul_payload) == (2 * COMMON_UL_PAYLOAD_STARTUP_SIZE)) :
         # Create JSON object.
         result = COMMON_create_json_startup_data(timestamp, ul_payload)
         json_body = result[0]
         log_data = result[1]
         LOG_print_timestamp("[METEOFOX] * Startup data * site=" + __METEOFOX_get_site(sigfox_ep_id) + " " + log_data)
     # Geolocation frame.
-    if (len(ul_payload) == (2 * COMMON_GEOLOC_DATA_LENGTH_BYTES)) :
+    if (len(ul_payload) == (2 * COMMON_UL_PAYLOAD_GEOLOC_SIZE)) :
         # Create JSON object.
         result = COMMON_create_json_geoloc_data(timestamp, ul_payload)
         json_body = result[0]
         log_data = result[1]
         LOG_print_timestamp("[METEOFOX] * Geoloc data * site=" + __METEOFOX_get_site(sigfox_ep_id) + " " + log_data)
     # Geolocation timeout frame.
-    if (len(ul_payload) == (2 * COMMON_GEOLOC_TIMEOUT_DATA_LENGTH_BYTES)) :
+    if (len(ul_payload) == (2 * COMMON_UL_PAYLOAD_GEOLOC_TIMEOUT_SIZE)) :
         # Create JSON object.
         result = COMMON_create_json_geoloc_timeout_data(timestamp, ul_payload)
         json_body = result[0]
@@ -113,7 +113,7 @@ def METEOFOX_fill_data_base(timestamp, sigfox_ep_id, ul_payload) :
         },
         {
             "time" : timestamp,
-            "measurement": INFLUX_DB_MEASUREMENT_GLOBAL,
+            "measurement": INFLUX_DB_MEASUREMENT_METADATA,
             "fields": {
                 INFLUX_DB_FIELD_TIME_LAST_COMMUNICATION : timestamp
             },
@@ -165,7 +165,7 @@ def METEOFOX_fill_data_base(timestamp, sigfox_ep_id, ul_payload) :
         },
         {
             "time" : timestamp,
-            "measurement": INFLUX_DB_MEASUREMENT_GLOBAL,
+            "measurement": INFLUX_DB_MEASUREMENT_METADATA,
             "fields": {
                 INFLUX_DB_FIELD_TIME_LAST_COMMUNICATION : timestamp
             },
@@ -220,7 +220,7 @@ def METEOFOX_fill_data_base(timestamp, sigfox_ep_id, ul_payload) :
         },
         {
             "time" : timestamp,
-            "measurement": INFLUX_DB_MEASUREMENT_GLOBAL,
+            "measurement": INFLUX_DB_MEASUREMENT_METADATA,
             "fields": {
                 INFLUX_DB_FIELD_TIME_LAST_COMMUNICATION : timestamp
             },

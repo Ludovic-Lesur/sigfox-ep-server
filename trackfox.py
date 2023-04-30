@@ -42,21 +42,21 @@ def TRACKFOX_fill_data_base(timestamp, sigfox_ep_id, ul_payload):
     # Init JSON object.
     json_body = []
     # Startup frame.
-    if (len(ul_payload) == (2 * COMMON_STARTUP_DATA_LENGTH_BYTES)) :
+    if (len(ul_payload) == (2 * COMMON_UL_PAYLOAD_STARTUP_SIZE)) :
         # Create JSON object.
         result = COMMON_create_json_startup_data(timestamp, ul_payload)
         json_body = result[0]
         log_data = result[1]
         LOG_print_timestamp("[TRACKFOX] * Startup data * asset=" + __TRACKFOX_get_asset(sigfox_ep_id) + " " + log_data)
     # Geolocation frame.
-    if (len(ul_payload) == (2 * COMMON_GEOLOC_DATA_LENGTH_BYTES)) :
+    if (len(ul_payload) == (2 * COMMON_UL_PAYLOAD_GEOLOC_SIZE)) :
         # Create JSON object.
         result = COMMON_create_json_geoloc_data(timestamp, ul_payload)
         json_body = result[0]
         log_data = result[1]
         LOG_print_timestamp("[TRACKFOX] * Geoloc data * asset=" + __TRACKFOX_get_asset(sigfox_ep_id) + " " + log_data)
     # Geolocation timeout frame.
-    if (len(ul_payload) == (2 * COMMON_GEOLOC_TIMEOUT_DATA_LENGTH_BYTES)) :
+    if (len(ul_payload) == (2 * COMMON_UL_PAYLOAD_GEOLOC_TIMEOUT_SIZE)) :
         # Create JSON object.
         result = COMMON_create_json_geoloc_timeout_data(timestamp, ul_payload)
         json_body = result[0]
@@ -90,7 +90,7 @@ def TRACKFOX_fill_data_base(timestamp, sigfox_ep_id, ul_payload):
             },
         },
         {
-            "measurement": INFLUX_DB_MEASUREMENT_GLOBAL,
+            "measurement": INFLUX_DB_MEASUREMENT_METADATA,
             "time": timestamp,
             "fields": {
                 INFLUX_DB_FIELD_TIME_LAST_COMMUNICATION : timestamp

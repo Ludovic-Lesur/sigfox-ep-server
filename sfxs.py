@@ -86,7 +86,7 @@ if (GIT_DIRTY_FLAG != 0) :
 json_body = [
 {
     "time" : int(time.time()),
-    "measurement" : INFLUX_DB_MEASUREMENT_GLOBAL,
+    "measurement" : INFLUX_DB_MEASUREMENT_METADATA,
     "fields": {
         INFLUX_DB_FIELD_TIME_LAST_STARTUP : int(time.time()),
         INFLUX_DB_FIELD_VERSION : version,

@@ -6,9 +6,9 @@ from log import *
 ### PUBLIC MACROS ###
 
 COMMON_OOB_DATA = "OOB"
-COMMON_STARTUP_DATA_LENGTH_BYTES = 8
-COMMON_GEOLOC_DATA_LENGTH_BYTES = 11
-COMMON_GEOLOC_TIMEOUT_DATA_LENGTH_BYTES = 1
+COMMON_UL_PAYLOAD_STARTUP_SIZE = 8
+COMMON_UL_PAYLOAD_GEOLOC_SIZE = 11
+COMMON_UL_PAYLOAD_GEOLOC_TIMEOUT_SIZE = 1
 # Error values.
 COMMON_ERROR_DATA = "error"
 COMMON_ERROR_VALUE_ANALOG_12BITS = 0xFFF
@@ -34,14 +34,14 @@ def COMMON_one_complement_to_value(one_complement_data, sign_bit_position) :
     return value
 
 # Function for parsing startup frame.
-def COMMON_create_json_startup_data(timestamp, data) :
+def COMMON_create_json_startup_data(timestamp, ul_payload) :
     # Parse fields.
-    reset_flags = int(data[0:2], 16)
-    version_major = int(data[2:4], 16)
-    version_minor = int(data[4:6], 16)
-    version_commit_index = int(data[6:8], 16)
-    version_commit_id = int(data[8:15], 16)
-    version_dirty_flag = int(data[15:16], 16)
+    reset_flags = int(ul_payload[0:2], 16)
+    version_major = int(ul_payload[2:4], 16)
+    version_minor = int(ul_payload[4:6], 16)
+    version_commit_index = int(ul_payload[6:8], 16)
+    version_commit_id = int(ul_payload[8:15], 16)
+    version_dirty_flag = int(ul_payload[15:16], 16)
     version = "SW" + str(version_major) + "." + str(version_minor) + "." + str(version_commit_index)
     if (version_dirty_flag != 0) :
         version = version + ".d"
@@ -49,7 +49,7 @@ def COMMON_create_json_startup_data(timestamp, data) :
     json_body = [
     {
         "time" : timestamp,
-        "measurement" : INFLUX_DB_MEASUREMENT_GLOBAL,
+        "measurement" : INFLUX_DB_MEASUREMENT_METADATA,
         "fields" : {
             INFLUX_DB_FIELD_TIME_LAST_STARTUP : timestamp,
             INFLUX_DB_FIELD_RESET_FLAGS : reset_flags,
@@ -66,24 +66,24 @@ def COMMON_create_json_startup_data(timestamp, data) :
     return json_body, log_data
 
 # Function for parsing geoloc frame.
-def COMMON_create_json_geoloc_data(timestamp, data) :
+def COMMON_create_json_geoloc_data(timestamp, ul_payload) :
     # Parse fields.
-    latitude_degrees = int(data[0:2], 16)
-    latitude_minutes = (int(data[2:4], 16) >> 2) & 0x3F
-    latitude_seconds = ((((int(data[2:8], 16) & 0x03FFFE) >> 1) & 0x01FFFF) / (100000.0)) * 60.0
-    latitude_north = int(data[6:8], 16) & 0x01
+    latitude_degrees = int(ul_payload[0:2], 16)
+    latitude_minutes = (int(ul_payload[2:4], 16) >> 2) & 0x3F
+    latitude_seconds = ((((int(ul_payload[2:8], 16) & 0x03FFFE) >> 1) & 0x01FFFF) / (100000.0)) * 60.0
+    latitude_north = int(ul_payload[6:8], 16) & 0x01
     latitude = latitude_degrees + (latitude_minutes / 60.0) + (latitude_seconds / 3600.0)
     if (latitude_north == 0):
         latitude = -latitude
-    longitude_degrees = int(data[8:10], 16)
-    longitude_minutes = (int(data[10:12], 16) >> 2) & 0x3F
-    longitude_seconds = ((((int(data[10:16], 16) & 0x03FFFE) >> 1) & 0x01FFFF) / (100000.0)) * 60.0
-    longitude_east = int(data[14:16], 16) & 0x01
+    longitude_degrees = int(ul_payload[8:10], 16)
+    longitude_minutes = (int(ul_payload[10:12], 16) >> 2) & 0x3F
+    longitude_seconds = ((((int(ul_payload[10:16], 16) & 0x03FFFE) >> 1) & 0x01FFFF) / (100000.0)) * 60.0
+    longitude_east = int(ul_payload[14:16], 16) & 0x01
     longitude = longitude_degrees + (longitude_minutes / 60.0) + (longitude_seconds / 3600.0)
     if (longitude_east == 0):
         longitude = -longitude
-    altitude = int(data[16:20], 16)
-    gps_fix_duration = int(data[20:22], 16)
+    altitude = int(ul_payload[16:20], 16)
+    gps_fix_duration = int(ul_payload[20:22], 16)
     # Create JSON object.
     json_body = [
     {
@@ -99,7 +99,7 @@ def COMMON_create_json_geoloc_data(timestamp, data) :
     },
     {
         "time" : timestamp,
-        "measurement": INFLUX_DB_MEASUREMENT_GLOBAL,
+        "measurement": INFLUX_DB_MEASUREMENT_METADATA,
         "fields": {
             INFLUX_DB_FIELD_TIME_LAST_COMMUNICATION : timestamp
         },
@@ -108,9 +108,9 @@ def COMMON_create_json_geoloc_data(timestamp, data) :
     return json_body, log_data
     
 # Function for parsing geoloc timeout frame.
-def COMMON_create_json_geoloc_timeout_data(timestamp, data) :
+def COMMON_create_json_geoloc_timeout_data(timestamp, ul_payload) :
     # Parse field.
-    gps_timeout_duration = int(data[0:2], 16)
+    gps_timeout_duration = int(ul_payload[0:2], 16)
     # Create JSON object.
     json_body = [
     {
@@ -122,7 +122,7 @@ def COMMON_create_json_geoloc_timeout_data(timestamp, data) :
     },
     {
         "time" : timestamp,
-        "measurement": INFLUX_DB_MEASUREMENT_GLOBAL,
+        "measurement": INFLUX_DB_MEASUREMENT_METADATA,
         "fields": {
             INFLUX_DB_FIELD_TIME_LAST_COMMUNICATION : timestamp
         },
@@ -131,18 +131,18 @@ def COMMON_create_json_geoloc_timeout_data(timestamp, data) :
     return json_body, log_data
     
 # Function for parsing error stack frame.
-def COMMON_create_json_error_stack_data(timestamp, data, number_of_errors) :
+def COMMON_create_json_error_stack_data(timestamp, ul_payload, number_of_errors) :
     # Parse field.
     log_data = ""
     for idx in range(0, number_of_errors):
-        error = int(data[(idx * 4) : ((idx * 4) + 4)], 16)
+        error = int(ul_payload[(idx * 4) : ((idx * 4) + 4)], 16)
         # Store error code if not null.
         if (error != 0):
             # Create JSON object.
             json_body = [
             {
                 "time": (timestamp + idx),
-                "measurement": INFLUX_DB_MEASUREMENT_GLOBAL,
+                "measurement": INFLUX_DB_MEASUREMENT_METADATA,
                 "fields": {
                     INFLUX_DB_FIELD_TIME_LAST_COMMUNICATION : timestamp,
                     INFLUX_DB_FIELD_ERROR : error

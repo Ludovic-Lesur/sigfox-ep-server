@@ -124,7 +124,7 @@ def DINFOX_fill_data_base(timestamp, sigfox_ep_id, ul_payload):
     node_ul_payload = ul_payload[(2 * __DINFOX_UL_PAYLOAD_HEADER_SIZE):]
     node_ul_payload_size = len(ul_payload) - (2 * __DINFOX_UL_PAYLOAD_HEADER_SIZE)
     # Common startup frame for all nodes.
-    if (node_ul_payload_size == (2 * COMMON_STARTUP_DATA_LENGTH_BYTES)):
+    if (node_ul_payload_size == (2 * COMMON_UL_PAYLOAD_STARTUP_SIZE)):
         # Create JSON object.
         result = COMMON_create_json_startup_data(timestamp, node_ul_payload)
         json_body = result[0]
@@ -147,7 +147,7 @@ def DINFOX_fill_data_base(timestamp, sigfox_ep_id, ul_payload):
                     },
                 },
                 {
-                    "measurement": INFLUX_DB_MEASUREMENT_GLOBAL,
+                    "measurement": INFLUX_DB_MEASUREMENT_METADATA,
                     "time": timestamp,
                     "fields": {
                         INFLUX_DB_FIELD_TIME_LAST_COMMUNICATION : timestamp
@@ -178,7 +178,7 @@ def DINFOX_fill_data_base(timestamp, sigfox_ep_id, ul_payload):
                     },
                 },
                 {
-                    "measurement": INFLUX_DB_MEASUREMENT_GLOBAL,
+                    "measurement": INFLUX_DB_MEASUREMENT_METADATA,
                     "time": timestamp,
                     "fields": {
                         INFLUX_DB_FIELD_TIME_LAST_COMMUNICATION : timestamp
@@ -211,7 +211,7 @@ def DINFOX_fill_data_base(timestamp, sigfox_ep_id, ul_payload):
                     },
                 },
                 {
-                    "measurement": INFLUX_DB_MEASUREMENT_GLOBAL,
+                    "measurement": INFLUX_DB_MEASUREMENT_METADATA,
                     "time": timestamp,
                     "fields": {
                         INFLUX_DB_FIELD_TIME_LAST_COMMUNICATION : timestamp
@@ -245,7 +245,7 @@ def DINFOX_fill_data_base(timestamp, sigfox_ep_id, ul_payload):
                     },
                 },
                 {
-                    "measurement": INFLUX_DB_MEASUREMENT_GLOBAL,
+                    "measurement": INFLUX_DB_MEASUREMENT_METADATA,
                     "time": timestamp,
                     "fields": {
                         INFLUX_DB_FIELD_TIME_LAST_COMMUNICATION : timestamp
@@ -279,7 +279,7 @@ def DINFOX_fill_data_base(timestamp, sigfox_ep_id, ul_payload):
                     },
                 },
                 {
-                    "measurement": INFLUX_DB_MEASUREMENT_GLOBAL,
+                    "measurement": INFLUX_DB_MEASUREMENT_METADATA,
                     "time": timestamp,
                     "fields": {
                         INFLUX_DB_FIELD_TIME_LAST_COMMUNICATION : timestamp
@@ -310,7 +310,7 @@ def DINFOX_fill_data_base(timestamp, sigfox_ep_id, ul_payload):
                     },
                 },
                 {
-                    "measurement": INFLUX_DB_MEASUREMENT_GLOBAL,
+                    "measurement": INFLUX_DB_MEASUREMENT_METADATA,
                     "time": timestamp,
                     "fields": {
                         INFLUX_DB_FIELD_TIME_LAST_COMMUNICATION : timestamp
@@ -344,7 +344,7 @@ def DINFOX_fill_data_base(timestamp, sigfox_ep_id, ul_payload):
                     },
                 },
                 {
-                    "measurement": INFLUX_DB_MEASUREMENT_GLOBAL,
+                    "measurement": INFLUX_DB_MEASUREMENT_METADATA,
                     "time": timestamp,
                     "fields": {
                         INFLUX_DB_FIELD_TIME_LAST_COMMUNICATION : timestamp
@@ -379,7 +379,7 @@ def DINFOX_fill_data_base(timestamp, sigfox_ep_id, ul_payload):
                     },
                 },
                 {
-                    "measurement": INFLUX_DB_MEASUREMENT_GLOBAL,
+                    "measurement": INFLUX_DB_MEASUREMENT_METADATA,
                     "time": timestamp,
                     "fields": {
                         INFLUX_DB_FIELD_TIME_LAST_COMMUNICATION : timestamp
@@ -414,7 +414,7 @@ def DINFOX_fill_data_base(timestamp, sigfox_ep_id, ul_payload):
                     },
                 },
                 {
-                    "measurement": INFLUX_DB_MEASUREMENT_GLOBAL,
+                    "measurement": INFLUX_DB_MEASUREMENT_METADATA,
                     "time": timestamp,
                     "fields": {
                         INFLUX_DB_FIELD_TIME_LAST_COMMUNICATION : timestamp
@@ -457,7 +457,7 @@ def DINFOX_fill_data_base(timestamp, sigfox_ep_id, ul_payload):
                     },
                 },
                 {
-                    "measurement": INFLUX_DB_MEASUREMENT_GLOBAL,
+                    "measurement": INFLUX_DB_MEASUREMENT_METADATA,
                     "time": timestamp,
                     "fields": {
                         INFLUX_DB_FIELD_TIME_LAST_COMMUNICATION : timestamp
@@ -503,7 +503,7 @@ def DINFOX_fill_data_base(timestamp, sigfox_ep_id, ul_payload):
                     },
                 },
                 {
-                    "measurement": INFLUX_DB_MEASUREMENT_GLOBAL,
+                    "measurement": INFLUX_DB_MEASUREMENT_METADATA,
                     "time": timestamp,
                     "fields": {
                         INFLUX_DB_FIELD_TIME_LAST_COMMUNICATION : timestamp
@@ -555,7 +555,7 @@ def DINFOX_fill_data_base(timestamp, sigfox_ep_id, ul_payload):
                     },
                 },
                 {
-                    "measurement": INFLUX_DB_MEASUREMENT_GLOBAL,
+                    "measurement": INFLUX_DB_MEASUREMENT_METADATA,
                     "time": timestamp,
                     "fields": {
                         INFLUX_DB_FIELD_TIME_LAST_COMMUNICATION : timestamp

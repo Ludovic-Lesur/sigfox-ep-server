@@ -53,7 +53,7 @@ def ATXFOX_fill_data_base(timestamp, sigfox_ep_id, ul_payload):
     # Init JSON object.
     json_body = []
     # Startup frame.
-    if (len(ul_payload) == (2 * COMMON_STARTUP_DATA_LENGTH_BYTES)) :
+    if (len(ul_payload) == (2 * COMMON_UL_PAYLOAD_STARTUP_SIZE)) :
         # Create JSON object.
         result = COMMON_create_json_startup_data(timestamp, ul_payload)
         json_body = result[0]
@@ -75,7 +75,7 @@ def ATXFOX_fill_data_base(timestamp, sigfox_ep_id, ul_payload):
             # Create JSON object.
             json_body = [
             {
-                "measurement": INFLUX_DB_MEASUREMENT_GLOBAL,
+                "measurement": INFLUX_DB_MEASUREMENT_METADATA,
                 "time": timestamp,
                 "fields": {
                     INFLUX_DB_FIELD_TIME_LAST_SHUTDOWN : timestamp,
@@ -88,7 +88,7 @@ def ATXFOX_fill_data_base(timestamp, sigfox_ep_id, ul_payload):
             # Create JSON object.
             json_body = [
             {
-                "measurement": INFLUX_DB_MEASUREMENT_GLOBAL,
+                "measurement": INFLUX_DB_MEASUREMENT_METADATA,
                 "time": timestamp,
                 "fields": {
                     INFLUX_DB_FIELD_TIME_LAST_STARTUP : timestamp,
@@ -120,7 +120,7 @@ def ATXFOX_fill_data_base(timestamp, sigfox_ep_id, ul_payload):
             },
         },
         {
-            "measurement": INFLUX_DB_MEASUREMENT_GLOBAL,
+            "measurement": INFLUX_DB_MEASUREMENT_METADATA,
             "time": timestamp,
             "fields": {
                 INFLUX_DB_FIELD_TIME_LAST_COMMUNICATION : timestamp

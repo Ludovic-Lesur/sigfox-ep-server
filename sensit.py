@@ -88,7 +88,7 @@ def SENSIT_fill_data_base(timestamp, sigfox_ep_id, ul_payload) :
             }
         },
         {
-            "measurement": INFLUX_DB_MEASUREMENT_GLOBAL,
+            "measurement": INFLUX_DB_MEASUREMENT_METADATA,
             "time": timestamp,
             "fields": {
                 INFLUX_DB_FIELD_TIME_LAST_COMMUNICATION : timestamp

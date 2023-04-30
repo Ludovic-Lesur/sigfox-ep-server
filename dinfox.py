@@ -133,7 +133,7 @@ def DINFOX_fill_data_base(timestamp, sigfox_ep_id, ul_payload):
     else:
         # LVRM.
         if (board_id_int == __DINFOX_BOARD_ID_LVRM):
-            # Monitoring payload.
+            # Monitoring frame.
             if (node_ul_payload_size == (2 * __DINFOX_LVRM_UL_PAYLOAD_MONITORING_SIZE)):
                 vmcu_mv = int(node_ul_payload[0:4], 16) if (int(node_ul_payload[0:4], 16) != COMMON_ERROR_VALUE_ANALOG_16BITS) else COMMON_ERROR_DATA
                 tmcu_degrees = COMMON_one_complement_to_value(int(node_ul_payload[4:6], 16), 7) if (int(node_ul_payload[4:6], 16) != COMMON_ERROR_VALUE_TEMPERATURE) else COMMON_ERROR_DATA
@@ -160,7 +160,7 @@ def DINFOX_fill_data_base(timestamp, sigfox_ep_id, ul_payload):
                     json_body[0]["fields"][INFLUX_DB_FIELD_TMCU] = tmcu_degrees
                 LOG_print_timestamp("[DINFOX LVRM] * Monitoring payload * system=" + system_name + " node=" + node_name +
                                     " vmcu=" + str(vmcu_mv) + "mV tmcu=" + str(tmcu_degrees) + "dC ")
-            # Electrical payload.
+            # Electrical frame.
             elif (node_ul_payload_size == (2 * __DINFOX_LVRM_UL_PAYLOAD_ELECTRICAL_SIZE)):
                 vcom_mv = int(node_ul_payload[0:4], 16) if (int(node_ul_payload[0:4], 16) != COMMON_ERROR_VALUE_ANALOG_16BITS) else COMMON_ERROR_DATA
                 vout_mv = int(node_ul_payload[4:8], 16) if (int(node_ul_payload[4:8], 16) != COMMON_ERROR_VALUE_ANALOG_16BITS) else COMMON_ERROR_DATA
@@ -197,7 +197,7 @@ def DINFOX_fill_data_base(timestamp, sigfox_ep_id, ul_payload):
                 LOG_print_timestamp("[DINFOX LVRM] * system=" + system_name + " node=" + node_name + " * Invalid payload")
         # BPSM.
         elif (board_id_int == __DINFOX_BOARD_ID_BPSM):
-            # Monitoring payload.
+            # Monitoring frame.
             if (node_ul_payload_size == (2 * __DINFOX_BPSM_UL_PAYLOAD_MONITORING_SIZE)):
                 vmcu_mv = int(node_ul_payload[0:4], 16) if (int(node_ul_payload[0:4], 16) != COMMON_ERROR_VALUE_ANALOG_16BITS) else COMMON_ERROR_DATA
                 tmcu_degrees = COMMON_one_complement_to_value(int(node_ul_payload[4:6], 16), 7) if (int(node_ul_payload[4:6], 16) != COMMON_ERROR_VALUE_TEMPERATURE) else COMMON_ERROR_DATA
@@ -224,7 +224,7 @@ def DINFOX_fill_data_base(timestamp, sigfox_ep_id, ul_payload):
                     json_body[0]["fields"][INFLUX_DB_FIELD_TMCU] = tmcu_degrees
                 LOG_print_timestamp("[DINFOX BPSM] * Monitoring payload * system=" + system_name + " node=" + node_name +
                                     " vmcu=" + str(vmcu_mv) + "mV tmcu=" + str(tmcu_degrees) + "dC ")
-            # Electrical payload.
+            # Electrical frame.
             elif (node_ul_payload_size == (2 * __DINFOX_BPSM_UL_PAYLOAD_ELECTRICAL_SIZE)):
                 vsrc_mv = int(node_ul_payload[0:4], 16) if (int(node_ul_payload[0:4], 16) != COMMON_ERROR_VALUE_ANALOG_16BITS) else COMMON_ERROR_DATA
                 vstr_mv = int(node_ul_payload[4:8], 16) if (int(node_ul_payload[4:8], 16) != COMMON_ERROR_VALUE_ANALOG_16BITS) else COMMON_ERROR_DATA
@@ -265,7 +265,7 @@ def DINFOX_fill_data_base(timestamp, sigfox_ep_id, ul_payload):
                 LOG_print_timestamp("[DINFOX BPSM] * system=" + system_name + " node=" + node_name + " * Invalid payload")
         # DDRM.
         elif (board_id_int == __DINFOX_BOARD_ID_DDRM):
-            # Monitoring payload.
+            # Monitoring frame.
             if (node_ul_payload_size == (2 * __DINFOX_DDRM_UL_PAYLOAD_MONITORING_SIZE)):
                 vmcu_mv = int(node_ul_payload[0:4], 16) if (int(node_ul_payload[0:4], 16) != COMMON_ERROR_VALUE_ANALOG_16BITS) else COMMON_ERROR_DATA
                 tmcu_degrees = COMMON_one_complement_to_value(int(node_ul_payload[4:6], 16), 7) if (int(node_ul_payload[4:6], 16) != COMMON_ERROR_VALUE_TEMPERATURE) else COMMON_ERROR_DATA
@@ -292,7 +292,7 @@ def DINFOX_fill_data_base(timestamp, sigfox_ep_id, ul_payload):
                     json_body[0]["fields"][INFLUX_DB_FIELD_TMCU] = tmcu_degrees
                 LOG_print_timestamp("[DINFOX DDRM] * Monitoring payload * system=" + system_name + " node=" + node_name +
                                     " vmcu=" + str(vmcu_mv) + "mV tmcu=" + str(tmcu_degrees) + "dC ")
-            # Electrical payload.
+            # Electrical frame.
             elif (node_ul_payload_size == (2 * __DINFOX_DDRM_UL_PAYLOAD_ELECTRICAL_SIZE)):
                 vin_mv = int(node_ul_payload[0:4], 16) if (int(node_ul_payload[0:4], 16) != COMMON_ERROR_VALUE_ANALOG_16BITS) else COMMON_ERROR_DATA
                 vout_mv = int(node_ul_payload[4:8], 16) if (int(node_ul_payload[4:8], 16) != COMMON_ERROR_VALUE_ANALOG_16BITS) else COMMON_ERROR_DATA
@@ -329,7 +329,7 @@ def DINFOX_fill_data_base(timestamp, sigfox_ep_id, ul_payload):
                 LOG_print_timestamp("[DINFOX DDRM] * system=" + system_name + " node=" + node_name + " * Invalid payload")
         # UHFM.
         elif (board_id_int == __DINFOX_BOARD_ID_UHFM):
-            # Monitoring payload.
+            # Monitoring frame.
             if (node_ul_payload_size == (2 * __DINFOX_UHFM_UL_PAYLOAD_MONITORING_SIZE)):
                 vmcu_mv = int(node_ul_payload[0:4], 16) if (int(node_ul_payload[0:4], 16) != COMMON_ERROR_VALUE_ANALOG_16BITS) else COMMON_ERROR_DATA
                 tmcu_degrees = COMMON_one_complement_to_value(int(node_ul_payload[4:6], 16), 7) if (int(node_ul_payload[4:6], 16) != COMMON_ERROR_VALUE_TEMPERATURE) else COMMON_ERROR_DATA
@@ -363,7 +363,7 @@ def DINFOX_fill_data_base(timestamp, sigfox_ep_id, ul_payload):
                 LOG_print_timestamp("[DINFOX UHFM] * system=" + system_name + " node=" + node_name + " * Invalid payload")
         # GPSM.
         elif (board_id_int == __DINFOX_BOARD_ID_GPSM):
-            # Monitoring payload.
+            # Monitoring frame.
             if (node_ul_payload_size == (2 * __DINFOX_GPSM_UL_PAYLOAD_MONITORING_SIZE)):
                 vmcu_mv = int(node_ul_payload[0:4], 16) if (int(node_ul_payload[0:4], 16) != COMMON_ERROR_VALUE_ANALOG_16BITS) else COMMON_ERROR_DATA
                 tmcu_degrees = COMMON_one_complement_to_value(int(node_ul_payload[4:6], 16), 7) if (int(node_ul_payload[4:6], 16) != COMMON_ERROR_VALUE_TEMPERATURE) else COMMON_ERROR_DATA
@@ -400,7 +400,7 @@ def DINFOX_fill_data_base(timestamp, sigfox_ep_id, ul_payload):
                 LOG_print_timestamp("[DINFOX GPSM] * system=" + system_name + " node=" + node_name + " * Invalid payload")
         # SM.
         elif (board_id_int == __DINFOX_BOARD_ID_SM):
-            # Monitoring payload.
+            # Monitoring frame.
             if (node_ul_payload_size == (2 * __DINFOX_SM_UL_PAYLOAD_MONITORING_SIZE)):
                 vmcu_mv = int(node_ul_payload[0:4], 16) if (int(node_ul_payload[0:4], 16) != COMMON_ERROR_VALUE_ANALOG_16BITS) else COMMON_ERROR_DATA
                 tmcu_degrees = COMMON_one_complement_to_value(int(node_ul_payload[4:6], 16), 7) if (int(node_ul_payload[4:6], 16) != COMMON_ERROR_VALUE_TEMPERATURE) else COMMON_ERROR_DATA
@@ -427,7 +427,7 @@ def DINFOX_fill_data_base(timestamp, sigfox_ep_id, ul_payload):
                     json_body[0]["fields"][INFLUX_DB_FIELD_TMCU] = tmcu_degrees
                 LOG_print_timestamp("[DINFOX SM] * Monitoring payload * system=" + system_name + " node=" + node_name +
                                     " vmcu=" + str(vmcu_mv) + "mV tmcu=" + str(tmcu_degrees) + "dC ")
-            # Sensors payload.
+            # Sensor frame.
             elif (node_ul_payload_size == (2 * __DINFOX_SM_UL_PAYLOAD_SENSOR_SIZE)):
                 tmp = (int(node_ul_payload[0:4], 16) >> 1) & 0x7FFF
                 ain0_mv = tmp if (tmp != COMMON_ERROR_VALUE_ANALOG_15BITS) else COMMON_ERROR_DATA
@@ -484,7 +484,7 @@ def DINFOX_fill_data_base(timestamp, sigfox_ep_id, ul_payload):
                 LOG_print_timestamp("[DINFOX SM] * system=" + system_name + " node=" + node_name + " * Invalid payload")
         # DMM.
         elif (board_id_int == __DINFOX_BOARD_ID_DMM):
-            # Monitoring payload.
+            # Monitoring frame.
             if (node_ul_payload_size == (2 * __DINFOX_DMM_UL_PAYLOAD_MONITORING_SIZE)):
                 vmcu_mv = int(node_ul_payload[0:4], 16) if (int(node_ul_payload[0:4], 16) != COMMON_ERROR_VALUE_ANALOG_16BITS) else COMMON_ERROR_DATA
                 tmcu_degrees = COMMON_one_complement_to_value(int(node_ul_payload[4:6], 16), 7) if (int(node_ul_payload[4:6], 16) != COMMON_ERROR_VALUE_TEMPERATURE) else COMMON_ERROR_DATA
@@ -527,7 +527,7 @@ def DINFOX_fill_data_base(timestamp, sigfox_ep_id, ul_payload):
                 LOG_print_timestamp("[DINFOX DMM] * system=" + system_name + " node=" + node_name + " * Invalid payload")
         # R4S8CR.
         elif (board_id_int == __DINFOX_BOARD_ID_R4S8CR):
-            # Electrical payload.
+            # Electrical frame.
             if (node_ul_payload_size == (2 * __DINFOX_R4S8CR_UL_PAYLOAD_ELECTRICAL_SIZE)):
                 relay_1_state = (int(node_ul_payload[0:2], 16) >> 0) & 0x01
                 relay_2_state = (int(node_ul_payload[0:2], 16) >> 1) & 0x01

@@ -8,15 +8,15 @@ from log import *
 
 # DinFox tags.
 __DINFOX_SYSTEM_TEST_BENCH_NAME = "Test_bench"
-__DINFOX_SYSTEM_TEST_BENCH_NODE_ADDRESS = ["00", "01", "08", "0C", "10", "14", "20", "21", "30"]
+__DINFOX_SYSTEM_TEST_BENCH_NODE_ADDRESS = [0x00, 0x01, 0x08, 0x0C, 0x10, 0x14, 0x20, 0x21, 0x30]
 __DINFOX_SYSTEM_TEST_BENCH_NODE = ["DMM_0", "DIM_0", "BPSM_0", "UHFM_0", "GPSM_0", "SM_0", "LVRM_0", "LVRM_1", "DDRM_0"]
 
 __DINFOX_SYSTEM_PRAT_ALBIS_NAME = "Prat_Albis"
-__DINFOX_SYSTEM_PRAT_ALBIS_NODE_ADDRESS = ["00", "01", "08", "0C", "70"]
+__DINFOX_SYSTEM_PRAT_ALBIS_NODE_ADDRESS = [0x00, 0x01, 0x08, 0x0C, 0x70]
 __DINFOX_SYSTEM_PRAT_ALBIS_NODE = ["DMM_0", "DIM_0", "BPSM_0", "UHFM_0", "R4S8CR_0"]
 
 __DINFOX_SYSTEM_SOLAR_RACK_NAME = "Solar_rack"
-__DINFOX_SYSTEM_SOLAR_RACK_NODE_ADDRESS = ["00", "01", "08", "0C", "20", "30", "31"]
+__DINFOX_SYSTEM_SOLAR_RACK_NODE_ADDRESS = [0x00, 0x01, 0x08, 0x0C, 0x20, 0x30, 0x31]
 __DINFOX_SYSTEM_SOLAR_RACK_NODE = ["DMM_0", "DIM_0", "BPSM_0", "UHFM_0", "LVRM_0", "DDRM_0", "DDRM_1"]
 
 __DINFOX_SYSTEM = [__DINFOX_SYSTEM_TEST_BENCH_NAME, __DINFOX_SYSTEM_PRAT_ALBIS_NAME, __DINFOX_SYSTEM_SOLAR_RACK_NAME, "N/A", "N/A", "N/A", "N/A", "N/A", "N/A","N/A"]
@@ -113,9 +113,8 @@ def DINFOX_fill_data_base(timestamp, sigfox_ep_id, ul_payload):
         LOG_print_timestamp("[DINFOX] * Invalid payload")
         return
     # Read node address and board ID.
-    node_address = ul_payload[0:2]
-    board_id = ul_payload[2:4]
-    board_id_int = int(board_id, 16)
+    node_address = int(ul_payload[0:2], 16)
+    board_id = int(ul_payload[2:4], 16)
     # Get system and node names for log print.
     result = __DINFOX_get_system_and_node(sigfox_ep_id, node_address)
     system_name = result[0]
@@ -132,7 +131,7 @@ def DINFOX_fill_data_base(timestamp, sigfox_ep_id, ul_payload):
         LOG_print_timestamp("[DINFOX] * Startup data * system=" + system_name + " node=" + node_name + " " + log_data)
     else:
         # LVRM.
-        if (board_id_int == __DINFOX_BOARD_ID_LVRM):
+        if (board_id == __DINFOX_BOARD_ID_LVRM):
             # Monitoring frame.
             if (node_ul_payload_size == (2 * __DINFOX_LVRM_UL_PAYLOAD_MONITORING_SIZE)):
                 vmcu_mv = int(node_ul_payload[0:4], 16) if (int(node_ul_payload[0:4], 16) != COMMON_ERROR_VALUE_ANALOG_16BITS) else COMMON_ERROR_DATA
@@ -196,7 +195,7 @@ def DINFOX_fill_data_base(timestamp, sigfox_ep_id, ul_payload):
             else:
                 LOG_print_timestamp("[DINFOX LVRM] * system=" + system_name + " node=" + node_name + " * Invalid payload")
         # BPSM.
-        elif (board_id_int == __DINFOX_BOARD_ID_BPSM):
+        elif (board_id == __DINFOX_BOARD_ID_BPSM):
             # Monitoring frame.
             if (node_ul_payload_size == (2 * __DINFOX_BPSM_UL_PAYLOAD_MONITORING_SIZE)):
                 vmcu_mv = int(node_ul_payload[0:4], 16) if (int(node_ul_payload[0:4], 16) != COMMON_ERROR_VALUE_ANALOG_16BITS) else COMMON_ERROR_DATA
@@ -264,7 +263,7 @@ def DINFOX_fill_data_base(timestamp, sigfox_ep_id, ul_payload):
             else:
                 LOG_print_timestamp("[DINFOX BPSM] * system=" + system_name + " node=" + node_name + " * Invalid payload")
         # DDRM.
-        elif (board_id_int == __DINFOX_BOARD_ID_DDRM):
+        elif (board_id == __DINFOX_BOARD_ID_DDRM):
             # Monitoring frame.
             if (node_ul_payload_size == (2 * __DINFOX_DDRM_UL_PAYLOAD_MONITORING_SIZE)):
                 vmcu_mv = int(node_ul_payload[0:4], 16) if (int(node_ul_payload[0:4], 16) != COMMON_ERROR_VALUE_ANALOG_16BITS) else COMMON_ERROR_DATA
@@ -328,7 +327,7 @@ def DINFOX_fill_data_base(timestamp, sigfox_ep_id, ul_payload):
             else:
                 LOG_print_timestamp("[DINFOX DDRM] * system=" + system_name + " node=" + node_name + " * Invalid payload")
         # UHFM.
-        elif (board_id_int == __DINFOX_BOARD_ID_UHFM):
+        elif (board_id == __DINFOX_BOARD_ID_UHFM):
             # Monitoring frame.
             if (node_ul_payload_size == (2 * __DINFOX_UHFM_UL_PAYLOAD_MONITORING_SIZE)):
                 vmcu_mv = int(node_ul_payload[0:4], 16) if (int(node_ul_payload[0:4], 16) != COMMON_ERROR_VALUE_ANALOG_16BITS) else COMMON_ERROR_DATA
@@ -362,7 +361,7 @@ def DINFOX_fill_data_base(timestamp, sigfox_ep_id, ul_payload):
             else:
                 LOG_print_timestamp("[DINFOX UHFM] * system=" + system_name + " node=" + node_name + " * Invalid payload")
         # GPSM.
-        elif (board_id_int == __DINFOX_BOARD_ID_GPSM):
+        elif (board_id == __DINFOX_BOARD_ID_GPSM):
             # Monitoring frame.
             if (node_ul_payload_size == (2 * __DINFOX_GPSM_UL_PAYLOAD_MONITORING_SIZE)):
                 vmcu_mv = int(node_ul_payload[0:4], 16) if (int(node_ul_payload[0:4], 16) != COMMON_ERROR_VALUE_ANALOG_16BITS) else COMMON_ERROR_DATA
@@ -399,7 +398,7 @@ def DINFOX_fill_data_base(timestamp, sigfox_ep_id, ul_payload):
             else:
                 LOG_print_timestamp("[DINFOX GPSM] * system=" + system_name + " node=" + node_name + " * Invalid payload")
         # SM.
-        elif (board_id_int == __DINFOX_BOARD_ID_SM):
+        elif (board_id == __DINFOX_BOARD_ID_SM):
             # Monitoring frame.
             if (node_ul_payload_size == (2 * __DINFOX_SM_UL_PAYLOAD_MONITORING_SIZE)):
                 vmcu_mv = int(node_ul_payload[0:4], 16) if (int(node_ul_payload[0:4], 16) != COMMON_ERROR_VALUE_ANALOG_16BITS) else COMMON_ERROR_DATA
@@ -483,7 +482,7 @@ def DINFOX_fill_data_base(timestamp, sigfox_ep_id, ul_payload):
             else:
                 LOG_print_timestamp("[DINFOX SM] * system=" + system_name + " node=" + node_name + " * Invalid payload")
         # DMM.
-        elif (board_id_int == __DINFOX_BOARD_ID_DMM):
+        elif (board_id == __DINFOX_BOARD_ID_DMM):
             # Monitoring frame.
             if (node_ul_payload_size == (2 * __DINFOX_DMM_UL_PAYLOAD_MONITORING_SIZE)):
                 vmcu_mv = int(node_ul_payload[0:4], 16) if (int(node_ul_payload[0:4], 16) != COMMON_ERROR_VALUE_ANALOG_16BITS) else COMMON_ERROR_DATA
@@ -526,7 +525,7 @@ def DINFOX_fill_data_base(timestamp, sigfox_ep_id, ul_payload):
             else:
                 LOG_print_timestamp("[DINFOX DMM] * system=" + system_name + " node=" + node_name + " * Invalid payload")
         # R4S8CR.
-        elif (board_id_int == __DINFOX_BOARD_ID_R4S8CR):
+        elif (board_id == __DINFOX_BOARD_ID_R4S8CR):
             # Electrical frame.
             if (node_ul_payload_size == (2 * __DINFOX_R4S8CR_UL_PAYLOAD_ELECTRICAL_SIZE)):
                 relay_1_state = (int(node_ul_payload[0:2], 16) >> 0) & 0x01

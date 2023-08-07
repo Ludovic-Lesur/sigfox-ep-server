@@ -75,8 +75,8 @@ def __DINFOX_get_mv(dinfox_voltage):
     # Reset result.
     voltage_mv = COMMON_ERROR_DATA
     # Extract unit and value.
-    unit = (dinfox_voltage & 0x8000)
-    value = (dinfox_voltage & 0x7FFF)
+    unit = ((dinfox_voltage >> 15) & 0x0001)
+    value = ((dinfox_voltage >> 0) & 0x7FFF)
     # Convert.
     if (unit == 0):
         voltage_mv = (value * 1)
@@ -89,8 +89,8 @@ def __DINFOX_get_ua(dinfox_current):
     # Reset result.
     current_ua = COMMON_ERROR_DATA
     # Extract unit and value.
-    unit = (dinfox_current & 0xC000)
-    value = (dinfox_current & 0x3FFF)
+    unit = ((dinfox_current >> 14) & 0x0003)
+    value = ((dinfox_current >> 0) & 0x3FFF)
     # Convert.
     if (unit == 0):
         current_ua = (value * 1)

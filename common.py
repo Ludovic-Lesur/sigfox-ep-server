@@ -8,7 +8,8 @@ from log import *
 COMMON_OOB_DATA = "OOB"
 COMMON_UL_PAYLOAD_STARTUP_SIZE = 8
 COMMON_UL_PAYLOAD_GEOLOC_SIZE = 11
-COMMON_UL_PAYLOAD_GEOLOC_TIMEOUT_SIZE = 1
+COMMON_UL_PAYLOAD_GEOLOC_TIMEOUT_SIZE_OLD = 1
+COMMON_UL_PAYLOAD_GEOLOC_TIMEOUT_SIZE = 3
 # Error values.
 COMMON_ERROR_DATA = "error"
 COMMON_ERROR_VALUE_ANALOG_12BITS = 0xFFF
@@ -108,26 +109,51 @@ def COMMON_create_json_geoloc_data(timestamp, ul_payload) :
     return json_body, log_data
     
 # Function for parsing geoloc timeout frame.
-def COMMON_create_json_geoloc_timeout_data(timestamp, ul_payload) :
-    # Parse field.
-    gps_timeout_duration = int(ul_payload[0:2], 16)
-    # Create JSON object.
-    json_body = [
-    {
-        "time" : timestamp,
-        "measurement": INFLUX_DB_MEASUREMENT_GEOLOC,
-        "fields": {
-            INFLUX_DB_FIELD_GPS_TIMEOUT_DURATION : gps_timeout_duration
+def COMMON_create_json_geoloc_timeout_data(timestamp, ul_payload, ul_payload_size) :
+    # Old format.
+    if (ul_payload_size == COMMON_UL_PAYLOAD_GEOLOC_TIMEOUT_SIZE_OLD) :
+        # Parse field
+        gps_timeout_duration = int(ul_payload[0:2], 16)
+        # Create JSON object.
+        json_body = [
+        {
+            "time" : timestamp,
+            "measurement": INFLUX_DB_MEASUREMENT_GEOLOC,
+            "fields": {
+                INFLUX_DB_FIELD_GPS_TIMEOUT_DURATION : gps_timeout_duration
+            },
         },
-    },
-    {
-        "time" : timestamp,
-        "measurement": INFLUX_DB_MEASUREMENT_METADATA,
-        "fields": {
-            INFLUX_DB_FIELD_TIME_LAST_COMMUNICATION : timestamp
+        {
+            "time" : timestamp,
+            "measurement": INFLUX_DB_MEASUREMENT_METADATA,
+            "fields": {
+                INFLUX_DB_FIELD_TIME_LAST_COMMUNICATION : timestamp,
+            },
+        }]
+        log_data = "gps_timeout_duration=" + str(gps_timeout_duration) + "s."
+    # New format.
+    elif (ul_payload_size == COMMON_UL_PAYLOAD_GEOLOC_TIMEOUT_SIZE) :
+        # Parse fields
+        gps_timeout_error_code = int(ul_payload[0:4], 16)
+        gps_timeout_duration = int(ul_payload[4:6], 16)
+        # Create JSON object.
+        json_body = [
+        {
+            "time" : timestamp,
+            "measurement": INFLUX_DB_MEASUREMENT_GEOLOC,
+            "fields": {
+                INFLUX_DB_FIELD_GPS_TIMEOUT_DURATION : gps_timeout_duration
+            },
         },
-    }]
-    log_data = "gps_timeout_duration=" + str(gps_timeout_duration) + "s."
+        {
+            "time" : timestamp,
+            "measurement": INFLUX_DB_MEASUREMENT_METADATA,
+            "fields": {
+                INFLUX_DB_FIELD_TIME_LAST_COMMUNICATION : timestamp,
+                INFLUX_DB_FIELD_ERROR : gps_timeout_error_code
+            },
+        }]
+        log_data = "gps_timeout_error_code=" + hex(gps_timeout_error_code) + " gps_timeout_duration=" + str(gps_timeout_duration) + "s."
     return json_body, log_data
     
 # Function for parsing error stack frame.

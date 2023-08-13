@@ -58,7 +58,7 @@ def TRACKFOX_fill_data_base(timestamp, sigfox_ep_id, ul_payload):
     # Geolocation timeout frame.
     if (len(ul_payload) == (2 * COMMON_UL_PAYLOAD_GEOLOC_TIMEOUT_SIZE)) :
         # Create JSON object.
-        result = COMMON_create_json_geoloc_timeout_data(timestamp, ul_payload)
+        result = COMMON_create_json_geoloc_timeout_data(timestamp, ul_payload, COMMON_UL_PAYLOAD_GEOLOC_TIMEOUT_SIZE)
         json_body = result[0]
         log_data = result[1]
         LOG_print_timestamp("[TRACKFOX] * Geoloc timeout * asset=" + __TRACKFOX_get_asset(sigfox_ep_id) + " " + log_data)

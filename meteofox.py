@@ -77,10 +77,17 @@ def METEOFOX_fill_data_base(timestamp, sigfox_ep_id, ul_payload) :
         json_body = result[0]
         log_data = result[1]
         LOG_print_timestamp("[METEOFOX] * Geoloc data * site=" + __METEOFOX_get_site(sigfox_ep_id) + " " + log_data)
+    # Old geolocation timeout frame.
+    if (len(ul_payload) == (2 * COMMON_UL_PAYLOAD_GEOLOC_TIMEOUT_SIZE_OLD)) :
+        # Create JSON object.
+        result = COMMON_create_json_geoloc_timeout_data(timestamp, ul_payload, COMMON_UL_PAYLOAD_GEOLOC_TIMEOUT_SIZE_OLD)
+        json_body = result[0]
+        log_data = result[1]
+        LOG_print_timestamp("[METEOFOX] * Geoloc timeout * site=" + __METEOFOX_get_site(sigfox_ep_id) + " " + log_data)
     # Geolocation timeout frame.
     if (len(ul_payload) == (2 * COMMON_UL_PAYLOAD_GEOLOC_TIMEOUT_SIZE)) :
         # Create JSON object.
-        result = COMMON_create_json_geoloc_timeout_data(timestamp, ul_payload)
+        result = COMMON_create_json_geoloc_timeout_data(timestamp, ul_payload, COMMON_UL_PAYLOAD_GEOLOC_TIMEOUT_SIZE)
         json_body = result[0]
         log_data = result[1]
         LOG_print_timestamp("[METEOFOX] * Geoloc timeout * site=" + __METEOFOX_get_site(sigfox_ep_id) + " " + log_data)

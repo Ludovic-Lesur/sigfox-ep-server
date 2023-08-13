@@ -158,6 +158,8 @@ def COMMON_create_json_geoloc_timeout_data(timestamp, ul_payload, ul_payload_siz
     
 # Function for parsing error stack frame.
 def COMMON_create_json_error_stack_data(timestamp, ul_payload, number_of_errors) :
+    # Create JSON object.
+    json_body = list()
     # Parse field.
     log_data = ""
     for idx in range(0, number_of_errors):
@@ -165,14 +167,18 @@ def COMMON_create_json_error_stack_data(timestamp, ul_payload, number_of_errors)
         # Store error code if not null.
         if (error != 0):
             # Create JSON object.
-            json_body = [
-            {
+            json_sub_body = {
                 "time": (timestamp + idx),
                 "measurement": INFLUX_DB_MEASUREMENT_METADATA,
                 "fields": {
                     INFLUX_DB_FIELD_TIME_LAST_COMMUNICATION : timestamp,
                     INFLUX_DB_FIELD_ERROR : error
-                },
-            }]
+                }
+            }
+            json_body.append(json_sub_body)
             log_data = log_data + "code_" + str(idx) + "=" + hex(error) + " "
-    return json_body, log_data                
+    return json_body, log_data
+
+
+
+

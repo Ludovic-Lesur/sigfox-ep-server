@@ -571,7 +571,7 @@ def DINFOX_fill_data_base(timestamp, sigfox_ep_id, ul_payload):
                     "measurement": INFLUX_DB_MEASUREMENT_ELECTRICAL,
                     "time": timestamp,
                     "fields": {
-                        INFLUX_DB_FIELD_TIME_LAST_MONITORING_DATA : timestamp,
+                        INFLUX_DB_FIELD_TIME_LAST_ELECTRICAL_DATA : timestamp,
                         INFLUX_DB_FIELD_RELAY_1_STATE : r1st,
                         INFLUX_DB_FIELD_RELAY_2_STATE : r2st,
                         INFLUX_DB_FIELD_RELAY_3_STATE : r3st,

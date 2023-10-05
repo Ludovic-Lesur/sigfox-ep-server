@@ -59,7 +59,7 @@ __DINFOX_SM_UL_PAYLOAD_SENSOR_2_SIZE = 5
 
 __DINFOX_DMM_UL_PAYLOAD_MONITORING_SIZE = 5
 
-__DINFOX_MPMCM_UL_PAYLOAD_SIZE_MAINS_POWER_FACTOR = 3
+__DINFOX_MPMCM_UL_PAYLOAD_SIZE_MAINS_POWER_FACTOR = 4
 __DINFOX_MPMCM_UL_PAYLOAD_SIZE_MAINS_FREQUENCY = 6
 __DINFOX_MPMCM_UL_PAYLOAD_SIZE_MAINS_VOLTAGE = 7
 __DINFOX_MPMCM_UL_PAYLOAD_SIZE_MAINS_POWER = 9
@@ -629,9 +629,9 @@ def DINFOX_fill_data_base(timestamp, sigfox_ep_id, ul_payload):
                 if (vrms_max != COMMON_ERROR_DATA) :
                     json_body[0]["fields"][INFLUX_DB_FIELD_VRMS_MAX] = vrms_max
                 LOG_print_timestamp("[DINFOX MPMCM] * Electrical mains voltage payload * system=" + system_name + " node=" + node_name +
-                                    "ch1d=" + str(ch1d) + " ch2d=" + str(ch2d) + " ch3d=" + str(ch3d) + " ch4d=" + str(ch4d) +
+                                    " ch1d=" + str(ch1d) + " ch2d=" + str(ch2d) + " ch3d=" + str(ch3d) + " ch4d=" + str(ch4d) +
                                     " vrms_min=" + str(vrms_min) + "mV vrms_mean=" + str(vrms_mean) + "mV vrms_max=" + str(vrms_max) + "mV")
-            # Mains power frame.
+            # Mains frequency frame.
             elif (node_ul_payload_size == (2 * __DINFOX_MPMCM_UL_PAYLOAD_SIZE_MAINS_FREQUENCY)):
                 f_min =  (int(node_ul_payload[0:4], 16) / 100.0)  if (int(node_ul_payload[2:6], 16)   != COMMON_ERROR_VALUE_ANALOG_16BITS) else COMMON_ERROR_DATA
                 f_mean = (int(node_ul_payload[4:8], 16) / 100.0)  if (int(node_ul_payload[6:10], 16)  != COMMON_ERROR_VALUE_ANALOG_16BITS) else COMMON_ERROR_DATA
@@ -697,9 +697,10 @@ def DINFOX_fill_data_base(timestamp, sigfox_ep_id, ul_payload):
                                     " pact_mean=" + str(pact_mean) + "mW pact_max=" + str(pact_max) + "mW papp_mean=" + str(papp_mean) + "mW papp_max=" + str(papp_max) + "mW")
             # Mains power factor frame.
             elif (node_ul_payload_size == (2 * __DINFOX_MPMCM_UL_PAYLOAD_SIZE_MAINS_POWER_FACTOR)):
-                pf_min =  (int(node_ul_payload[0:2], 16) / 100.0) if (int(node_ul_payload[0:2], 16) != COMMON_ERROR_POWER_FACTOR) else COMMON_ERROR_DATA
-                pf_mean = (int(node_ul_payload[2:4], 16) / 100.0) if (int(node_ul_payload[2:4], 16) != COMMON_ERROR_POWER_FACTOR) else COMMON_ERROR_DATA
-                pf_max =  (int(node_ul_payload[4:6], 16) / 100.0) if (int(node_ul_payload[4:6], 16) != COMMON_ERROR_POWER_FACTOR) else COMMON_ERROR_DATA
+                mpmcm_channel_index = (int(node_ul_payload[0:2], 16) >> 0) & 0x03
+                pf_min =  (int(node_ul_payload[2:4], 16) / 100.0) if (int(node_ul_payload[2:4], 16) != COMMON_ERROR_POWER_FACTOR) else COMMON_ERROR_DATA
+                pf_mean = (int(node_ul_payload[4:6], 16) / 100.0) if (int(node_ul_payload[4:6], 16) != COMMON_ERROR_POWER_FACTOR) else COMMON_ERROR_DATA
+                pf_max =  (int(node_ul_payload[6:8], 16) / 100.0) if (int(node_ul_payload[6:8], 16) != COMMON_ERROR_POWER_FACTOR) else COMMON_ERROR_DATA
                 # Create JSON object.
                 json_body = [
                 {
@@ -723,7 +724,7 @@ def DINFOX_fill_data_base(timestamp, sigfox_ep_id, ul_payload):
                     json_body[0]["fields"][INFLUX_DB_FIELD_PF_MEAN] = pf_mean
                 if (pf_max != COMMON_ERROR_DATA) :
                     json_body[0]["fields"][INFLUX_DB_FIELD_PF_MAX] = pf_max
-                LOG_print_timestamp("[DINFOX MPMCM] * Electrical mains frequency payload * system=" + system_name + " node=" + node_name +
+                LOG_print_timestamp("[DINFOX MPMCM] * Electrical mains frequency payload * system=" + system_name + " node=" + node_name + " channel=" + str(mpmcm_channel_index) +
                                     " pf_min=" + str(pf_min) + " pf_mean=" + str(pf_mean) + " pf_max=" + str(pf_max))
             else:
                 LOG_print_timestamp("[DINFOX MPMCM] * system=" + system_name + " node=" + node_name + " * Invalid payload")

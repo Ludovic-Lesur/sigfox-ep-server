@@ -594,6 +594,7 @@ def DINFOX_fill_data_base(timestamp, sigfox_ep_id, ul_payload):
         elif (board_id == __DINFOX_BOARD_ID_MPMCM):
             # Mains voltage frame.
             if (node_ul_payload_size == (2 * __DINFOX_MPMCM_UL_PAYLOAD_SIZE_MAINS_VOLTAGE)):
+                mvd =  (int(node_ul_payload[0:2], 16) >> 4) & 0x01
                 ch4d = (int(node_ul_payload[0:2], 16) >> 3) & 0x01
                 ch3d = (int(node_ul_payload[0:2], 16) >> 2) & 0x01
                 ch2d = (int(node_ul_payload[0:2], 16) >> 1) & 0x01
@@ -608,6 +609,7 @@ def DINFOX_fill_data_base(timestamp, sigfox_ep_id, ul_payload):
                     "time": timestamp,
                     "fields": {
                         INFLUX_DB_FIELD_TIME_LAST_ELECTRICAL_DATA : timestamp,
+                        INFLUX_DB_FIELD_MAINS_VOLTAGE_DETECT : mvd,
                         INFLUX_DB_FIELD_CH1_DETECT : ch1d,
                         INFLUX_DB_FIELD_CH2_DETECT : ch2d,
                         INFLUX_DB_FIELD_CH3_DETECT : ch3d,
@@ -629,7 +631,7 @@ def DINFOX_fill_data_base(timestamp, sigfox_ep_id, ul_payload):
                 if (vrms_max != COMMON_ERROR_DATA) :
                     json_body[0]["fields"][INFLUX_DB_FIELD_VRMS_MAX] = vrms_max
                 LOG_print_timestamp("[DINFOX MPMCM] * Electrical mains voltage payload * system=" + system_name + " node=" + node_name +
-                                    " ch1d=" + str(ch1d) + " ch2d=" + str(ch2d) + " ch3d=" + str(ch3d) + " ch4d=" + str(ch4d) +
+                                    " mvd=" + str(mvd) + " ch1d=" + str(ch1d) + " ch2d=" + str(ch2d) + " ch3d=" + str(ch3d) + " ch4d=" + str(ch4d) +
                                     " vrms_min=" + str(vrms_min) + "mV vrms_mean=" + str(vrms_mean) + "mV vrms_max=" + str(vrms_max) + "mV")
             # Mains frequency frame.
             elif (node_ul_payload_size == (2 * __DINFOX_MPMCM_UL_PAYLOAD_SIZE_MAINS_FREQUENCY)):

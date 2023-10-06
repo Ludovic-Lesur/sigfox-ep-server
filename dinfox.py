@@ -635,9 +635,9 @@ def DINFOX_fill_data_base(timestamp, sigfox_ep_id, ul_payload):
                                     " vrms_min=" + str(vrms_min) + "mV vrms_mean=" + str(vrms_mean) + "mV vrms_max=" + str(vrms_max) + "mV")
             # Mains frequency frame.
             elif (node_ul_payload_size == (2 * __DINFOX_MPMCM_UL_PAYLOAD_SIZE_MAINS_FREQUENCY)):
-                f_min =  (int(node_ul_payload[0:4], 16) / 100.0)  if (int(node_ul_payload[2:6], 16)   != COMMON_ERROR_VALUE_ANALOG_16BITS) else COMMON_ERROR_DATA
-                f_mean = (int(node_ul_payload[4:8], 16) / 100.0)  if (int(node_ul_payload[6:10], 16)  != COMMON_ERROR_VALUE_ANALOG_16BITS) else COMMON_ERROR_DATA
-                f_max =  (int(node_ul_payload[8:12], 16) / 100.0) if (int(node_ul_payload[10:14], 16) != COMMON_ERROR_VALUE_ANALOG_16BITS) else COMMON_ERROR_DATA
+                f_min =  (int(node_ul_payload[0:4], 16) / 100.0)  if (int(node_ul_payload[0:4], 16)   != COMMON_ERROR_VALUE_ANALOG_16BITS) else COMMON_ERROR_DATA
+                f_mean = (int(node_ul_payload[4:8], 16) / 100.0)  if (int(node_ul_payload[4:8], 16)  != COMMON_ERROR_VALUE_ANALOG_16BITS) else COMMON_ERROR_DATA
+                f_max =  (int(node_ul_payload[8:12], 16) / 100.0) if (int(node_ul_payload[8:12], 16) != COMMON_ERROR_VALUE_ANALOG_16BITS) else COMMON_ERROR_DATA
                 # Create JSON object.
                 json_body = [
                 {

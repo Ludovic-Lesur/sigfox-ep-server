@@ -129,6 +129,16 @@ def __DINFOX_get_mW(dinfox_electrical_power):
         electrical_power_mw = ((-1) ** (sign)) * (value * 100000)
     return electrical_power_mw
 
+def __DINFOX_get_power_factor(dinfox_power_factor):
+    # Reset result.
+    power_factor = COMMON_ERROR_DATA
+    # Extract sign and value.
+    sign = ((dinfox_power_factor >> 7) & 0x01)
+    value = ((dinfox_power_factor >> 0) & 0x7F)
+    # Convert.
+    power_factor = ((-1) ** (sign)) * (value / 100.0)
+    return power_factor
+
 # Function performing Sigfox ID to DinFox system and node conversion.
 def __DINFOX_get_system_and_node(sigfox_ep_id, node_address):
     # Default is unknown.
@@ -700,9 +710,9 @@ def DINFOX_fill_data_base(timestamp, sigfox_ep_id, ul_payload):
             # Mains power factor frame.
             elif (node_ul_payload_size == (2 * __DINFOX_MPMCM_UL_PAYLOAD_SIZE_MAINS_POWER_FACTOR)):
                 mpmcm_channel_index = (int(node_ul_payload[0:2], 16) >> 0) & 0x03
-                pf_min =  (int(node_ul_payload[2:4], 16) / 100.0) if (int(node_ul_payload[2:4], 16) != COMMON_ERROR_POWER_FACTOR) else COMMON_ERROR_DATA
-                pf_mean = (int(node_ul_payload[4:6], 16) / 100.0) if (int(node_ul_payload[4:6], 16) != COMMON_ERROR_POWER_FACTOR) else COMMON_ERROR_DATA
-                pf_max =  (int(node_ul_payload[6:8], 16) / 100.0) if (int(node_ul_payload[6:8], 16) != COMMON_ERROR_POWER_FACTOR) else COMMON_ERROR_DATA
+                pf_min =  __DINFOX_get_power_factor(int(node_ul_payload[2:4], 16)) if (int(node_ul_payload[2:4], 16) != COMMON_ERROR_POWER_FACTOR) else COMMON_ERROR_DATA
+                pf_mean = __DINFOX_get_power_factor(int(node_ul_payload[4:6], 16)) if (int(node_ul_payload[4:6], 16) != COMMON_ERROR_POWER_FACTOR) else COMMON_ERROR_DATA
+                pf_max =  __DINFOX_get_power_factor(int(node_ul_payload[6:8], 16)) if (int(node_ul_payload[6:8], 16) != COMMON_ERROR_POWER_FACTOR) else COMMON_ERROR_DATA
                 # Create JSON object.
                 json_body = [
                 {

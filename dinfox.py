@@ -224,7 +224,7 @@ def DINFOX_fill_data_base(timestamp, sigfox_ep_id, ul_payload):
         if (board_id == __DINFOX_BOARD_ID_LVRM):
             # Monitoring frame.
             if (node_ul_payload_size == (2 * __DINFOX_LVRM_UL_PAYLOAD_MONITORING_SIZE)):
-                vmcu_mv = __DINFOX_get_mv(int(node_ul_payload[0:4], 16)) if (int(node_ul_payload[0:4], 16) != COMMON_ERROR_VALUE_ANALOG_16BITS) else COMMON_ERROR_DATA
+                vmcu_mv = __DINFOX_get_mv(int(node_ul_payload[0:4], 16)) if (int(node_ul_payload[0:4], 16) != COMMON_ERROR_VALUE_VOLTAGE) else COMMON_ERROR_DATA
                 tmcu_degrees = __DINFOX_get_degrees(int(node_ul_payload[4:6], 16)) if (int(node_ul_payload[4:6], 16) != COMMON_ERROR_VALUE_TEMPERATURE) else COMMON_ERROR_DATA
                 # Create JSON object.
                 json_body = [
@@ -251,9 +251,9 @@ def DINFOX_fill_data_base(timestamp, sigfox_ep_id, ul_payload):
                                     " vmcu=" + str(vmcu_mv) + "mV tmcu=" + str(tmcu_degrees) + "dC ")
             # Electrical frame.
             elif (node_ul_payload_size == (2 * __DINFOX_LVRM_UL_PAYLOAD_ELECTRICAL_SIZE)):
-                vcom_mv = __DINFOX_get_mv(int(node_ul_payload[0:4], 16)) if (int(node_ul_payload[0:4], 16) != COMMON_ERROR_VALUE_ANALOG_16BITS) else COMMON_ERROR_DATA
-                vout_mv = __DINFOX_get_mv(int(node_ul_payload[4:8], 16)) if (int(node_ul_payload[4:8], 16) != COMMON_ERROR_VALUE_ANALOG_16BITS) else COMMON_ERROR_DATA
-                iout_ua = __DINFOX_get_ua(int(node_ul_payload[8:12], 16)) if (int(node_ul_payload[8:12], 16) != COMMON_ERROR_VALUE_ANALOG_16BITS) else COMMON_ERROR_DATA
+                vcom_mv = __DINFOX_get_mv(int(node_ul_payload[0:4], 16))  if (int(node_ul_payload[0:4], 16)  != COMMON_ERROR_VALUE_VOLTAGE) else COMMON_ERROR_DATA
+                vout_mv = __DINFOX_get_mv(int(node_ul_payload[4:8], 16))  if (int(node_ul_payload[4:8], 16)  != COMMON_ERROR_VALUE_VOLTAGE) else COMMON_ERROR_DATA
+                iout_ua = __DINFOX_get_ua(int(node_ul_payload[8:12], 16)) if (int(node_ul_payload[8:12], 16) != COMMON_ERROR_VALUE_CURRENT) else COMMON_ERROR_DATA
                 rlst = (int(node_ul_payload[12:14], 16) >> 0) & 0x01
                 # Create JSON object.
                 json_body = [
@@ -287,7 +287,7 @@ def DINFOX_fill_data_base(timestamp, sigfox_ep_id, ul_payload):
         elif (board_id == __DINFOX_BOARD_ID_BPSM):
             # Monitoring frame.
             if (node_ul_payload_size == (2 * __DINFOX_BPSM_UL_PAYLOAD_MONITORING_SIZE)):
-                vmcu_mv = __DINFOX_get_mv(int(node_ul_payload[0:4], 16)) if (int(node_ul_payload[0:4], 16) != COMMON_ERROR_VALUE_ANALOG_16BITS) else COMMON_ERROR_DATA
+                vmcu_mv = __DINFOX_get_mv(int(node_ul_payload[0:4], 16)) if (int(node_ul_payload[0:4], 16) != COMMON_ERROR_VALUE_VOLTAGE) else COMMON_ERROR_DATA
                 tmcu_degrees = __DINFOX_get_degrees(int(node_ul_payload[4:6], 16)) if (int(node_ul_payload[4:6], 16) != COMMON_ERROR_VALUE_TEMPERATURE) else COMMON_ERROR_DATA
                 # Create JSON object.
                 json_body = [
@@ -314,9 +314,9 @@ def DINFOX_fill_data_base(timestamp, sigfox_ep_id, ul_payload):
                                     " vmcu=" + str(vmcu_mv) + "mV tmcu=" + str(tmcu_degrees) + "dC ")
             # Electrical frame.
             elif (node_ul_payload_size == (2 * __DINFOX_BPSM_UL_PAYLOAD_ELECTRICAL_SIZE)):
-                vsrc_mv = __DINFOX_get_mv(int(node_ul_payload[0:4], 16)) if (int(node_ul_payload[0:4], 16) != COMMON_ERROR_VALUE_ANALOG_16BITS) else COMMON_ERROR_DATA
-                vstr_mv = __DINFOX_get_mv(int(node_ul_payload[4:8], 16)) if (int(node_ul_payload[4:8], 16) != COMMON_ERROR_VALUE_ANALOG_16BITS) else COMMON_ERROR_DATA
-                vbkp_mv = __DINFOX_get_mv(int(node_ul_payload[8:12], 16)) if (int(node_ul_payload[8:12], 16) != COMMON_ERROR_VALUE_ANALOG_16BITS) else COMMON_ERROR_DATA
+                vsrc_mv = __DINFOX_get_mv(int(node_ul_payload[0:4], 16))  if (int(node_ul_payload[0:4], 16)  != COMMON_ERROR_VALUE_VOLTAGE) else COMMON_ERROR_DATA
+                vstr_mv = __DINFOX_get_mv(int(node_ul_payload[4:8], 16))  if (int(node_ul_payload[4:8], 16)  != COMMON_ERROR_VALUE_VOLTAGE) else COMMON_ERROR_DATA
+                vbkp_mv = __DINFOX_get_mv(int(node_ul_payload[8:12], 16)) if (int(node_ul_payload[8:12], 16) != COMMON_ERROR_VALUE_VOLTAGE) else COMMON_ERROR_DATA
                 chst = (int(node_ul_payload[12:14], 16) >> 0) & 0x01
                 chen = (int(node_ul_payload[12:14], 16) >> 1) & 0x01
                 bken = (int(node_ul_payload[12:14], 16) >> 2) & 0x01
@@ -355,7 +355,7 @@ def DINFOX_fill_data_base(timestamp, sigfox_ep_id, ul_payload):
         elif (board_id == __DINFOX_BOARD_ID_DDRM):
             # Monitoring frame.
             if (node_ul_payload_size == (2 * __DINFOX_DDRM_UL_PAYLOAD_MONITORING_SIZE)):
-                vmcu_mv = __DINFOX_get_mv(int(node_ul_payload[0:4], 16)) if (int(node_ul_payload[0:4], 16) != COMMON_ERROR_VALUE_ANALOG_16BITS) else COMMON_ERROR_DATA
+                vmcu_mv = __DINFOX_get_mv(int(node_ul_payload[0:4], 16)) if (int(node_ul_payload[0:4], 16) != COMMON_ERROR_VALUE_VOLTAGE) else COMMON_ERROR_DATA
                 tmcu_degrees = __DINFOX_get_degrees(int(node_ul_payload[4:6], 16)) if (int(node_ul_payload[4:6], 16) != COMMON_ERROR_VALUE_TEMPERATURE) else COMMON_ERROR_DATA
                 # Create JSON object.
                 json_body = [
@@ -382,9 +382,9 @@ def DINFOX_fill_data_base(timestamp, sigfox_ep_id, ul_payload):
                                     " vmcu=" + str(vmcu_mv) + "mV tmcu=" + str(tmcu_degrees) + "dC ")
             # Electrical frame.
             elif (node_ul_payload_size == (2 * __DINFOX_DDRM_UL_PAYLOAD_ELECTRICAL_SIZE)):
-                vin_mv = __DINFOX_get_mv(int(node_ul_payload[0:4], 16)) if (int(node_ul_payload[0:4], 16) != COMMON_ERROR_VALUE_ANALOG_16BITS) else COMMON_ERROR_DATA
-                vout_mv = __DINFOX_get_mv(int(node_ul_payload[4:8], 16)) if (int(node_ul_payload[4:8], 16) != COMMON_ERROR_VALUE_ANALOG_16BITS) else COMMON_ERROR_DATA
-                iout_ua = __DINFOX_get_ua(int(node_ul_payload[8:12], 16)) if (int(node_ul_payload[8:12], 16) != COMMON_ERROR_VALUE_ANALOG_16BITS) else COMMON_ERROR_DATA
+                vin_mv = __DINFOX_get_mv(int(node_ul_payload[0:4], 16)) if (int(node_ul_payload[0:4], 16) != COMMON_ERROR_VALUE_VOLTAGE) else COMMON_ERROR_DATA
+                vout_mv = __DINFOX_get_mv(int(node_ul_payload[4:8], 16)) if (int(node_ul_payload[4:8], 16) != COMMON_ERROR_VALUE_VOLTAGE) else COMMON_ERROR_DATA
+                iout_ua = __DINFOX_get_ua(int(node_ul_payload[8:12], 16)) if (int(node_ul_payload[8:12], 16) != COMMON_ERROR_VALUE_CURRENT) else COMMON_ERROR_DATA
                 dden = (int(node_ul_payload[12:14], 16) >> 0) & 0x01
                 # Create JSON object.
                 json_body = [
@@ -418,10 +418,10 @@ def DINFOX_fill_data_base(timestamp, sigfox_ep_id, ul_payload):
         elif (board_id == __DINFOX_BOARD_ID_UHFM):
             # Monitoring frame.
             if (node_ul_payload_size == (2 * __DINFOX_UHFM_UL_PAYLOAD_MONITORING_SIZE)):
-                vmcu_mv = __DINFOX_get_mv(int(node_ul_payload[0:4], 16)) if (int(node_ul_payload[0:4], 16) != COMMON_ERROR_VALUE_ANALOG_16BITS) else COMMON_ERROR_DATA
+                vmcu_mv = __DINFOX_get_mv(int(node_ul_payload[0:4], 16)) if (int(node_ul_payload[0:4], 16) != COMMON_ERROR_VALUE_VOLTAGE) else COMMON_ERROR_DATA
                 tmcu_degrees = __DINFOX_get_degrees(int(node_ul_payload[4:6], 16)) if (int(node_ul_payload[4:6], 16) != COMMON_ERROR_VALUE_TEMPERATURE) else COMMON_ERROR_DATA
-                vrf_mv_tx = __DINFOX_get_mv(int(node_ul_payload[6:10], 16)) if (int(node_ul_payload[6:10], 16) != COMMON_ERROR_VALUE_ANALOG_16BITS) else COMMON_ERROR_DATA
-                vrf_mv_rx = __DINFOX_get_mv(int(node_ul_payload[10:14], 16)) if (int(node_ul_payload[10:14], 16) != COMMON_ERROR_VALUE_ANALOG_16BITS) else COMMON_ERROR_DATA
+                vrf_mv_tx = __DINFOX_get_mv(int(node_ul_payload[6:10], 16)) if (int(node_ul_payload[6:10], 16) != COMMON_ERROR_VALUE_VOLTAGE) else COMMON_ERROR_DATA
+                vrf_mv_rx = __DINFOX_get_mv(int(node_ul_payload[10:14], 16)) if (int(node_ul_payload[10:14], 16) != COMMON_ERROR_VALUE_VOLTAGE) else COMMON_ERROR_DATA
                 # Create JSON object.
                 json_body = [
                 {
@@ -455,10 +455,10 @@ def DINFOX_fill_data_base(timestamp, sigfox_ep_id, ul_payload):
         elif (board_id == __DINFOX_BOARD_ID_GPSM):
             # Monitoring frame.
             if (node_ul_payload_size == (2 * __DINFOX_GPSM_UL_PAYLOAD_MONITORING_SIZE)):
-                vmcu_mv = __DINFOX_get_mv(int(node_ul_payload[0:4], 16)) if (int(node_ul_payload[0:4], 16) != COMMON_ERROR_VALUE_ANALOG_16BITS) else COMMON_ERROR_DATA
+                vmcu_mv = __DINFOX_get_mv(int(node_ul_payload[0:4], 16)) if (int(node_ul_payload[0:4], 16) != COMMON_ERROR_VALUE_VOLTAGE) else COMMON_ERROR_DATA
                 tmcu_degrees = __DINFOX_get_degrees(int(node_ul_payload[4:6], 16)) if (int(node_ul_payload[4:6], 16) != COMMON_ERROR_VALUE_TEMPERATURE) else COMMON_ERROR_DATA
-                vgps_mv = __DINFOX_get_mv(int(node_ul_payload[6:10], 16)) if (int(node_ul_payload[6:10], 16) != COMMON_ERROR_VALUE_ANALOG_16BITS) else COMMON_ERROR_DATA
-                vant_mv = __DINFOX_get_mv(int(node_ul_payload[10:14], 16)) if (int(node_ul_payload[10:14], 16) != COMMON_ERROR_VALUE_ANALOG_16BITS) else COMMON_ERROR_DATA
+                vgps_mv = __DINFOX_get_mv(int(node_ul_payload[6:10], 16)) if (int(node_ul_payload[6:10], 16) != COMMON_ERROR_VALUE_VOLTAGE) else COMMON_ERROR_DATA
+                vant_mv = __DINFOX_get_mv(int(node_ul_payload[10:14], 16)) if (int(node_ul_payload[10:14], 16) != COMMON_ERROR_VALUE_VOLTAGE) else COMMON_ERROR_DATA
                 # Create JSON object.
                 json_body = [
                 {
@@ -492,10 +492,10 @@ def DINFOX_fill_data_base(timestamp, sigfox_ep_id, ul_payload):
         elif (board_id == __DINFOX_BOARD_ID_SM):
             # Sensor 1 frame.
             if (node_ul_payload_size == (2 * __DINFOX_SM_UL_PAYLOAD_SENSOR_1_SIZE)):
-                ain0_mv = __DINFOX_get_mv(int(node_ul_payload[0:4], 16)) if int(node_ul_payload[0:4], 16) != COMMON_ERROR_VALUE_ANALOG_16BITS else COMMON_ERROR_DATA
-                ain1_mv = __DINFOX_get_mv(int(node_ul_payload[4:8], 16)) if int(node_ul_payload[4:8], 16) != COMMON_ERROR_VALUE_ANALOG_16BITS else COMMON_ERROR_DATA
-                ain2_mv = __DINFOX_get_mv(int(node_ul_payload[8:12], 16)) if int(node_ul_payload[8:12], 16) != COMMON_ERROR_VALUE_ANALOG_16BITS else COMMON_ERROR_DATA
-                ain3_mv = __DINFOX_get_mv(int(node_ul_payload[12:16], 16)) if int(node_ul_payload[12:16], 16) != COMMON_ERROR_VALUE_ANALOG_16BITS else COMMON_ERROR_DATA
+                ain0_mv = __DINFOX_get_mv(int(node_ul_payload[0:4], 16))   if int(node_ul_payload[0:4], 16)   != COMMON_ERROR_VALUE_VOLTAGE else COMMON_ERROR_DATA
+                ain1_mv = __DINFOX_get_mv(int(node_ul_payload[4:8], 16))   if int(node_ul_payload[4:8], 16)   != COMMON_ERROR_VALUE_VOLTAGE else COMMON_ERROR_DATA
+                ain2_mv = __DINFOX_get_mv(int(node_ul_payload[8:12], 16))  if int(node_ul_payload[8:12], 16)  != COMMON_ERROR_VALUE_VOLTAGE else COMMON_ERROR_DATA
+                ain3_mv = __DINFOX_get_mv(int(node_ul_payload[12:16], 16)) if int(node_ul_payload[12:16], 16) != COMMON_ERROR_VALUE_VOLTAGE else COMMON_ERROR_DATA
                 dio0 = (int(node_ul_payload[16:18], 16) >> 0) & 0x01
                 dio1 = (int(node_ul_payload[16:18], 16) >> 1) & 0x01
                 dio2 = (int(node_ul_payload[16:18], 16) >> 2) & 0x01
@@ -534,7 +534,7 @@ def DINFOX_fill_data_base(timestamp, sigfox_ep_id, ul_payload):
                                     " dio0=" + str(dio0) + " dio1=" + str(dio1) + " dio2=" + str(dio2) + " dio3=" + str(dio3))
             # Sensor 2 frame.
             elif (node_ul_payload_size == (2 * __DINFOX_SM_UL_PAYLOAD_SENSOR_2_SIZE)):
-                vmcu_mv = __DINFOX_get_mv(int(node_ul_payload[0:4], 16)) if (int(node_ul_payload[0:4], 16) != COMMON_ERROR_VALUE_ANALOG_16BITS) else COMMON_ERROR_DATA
+                vmcu_mv = __DINFOX_get_mv(int(node_ul_payload[0:4], 16)) if (int(node_ul_payload[0:4], 16) != COMMON_ERROR_VALUE_VOLTAGE) else COMMON_ERROR_DATA
                 tmcu_degrees = __DINFOX_get_degrees(int(node_ul_payload[4:6], 16)) if (int(node_ul_payload[4:6], 16) != COMMON_ERROR_VALUE_TEMPERATURE) else COMMON_ERROR_DATA
                 tamb_degrees = __DINFOX_get_degrees(int(node_ul_payload[6:8], 16)) if (int(node_ul_payload[6:8], 16) != COMMON_ERROR_VALUE_TEMPERATURE) else COMMON_ERROR_DATA
                 hamb_degrees = int(node_ul_payload[8:10], 16) if (int(node_ul_payload[8:10], 16) != COMMON_ERROR_VALUE_HUMIDITY) else COMMON_ERROR_DATA
@@ -571,8 +571,8 @@ def DINFOX_fill_data_base(timestamp, sigfox_ep_id, ul_payload):
         elif (board_id == __DINFOX_BOARD_ID_DMM):
             # Monitoring frame.
             if (node_ul_payload_size == (2 * __DINFOX_DMM_UL_PAYLOAD_MONITORING_SIZE)):
-                vrs_mv = __DINFOX_get_mv(int(node_ul_payload[0:4], 16)) if (int(node_ul_payload[0:4], 16) != COMMON_ERROR_VALUE_ANALOG_16BITS) else COMMON_ERROR_DATA
-                vhmi_mv = __DINFOX_get_mv(int(node_ul_payload[4:8], 16)) if (int(node_ul_payload[4:8], 16) != COMMON_ERROR_VALUE_ANALOG_16BITS) else COMMON_ERROR_DATA
+                vrs_mv =  __DINFOX_get_mv(int(node_ul_payload[0:4], 16)) if (int(node_ul_payload[0:4], 16) != COMMON_ERROR_VALUE_VOLTAGE) else COMMON_ERROR_DATA
+                vhmi_mv = __DINFOX_get_mv(int(node_ul_payload[4:8], 16)) if (int(node_ul_payload[4:8], 16) != COMMON_ERROR_VALUE_VOLTAGE) else COMMON_ERROR_DATA
                 nodes_count = int(node_ul_payload[8:10], 16)
                 # Create JSON object.
                 json_body = [
@@ -609,9 +609,9 @@ def DINFOX_fill_data_base(timestamp, sigfox_ep_id, ul_payload):
                 ch3d = (int(node_ul_payload[0:2], 16) >> 2) & 0x01
                 ch2d = (int(node_ul_payload[0:2], 16) >> 1) & 0x01
                 ch1d = (int(node_ul_payload[0:2], 16) >> 0) & 0x01
-                vrms_min =  __DINFOX_get_mv(int(node_ul_payload[2:6], 16))   if (int(node_ul_payload[2:6], 16)   != COMMON_ERROR_VALUE_ANALOG_16BITS) else COMMON_ERROR_DATA
-                vrms_mean = __DINFOX_get_mv(int(node_ul_payload[6:10], 16))  if (int(node_ul_payload[6:10], 16)  != COMMON_ERROR_VALUE_ANALOG_16BITS) else COMMON_ERROR_DATA
-                vrms_max =  __DINFOX_get_mv(int(node_ul_payload[10:14], 16)) if (int(node_ul_payload[10:14], 16) != COMMON_ERROR_VALUE_ANALOG_16BITS) else COMMON_ERROR_DATA
+                vrms_min =  __DINFOX_get_mv(int(node_ul_payload[2:6], 16))   if (int(node_ul_payload[2:6], 16)   != COMMON_ERROR_VALUE_VOLTAGE) else COMMON_ERROR_DATA
+                vrms_mean = __DINFOX_get_mv(int(node_ul_payload[6:10], 16))  if (int(node_ul_payload[6:10], 16)  != COMMON_ERROR_VALUE_VOLTAGE) else COMMON_ERROR_DATA
+                vrms_max =  __DINFOX_get_mv(int(node_ul_payload[10:14], 16)) if (int(node_ul_payload[10:14], 16) != COMMON_ERROR_VALUE_VOLTAGE) else COMMON_ERROR_DATA
                 # Create JSON object.
                 json_body = [
                 {
@@ -645,9 +645,9 @@ def DINFOX_fill_data_base(timestamp, sigfox_ep_id, ul_payload):
                                     " vrms_min=" + str(vrms_min) + "mV vrms_mean=" + str(vrms_mean) + "mV vrms_max=" + str(vrms_max) + "mV")
             # Mains frequency frame.
             elif (node_ul_payload_size == (2 * __DINFOX_MPMCM_UL_PAYLOAD_SIZE_MAINS_FREQUENCY)):
-                f_min =  (int(node_ul_payload[0:4], 16) / 100.0)  if (int(node_ul_payload[0:4], 16)   != COMMON_ERROR_VALUE_ANALOG_16BITS) else COMMON_ERROR_DATA
-                f_mean = (int(node_ul_payload[4:8], 16) / 100.0)  if (int(node_ul_payload[4:8], 16)  != COMMON_ERROR_VALUE_ANALOG_16BITS) else COMMON_ERROR_DATA
-                f_max =  (int(node_ul_payload[8:12], 16) / 100.0) if (int(node_ul_payload[8:12], 16) != COMMON_ERROR_VALUE_ANALOG_16BITS) else COMMON_ERROR_DATA
+                f_min =  (int(node_ul_payload[0:4], 16) / 100.0)  if (int(node_ul_payload[0:4], 16)  != COMMON_ERROR_VALUE_FREQUENCY_16BITS) else COMMON_ERROR_DATA
+                f_mean = (int(node_ul_payload[4:8], 16) / 100.0)  if (int(node_ul_payload[4:8], 16)  != COMMON_ERROR_VALUE_FREQUENCY_16BITS) else COMMON_ERROR_DATA
+                f_max =  (int(node_ul_payload[8:12], 16) / 100.0) if (int(node_ul_payload[8:12], 16) != COMMON_ERROR_VALUE_FREQUENCY_16BITS) else COMMON_ERROR_DATA
                 # Create JSON object.
                 json_body = [
                 {
@@ -676,10 +676,10 @@ def DINFOX_fill_data_base(timestamp, sigfox_ep_id, ul_payload):
             # Mains power frame.
             elif (node_ul_payload_size == (2 * __DINFOX_MPMCM_UL_PAYLOAD_SIZE_MAINS_POWER)):
                 mpmcm_channel_index = (int(node_ul_payload[0:2], 16) >> 0) & 0x03
-                pact_mean = __DINFOX_get_mW(int(node_ul_payload[2:6], 16))   if (int(node_ul_payload[2:6], 16)   != COMMON_ERROR_VALUE_ANALOG_16BITS) else COMMON_ERROR_DATA
-                pact_max =  __DINFOX_get_mW(int(node_ul_payload[6:10], 16))  if (int(node_ul_payload[6:10], 16)  != COMMON_ERROR_VALUE_ANALOG_16BITS) else COMMON_ERROR_DATA
-                papp_mean = __DINFOX_get_mW(int(node_ul_payload[10:14], 16)) if (int(node_ul_payload[10:14], 16) != COMMON_ERROR_VALUE_ANALOG_16BITS) else COMMON_ERROR_DATA
-                papp_max =  __DINFOX_get_mW(int(node_ul_payload[14:18], 16)) if (int(node_ul_payload[14:18], 16) != COMMON_ERROR_VALUE_ANALOG_16BITS) else COMMON_ERROR_DATA
+                pact_mean = __DINFOX_get_mW(int(node_ul_payload[2:6], 16))   if (int(node_ul_payload[2:6], 16)   != COMMON_ERROR_VALUE_ELECTRICAL_POWER) else COMMON_ERROR_DATA
+                pact_max =  __DINFOX_get_mW(int(node_ul_payload[6:10], 16))  if (int(node_ul_payload[6:10], 16)  != COMMON_ERROR_VALUE_ELECTRICAL_POWER) else COMMON_ERROR_DATA
+                papp_mean = __DINFOX_get_mW(int(node_ul_payload[10:14], 16)) if (int(node_ul_payload[10:14], 16) != COMMON_ERROR_VALUE_ELECTRICAL_POWER) else COMMON_ERROR_DATA
+                papp_max =  __DINFOX_get_mW(int(node_ul_payload[14:18], 16)) if (int(node_ul_payload[14:18], 16) != COMMON_ERROR_VALUE_ELECTRICAL_POWER) else COMMON_ERROR_DATA
                 # Create JSON object.
                 json_body = [
                 {
@@ -710,9 +710,9 @@ def DINFOX_fill_data_base(timestamp, sigfox_ep_id, ul_payload):
             # Mains power factor frame.
             elif (node_ul_payload_size == (2 * __DINFOX_MPMCM_UL_PAYLOAD_SIZE_MAINS_POWER_FACTOR)):
                 mpmcm_channel_index = (int(node_ul_payload[0:2], 16) >> 0) & 0x03
-                pf_min =  __DINFOX_get_power_factor(int(node_ul_payload[2:4], 16)) if (int(node_ul_payload[2:4], 16) != COMMON_ERROR_POWER_FACTOR) else COMMON_ERROR_DATA
-                pf_mean = __DINFOX_get_power_factor(int(node_ul_payload[4:6], 16)) if (int(node_ul_payload[4:6], 16) != COMMON_ERROR_POWER_FACTOR) else COMMON_ERROR_DATA
-                pf_max =  __DINFOX_get_power_factor(int(node_ul_payload[6:8], 16)) if (int(node_ul_payload[6:8], 16) != COMMON_ERROR_POWER_FACTOR) else COMMON_ERROR_DATA
+                pf_min =  __DINFOX_get_power_factor(int(node_ul_payload[2:4], 16)) if (int(node_ul_payload[2:4], 16) != COMMON_ERROR_VALUE_POWER_FACTOR) else COMMON_ERROR_DATA
+                pf_mean = __DINFOX_get_power_factor(int(node_ul_payload[4:6], 16)) if (int(node_ul_payload[4:6], 16) != COMMON_ERROR_VALUE_POWER_FACTOR) else COMMON_ERROR_DATA
+                pf_max =  __DINFOX_get_power_factor(int(node_ul_payload[6:8], 16)) if (int(node_ul_payload[6:8], 16) != COMMON_ERROR_VALUE_POWER_FACTOR) else COMMON_ERROR_DATA
                 # Create JSON object.
                 json_body = [
                 {

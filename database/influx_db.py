@@ -2,7 +2,6 @@ from __future__ import print_function
 from influxdb import InfluxDBClient
 
 from log import *
-from getpass import fallback_getpass
 
 ### PUBLIC MACROS ###
 

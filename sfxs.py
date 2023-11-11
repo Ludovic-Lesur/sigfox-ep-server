@@ -2,15 +2,14 @@ from __future__ import print_function
 from BaseHTTPServer import BaseHTTPRequestHandler
 import SocketServer
 import json
-import time
 
-from atxfox import *
-from dinfox import *
-from influx_db import *
+from database.influx_db import *
 from log import *
-from meteofox import *
-from sensit import *
-from trackfox import *
+from parsers.atxfox import *
+from parsers.dinfox import *
+from parsers.meteofox import *
+from parsers.sensit import *
+from parsers.trackfox import *
 from version import *
 
 ### PUBLIC MACROS ###

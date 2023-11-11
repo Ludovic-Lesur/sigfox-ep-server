@@ -1,6 +1,6 @@
 from __future__ import print_function
 
-from influx_db import *
+from database.influx_db import *
 from log import *
 
 ### PUBLIC MACROS ###

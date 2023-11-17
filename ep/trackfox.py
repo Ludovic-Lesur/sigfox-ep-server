@@ -2,7 +2,7 @@ from __future__ import print_function
 
 from database.influx_db import *
 from log import *
-from parsers.common import *
+from ep.common import *
 
 ### LOCAL MACROS ###
 
@@ -15,16 +15,16 @@ __TRACKFOX_UL_PAYLOAD_ERROR_STACK_SIZE = 12
 ### PUBLIC MACROS ###
 
 # TrackFox EP-IDs.
-TRACKFOX_EP_ID = ["4257", "428D", "42F1", "43B9", "43CD", "44AA", "44D2", "4505", "45A0", "45AB"]
+TRACKFOX_EP_ID_LIST = ["4257", "428D", "42F1", "43B9", "43CD", "44AA", "44D2", "4505", "45A0", "45AB"]
 
 ### LOCAL FUNCTIONS ###
 
 # Function performing Sigfox ID to TrackFox asset conversion.
-def __TRACKFOX_get_asset(sigfox_ep_id):
+def __TRACKFOX_get_asset(sigfox_ep_id) :
     # Default is unknown.
     asset = "unknown"
-    if (sigfox_ep_id in TRACKFOX_EP_ID):
-        asset = __TRACKFOX_ASSET[TRACKFOX_EP_ID.index(sigfox_ep_id)]
+    if (sigfox_ep_id in TRACKFOX_EP_ID_LIST) :
+        asset = __TRACKFOX_ASSET[TRACKFOX_EP_ID_LIST.index(sigfox_ep_id)]
     return asset
 
 # Function adding the specific TrackFox tags.
@@ -38,7 +38,7 @@ def __TRACKFOX_add_tags(json_body, sigfox_ep_id) :
 ### PUBLIC FUNCTIONS ###
 
 # Function for parsing TrackFox device payload and fill database.
-def TRACKFOX_fill_data_base(timestamp, sigfox_ep_id, ul_payload):
+def TRACKFOX_parse_ul_payload(timestamp, sigfox_ep_id, ul_payload) :
     # Init JSON object.
     json_body = []
     # Startup frame.
@@ -47,28 +47,28 @@ def TRACKFOX_fill_data_base(timestamp, sigfox_ep_id, ul_payload):
         result = COMMON_create_json_startup_data(timestamp, ul_payload)
         json_body = result[0]
         log_data = result[1]
-        LOG_print_timestamp("[TRACKFOX] * Startup data * asset=" + __TRACKFOX_get_asset(sigfox_ep_id) + " " + log_data)
+        LOG_print("[TRACKFOX] * Startup data * asset=" + __TRACKFOX_get_asset(sigfox_ep_id) + " " + log_data)
     # Geolocation frame.
     if (len(ul_payload) == (2 * COMMON_UL_PAYLOAD_GEOLOC_SIZE)) :
         # Create JSON object.
         result = COMMON_create_json_geoloc_data(timestamp, ul_payload)
         json_body = result[0]
         log_data = result[1]
-        LOG_print_timestamp("[TRACKFOX] * Geoloc data * asset=" + __TRACKFOX_get_asset(sigfox_ep_id) + " " + log_data)
+        LOG_print("[TRACKFOX] * Geoloc data * asset=" + __TRACKFOX_get_asset(sigfox_ep_id) + " " + log_data)
     # Geolocation timeout frame.
     if (len(ul_payload) == (2 * COMMON_UL_PAYLOAD_GEOLOC_TIMEOUT_SIZE)) :
         # Create JSON object.
         result = COMMON_create_json_geoloc_timeout_data(timestamp, ul_payload, COMMON_UL_PAYLOAD_GEOLOC_TIMEOUT_SIZE)
         json_body = result[0]
         log_data = result[1]
-        LOG_print_timestamp("[TRACKFOX] * Geoloc timeout * asset=" + __TRACKFOX_get_asset(sigfox_ep_id) + " " + log_data)
+        LOG_print("[TRACKFOX] * Geoloc timeout * asset=" + __TRACKFOX_get_asset(sigfox_ep_id) + " " + log_data)
     # Error stack frame.
     if (len(ul_payload) == (2 * __TRACKFOX_UL_PAYLOAD_ERROR_STACK_SIZE)) :
         # Create JSON object.
         result = COMMON_create_json_error_stack_data(timestamp, ul_payload, (__TRACKFOX_UL_PAYLOAD_ERROR_STACK_SIZE / 2))
         json_body = result[0]
         log_data = result[1]
-        LOG_print_timestamp("[TRACKFOX] * Error stack * asset=" + __TRACKFOX_get_asset(sigfox_ep_id) + " " + log_data)
+        LOG_print("[TRACKFOX] * Error stack * asset=" + __TRACKFOX_get_asset(sigfox_ep_id) + " " + log_data)
     # Monitoring frame.
     if (len(ul_payload) == (2 * __TRACKFOX_UL_PAYLOAD_MONITORING_SIZE)) :
         # Parse fields.
@@ -109,13 +109,18 @@ def TRACKFOX_fill_data_base(timestamp, sigfox_ep_id, ul_payload):
             json_body[0]["fields"][INFLUX_DB_FIELD_VCAP] = vcap_mv
         if (vmcu_mv != COMMON_ERROR_DATA) :
             json_body[0]["fields"][INFLUX_DB_FIELD_VMCU] = vmcu_mv
-        LOG_print_timestamp("[TRACKFOX] * Monitoring data * asset=" + __TRACKFOX_get_asset(sigfox_ep_id) +
-                            " tamb=" + str(tamb_degrees) + "dC hamb=" + str(hamb_percent) + "% tmcu=" + str(tmcu_degrees) +
-                            "dC vsrc=" + str(vsrc_mv) + "mV vcap=" + str(vcap_mv) + "mV vmcu=" + str(vmcu_mv) + "mV status=" + hex(status))
+        LOG_print("[TRACKFOX] * Monitoring data * asset=" + __TRACKFOX_get_asset(sigfox_ep_id) +
+                  " tamb=" + str(tamb_degrees) + "dC hamb=" + str(hamb_percent) + "% tmcu=" + str(tmcu_degrees) +
+                  "dC vsrc=" + str(vsrc_mv) + "mV vcap=" + str(vcap_mv) + "mV vmcu=" + str(vmcu_mv) + "mV status=" + hex(status))
     # Fill data base.
     if (len(json_body) > 0) :
         __TRACKFOX_add_tags(json_body, sigfox_ep_id)
         INFLUX_DB_write_data(INFLUX_DB_DATABASE_TRACKFOX, json_body)
     else :
-        LOG_print_timestamp("[TRACKFOX] * Invalid frame")
-          
+        LOG_print("[TRACKFOX] * Invalid frame")
+
+# Returns the default downlink payload to sent back to the device.
+def TRACKFOX_get_default_dl_payload(sigfox_ep_id) :
+    # Local variables.
+    dl_payload = []
+    return dl_payload

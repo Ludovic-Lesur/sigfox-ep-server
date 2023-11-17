@@ -6,7 +6,7 @@ from log import *
 ### PUBLIC MACROS ###
 
 # Influx DB databases name.
-INFLUX_DB_DATABASE_SFXS = 'sfxs_db'
+INFLUX_DB_DATABASE_SIGFOX_EP_SERVER = 'sigfox_ep_server_db'
 INFLUX_DB_DATABASE_METEOFOX = 'meteofox_db'
 INFLUX_DB_DATABASE_SENSIT = 'sensit_db'
 INFLUX_DB_DATABASE_ATXFOX = 'atxfox_db'
@@ -15,6 +15,7 @@ INFLUX_DB_DATABASE_DINFOX = "dinfox_db"
 
 # Influx DB measurements name.
 INFLUX_DB_MEASUREMENT_METADATA = "metadata"
+INFLUX_DB_MEASUREMENT_DOWNLINK = "downlink"
 INFLUX_DB_MEASUREMENT_MONITORING = "monitoring"
 INFLUX_DB_MEASUREMENT_WEATHER = "weather"
 INFLUX_DB_MEASUREMENT_GEOLOC = "geoloc"
@@ -30,6 +31,9 @@ INFLUX_DB_FIELD_VERSION_COMMIT_INDEX = "version_commit_index"
 INFLUX_DB_FIELD_VERSION_COMMIT_ID = "version_commit_id"
 INFLUX_DB_FIELD_VERSION_DIRTY_FLAG = "version_dirty_flag"
 # Timestamps.
+INFLUX_DB_FIELD_TIME_DOWNLINK_RECORD = "time_downlink_record"
+INFLUX_DB_FIELD_TIME_DOWNLINK_SERVER = "time_downlink_server"
+INFLUX_DB_FIELD_TIME_DOWNLINK_NETWORK = "time_downlink_network"
 INFLUX_DB_FIELD_TIME_LAST_STARTUP = "time_last_startup"
 INFLUX_DB_FIELD_TIME_LAST_SHUTDOWN = "time_last_shutdown"
 INFLUX_DB_FIELD_TIME_LAST_COMMUNICATION = "time_last_communication"
@@ -38,6 +42,10 @@ INFLUX_DB_FIELD_TIME_LAST_MONITORING_DATA = "time_last_monitoring_data"
 INFLUX_DB_FIELD_TIME_LAST_GEOLOC_DATA = "time_last_geoloc_data"
 INFLUX_DB_FIELD_TIME_LAST_ELECTRICAL_DATA = "time_last_electrical_data"
 INFLUX_DB_FIELD_TIME_LAST_SENSOR_DATA = "time_last_sensor_data"
+# Downlink.
+INFLUX_DB_FIELD_DL_PAYLOAD = "dl_payload"
+INFLUX_DB_FIELD_DL_SUCCESS = "dl_success"
+INFLUX_DB_FIELD_DL_STATUS = "dl_status"
 # Status.
 INFLUX_DB_FIELD_RESET_FLAGS = "reset_flags"
 INFLUX_DB_FIELD_STATE = "state"
@@ -141,6 +149,7 @@ INFLUX_DB_FIELD_GPS_TIMEOUT_DURATION = "gps_timeout_duration"
 
 # Influx DB tags.
 INFLUX_DB_TAG_SIGFOX_EP_ID = "sigfox_ep_id"
+INFLUX_DB_TAG_DOWNLINK_HASH = "downlink_hash"
 INFLUX_DB_TAG_NODE_ADDRESS = "node_address"
 INFLUX_DB_TAG_SITE = "site"
 INFLUX_DB_TAG_RACK = "rack"
@@ -157,7 +166,7 @@ INFLUX_DB_TAG_CHANNEL = "channel"
 __INFLUX_DB_DATABASE_HTTP_PORT = 8086
 # Databases list.
 __INFLUX_DB_DATABASE_LIST = [
-    INFLUX_DB_DATABASE_SFXS,
+    INFLUX_DB_DATABASE_SIGFOX_EP_SERVER,
     INFLUX_DB_DATABASE_METEOFOX,
     INFLUX_DB_DATABASE_SENSIT,
     INFLUX_DB_DATABASE_ATXFOX,
@@ -171,7 +180,7 @@ influxdb_client = None
 
 ### FUNCTIONS ###
 
-def INFLUX_DB_init():
+def INFLUX_DB_init() :
     # Variables.
     global influxdb_client
     # Wait for InfluxDB to be available.
@@ -181,7 +190,8 @@ def INFLUX_DB_init():
             # Create client.
             influxdb_client = InfluxDBClient(host='localhost', port=__INFLUX_DB_DATABASE_HTTP_PORT)
             influxdb_found = True
-            LOG_print_timestamp("[INFLUX_DB] * Connection OK.\n")
+            LOG_print("[INFLUX_DB] * Connection OK")
+            LOG_print("")
         except:
             influxdb_found = False
     # Get list of existing databases.
@@ -192,31 +202,30 @@ def INFLUX_DB_init():
         influxdb_db_found = False
         for influxdb_database in influxdb_database_list :
             if (influxdb_database['name'].find(db_name) >= 0) :
-                LOG_print_timestamp("[INFLUX_DB] * "+ db_name + " database found.")
+                LOG_print("[INFLUX_DB] * "+ db_name + " database found")
                 influxdb_db_found = True
                 break
         # Create database if it does not exist.
         if (influxdb_db_found == False) :
-            LOG_print_timestamp("[INFLUX_DB] * Creating database " + db_name)
+            LOG_print("[INFLUX_DB] * Creating database " + db_name)
             influxdb_client.create_database(db_name)
-    LOG_print("")
 
 # Write data in database.
-def INFLUX_DB_write_data(database_name, json_body):
+def INFLUX_DB_write_data(database_name, json_body) :
     # Variables.
     global influxdb_client
     # Switch database.
-    LOG_print_timestamp("[INFLUX_DB] * Switching and writing database " + database_name + ".")
+    LOG_print("[INFLUX_DB] * Switching and writing database " + database_name)
     influxdb_client.switch_database(database_name)
     # Write data.
     influxdb_client.write_points(json_body, time_precision='s')
     
 # Read data in database.
-def INFLUX_DB_read_data(database_name, query):
+def INFLUX_DB_read_data(database_name, query) :
     # Variables.
     global influxdb_client
     # Switch database.
-    LOG_print_timestamp("[INFLUX_DB] * Switching and reading database " + database_name + ".")
+    LOG_print("[INFLUX_DB] * Switching and reading database " + database_name)
     influxdb_client.switch_database(database_name)
     # Read data.
     return influxdb_client.query(query)

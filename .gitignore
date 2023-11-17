@@ -1,3 +1,4 @@
 .settings/
 version.py
 *.pyc
+*.json

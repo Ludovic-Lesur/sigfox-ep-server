@@ -2,7 +2,7 @@ from __future__ import print_function
 
 from database.influx_db import *
 from log import *
-from parsers.common import *
+from ep.common import *
 
 ### LOCAL MACROS ###
 
@@ -15,24 +15,24 @@ __SENSIT_UL_PAYLOAD_CONFIGURATION_SIZE = 12
 
 ### PUBLIC MACROS ###
 
-SENSIT_EP_ID = ["1C8330", "20F815", "86BD75", "B437B2", "B4384E"]
+SENSIT_EP_ID_LIST = ["1C8330", "20F815", "86BD75", "B437B2", "B4384E"]
 
 ### LOCAL FUNCTIONS ###
 
 # Function performing Sigfox ID to Sensit site conversion.
-def __SENSIT_get_site(sigfox_ep_id):
+def __SENSIT_get_site(sigfox_ep_id) :
     # Default is unknown.
     site = "unknown"
-    if (sigfox_ep_id in SENSIT_EP_ID):
-        site = __SENSIT_SITE[SENSIT_EP_ID.index(sigfox_ep_id)]
+    if (sigfox_ep_id in SENSIT_EP_ID_LIST) :
+        site = __SENSIT_SITE[SENSIT_EP_ID_LIST.index(sigfox_ep_id)]
     return site
 
 # Function performing Sigfox ID to Sensit version conversion.
-def __SENSIT_get_version(sigfox_ep_id):
+def __SENSIT_get_version(sigfox_ep_id) :
     # Default is unknown.
     version = "unknown"
-    if (sigfox_ep_id in SENSIT_EP_ID):
-        version = __SENSIT_VERSION[SENSIT_EP_ID.index(sigfox_ep_id)]
+    if (sigfox_ep_id in SENSIT_EP_ID_LIST) :
+        version = __SENSIT_VERSION[SENSIT_EP_ID_LIST.index(sigfox_ep_id)]
     return version
 
 # Function adding the specific Sensit tags.
@@ -46,7 +46,7 @@ def __SENSIT_add_tags(json_body, sigfox_ep_id) :
 ### PUBLIC FUNCTIONS ###
 
 # Function for parsing Sensit device payload and fill database. 
-def SENSIT_fill_data_base(timestamp, sigfox_ep_id, ul_payload) :
+def SENSIT_parse_ul_payload(timestamp, sigfox_ep_id, ul_payload) :
     # Init JSON object.
     json_body = []
     # Get version.
@@ -98,11 +98,17 @@ def SENSIT_fill_data_base(timestamp, sigfox_ep_id, ul_payload) :
                 INFLUX_DB_TAG_SITE : __SENSIT_get_site(sigfox_ep_id)
             }
         }]
-        LOG_print_timestamp("[SENSIT] * Monitoring data * site=" + __SENSIT_get_site(sigfox_ep_id) +
-                            " vbat=" + str(vbat_mv) + "mV mode=" + str(mode) + " tamb=" + str(tamb_degrees) + "dC hamb=" + str(hamb_percent) + "%")
+        LOG_print("[SENSIT] * Monitoring data * site=" + __SENSIT_get_site(sigfox_ep_id) +
+                  " vbat=" + str(vbat_mv) + "mV mode=" + str(mode) + " tamb=" + str(tamb_degrees) + "dC hamb=" + str(hamb_percent) + "%")
     # Fill data base.
     if (len(json_body) > 0) :
         __SENSIT_add_tags(json_body, sigfox_ep_id)
         INFLUX_DB_write_data(INFLUX_DB_DATABASE_SENSIT, json_body)
     else :
-        LOG_print_timestamp("[SENSIT] * Invalid frame")        
+        LOG_print("[SENSIT] * Invalid frame")
+        
+# Returns the default downlink payload to sent back to the device.
+def SENSIT_get_default_dl_payload(sigfox_ep_id) :
+    # Local variables.
+    dl_payload = []
+    return dl_payload

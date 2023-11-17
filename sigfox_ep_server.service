@@ -1,0 +1,11 @@
+[Unit]
+Description=Sigfox End-Point Server startup script
+After=multi-user.target
+
+[Service]
+Type=simple
+User=ludo
+ExecStart=/usr/bin/python /home/ludo/git/sigfox-ep-server/sigfox_ep_server.py
+
+[Install]
+WantedBy=multi-user.target

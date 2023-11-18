@@ -4,7 +4,7 @@ import time
 ### LOCAL MACROS ###
 
 # Enable or disable debug prints.
-__LOG = True
+__LOG = False
 
 ### PUBLIC FUNCTIONS ###
 

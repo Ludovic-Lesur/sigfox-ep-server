@@ -5,7 +5,9 @@ from log import *
 
 ### PUBLIC MACROS ###
 
-COMMON_UL_PAYLOAD_KEEP_ALIVE = "keep_alive"
+# Note: string length must be grater 24 characters to ensure that it will not be interpreted as a classic payload (0-12 bytes).
+COMMON_UL_PAYLOAD_KEEP_ALIVE = "control_keep_alive_payload"
+# Common UL payload sizes.
 COMMON_UL_PAYLOAD_STARTUP_SIZE = 8
 COMMON_UL_PAYLOAD_GEOLOC_SIZE = 11
 COMMON_UL_PAYLOAD_GEOLOC_TIMEOUT_SIZE_OLD = 1

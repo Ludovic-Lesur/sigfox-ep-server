@@ -111,6 +111,7 @@ def __DINFOX_get_ua(dinfox_current) :
         current_ua = (value * 100000)
     return current_ua
 
+# Convert DINFox voltage representation to mV.
 def __DINFOX_get_mW(dinfox_electrical_power) :
     # Reset result.
     electrical_power_mw = COMMON_ERROR_DATA
@@ -129,9 +130,8 @@ def __DINFOX_get_mW(dinfox_electrical_power) :
         electrical_power_mw = ((-1) ** (sign)) * (value * 100000)
     return electrical_power_mw
 
+# Convert DINFox power factor to floating number.
 def __DINFOX_get_power_factor(dinfox_power_factor) :
-    # Reset result.
-    power_factor = COMMON_ERROR_DATA
     # Extract sign and value.
     sign = ((dinfox_power_factor >> 7) & 0x01)
     value = ((dinfox_power_factor >> 0) & 0x7F)
@@ -794,5 +794,7 @@ def DINFOX_parse_ul_payload(timestamp, sigfox_ep_id, ul_payload) :
 # Returns the default downlink payload to sent back to the device.
 def DINFOX_get_default_dl_payload(sigfox_ep_id) :
     # Local variables.
-    dl_payload = "0001020304050607"
+    dl_payload = []
+    if (sigfox_ep_id in DINFOX_EP_ID_LIST) :
+        dl_payload = "0000000000000000"
     return dl_payload

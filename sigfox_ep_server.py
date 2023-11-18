@@ -222,6 +222,7 @@ def SIGFOX_EP_SERVER_execute_callback(json_in) :
     global sigfox_ep_server_downlink_message_hash
     global SIGFOX_EP_SERVER_parse_ul_payload
     # Local variables.
+    http_return_code = 200
     json_out = []
     try :
         # Check mandatory JSON fields.
@@ -229,6 +230,7 @@ def SIGFOX_EP_SERVER_execute_callback(json_in) :
             (SIGFOX_CALLBACK_JSON_HEADER_TIME not in json_in) or
             (SIGFOX_CALLBACK_JSON_HEADER_EP_ID not in json_in)) : 
             LOG_print("[SIGFOX EP SERVER] * Invalid callback JSON content (common fields)")
+            http_return_code = 415
             raise Exception
         # Read fields.
         callback_type = json_in[SIGFOX_CALLBACK_JSON_HEADER_TYPE]
@@ -247,6 +249,7 @@ def SIGFOX_EP_SERVER_execute_callback(json_in) :
                 (SIGFOX_CALLBACK_JSON_HEADER_UL_PAYLOAD not in json_in) or
                 (SIGFOX_CALLBACK_JSON_HEADER_BIDIRECTIONAL_FLAG not in json_in)) :
                 LOG_print("[SIGFOX EP SERVER] * Invalid callback JSON content (specific fields)")
+                http_return_code = 424
                 raise Exception
             # Parse fields.
             message_counter = int(json_in[SIGFOX_CALLBACK_JSON_HEADER_MESSAGE_COUNTER])
@@ -274,21 +277,23 @@ def SIGFOX_EP_SERVER_execute_callback(json_in) :
                         LOG_print("[SIGFOX EP SERVER] * Bidir request response: dl_payload=" + dl_payload)
         # Service status callback.
         elif (callback_type == SIGFOX_CALLBACK_TYPE_SERVICE_STATUS) :
-            # Parse fields.
-            timestamp = int(json_in[SIGFOX_CALLBACK_JSON_HEADER_TIME])
-            ep_id = json_in[SIGFOX_CALLBACK_JSON_HEADER_EP_ID].upper()
-            LOG_print("[SIGFOX EP SERVER] * Service status callback: timestamp=" + str(timestamp) + " ep_id=" + ep_id)
+            LOG_print("[SIGFOX EP SERVER] * Service status callback: timestamp=" + str(timestamp) + " sigfox_ep_id=" + sigfox_ep_id)
             # Parse keep alive frame.
             SIGFOX_EP_SERVER_parse_ul_payload(timestamp, sigfox_ep_id, COMMON_UL_PAYLOAD_KEEP_ALIVE)
         # Service acknowledge callback.
         elif (callback_type == SIGFOX_CALLBACK_TYPE_SERVICE_ACKNOWLEDGE) :
+            # Check mandatory JSON fields.
+            if ((SIGFOX_CALLBACK_JSON_HEADER_DL_PAYLOAD not in json_in) or
+                (SIGFOX_CALLBACK_JSON_HEADER_DL_SUCCESS not in json_in) or
+                (SIGFOX_CALLBACK_JSON_HEADER_DL_STATUS not in json_in)) :
+                LOG_print("[SIGFOX EP SERVER] * Invalid callback JSON content (specific fields)")
+                http_return_code = 424
+                raise Exception
             # Parse fields.
-            timestamp = int(json_in[SIGFOX_CALLBACK_JSON_HEADER_TIME])
-            ep_id = json_in[SIGFOX_CALLBACK_JSON_HEADER_EP_ID].upper()
             dl_payload = json_in[SIGFOX_CALLBACK_JSON_HEADER_DL_PAYLOAD].upper()
             dl_success = json_in[SIGFOX_CALLBACK_JSON_HEADER_DL_SUCCESS]
             dl_status = json_in[SIGFOX_CALLBACK_JSON_HEADER_DL_STATUS]
-            LOG_print("[SIGFOX EP SERVER] * Service acknowledge callback: timestamp=" + str(timestamp) + " ep_id=" + ep_id + " dl_payload=" + dl_payload + " dl_success=" + dl_success + " dl_status=" + dl_status)
+            LOG_print("[SIGFOX EP SERVER] * Service acknowledge callback: timestamp=" + str(timestamp) + " sigfox_ep_id=" + sigfox_ep_id + " dl_payload=" + dl_payload + " dl_success=" + dl_success + " dl_status=" + dl_status)
             # Log downlink network status in database.
             json_body = [
             {
@@ -311,8 +316,8 @@ def SIGFOX_EP_SERVER_execute_callback(json_in) :
             LOG_print("[SIGFOX EP SERVER] * Invalid callback type")
         raise Exception
     except :
-        return json_out
-    return json_out
+        return http_return_code, json_out
+    return http_return_code, json_out
         
 ### CLASS DECLARATIONS ###
 
@@ -321,28 +326,32 @@ class ServerHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         LOG_print("")
         LOG_print("[SIGFOX EP SERVER] * GET request received")
-        self.send_response(200)   
+        self.send_response(400)
     # Head request.
     def do_HEAD(self):
         LOG_print("")
         LOG_print("[SIGFOX EP SERVER] * HEAD request received")
-        self.send_response(200)
+        self.send_response(400)
     # Post request.
     def do_POST(self):
         LOG_print("")
         LOG_print("[SIGFOX EP SERVER] * POST request received")
-        # Get JSON content.
-        json_length = int(self.headers.getheader('content-length', 0))
-        json_in = json.loads(self.rfile.read(json_length))
-        # Parse callback.
-        json_out = SIGFOX_EP_SERVER_execute_callback(json_in)
-        # Send HTTP response.
-        self.send_response(200)
-        if (json_out is not None) :
-            if (len(json_out) > 0) :
-                self.send_header('Content-type', 'application/json')
-                self.end_headers()
-                self.wfile.write(json.dumps(json_out))
+        # Check content type.
+        if ((self.headers.getheader("content-type")) == "application/json") :
+            # Get JSON content.
+            json_length = int(self.headers.getheader("content-length", 0))
+            json_in = json.loads(self.rfile.read(json_length))
+            # Parse callback.
+            http_return_code, json_out = SIGFOX_EP_SERVER_execute_callback(json_in)
+            # Send HTTP response.
+            self.send_response(http_return_code)
+            if (json_out is not None) :
+                if (len(json_out) > 0) :
+                    self.send_header("content-type", "application/json")
+                    self.end_headers()
+                    self.wfile.write(json.dumps(json_out))
+        else :
+            self.send_response(400)
 
 ### MAIN PROGRAM ###
 

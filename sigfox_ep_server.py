@@ -222,7 +222,7 @@ def SIGFOX_EP_SERVER_execute_callback(json_in) :
     global sigfox_ep_server_downlink_message_hash
     global SIGFOX_EP_SERVER_parse_ul_payload
     # Local variables.
-    http_return_code = 200
+    http_return_code = 204
     json_out = []
     try :
         # Check mandatory JSON fields.
@@ -269,11 +269,8 @@ def SIGFOX_EP_SERVER_execute_callback(json_in) :
                     # Check size.
                     if (len(dl_payload) == (2 * SIGFOX_DL_PAYLOAD_SIZE_BYTES)) :
                         # Build response.
-                        json_out = [ {
-                            sigfox_ep_id : {
-                                "downlinkData" : dl_payload,
-                            }
-                        } ]
+                        http_return_code = 200
+                        json_out = {sigfox_ep_id : {"downlinkData" : dl_payload}}
                         LOG_print("[SIGFOX EP SERVER] * Bidir request response: dl_payload=" + dl_payload)
         # Service status callback.
         elif (callback_type == SIGFOX_CALLBACK_TYPE_SERVICE_STATUS) :

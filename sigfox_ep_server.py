@@ -36,7 +36,7 @@ SIGFOX_CALLBACK_TYPE_SERVICE_STATUS = "service_status"
 SIGFOX_CALLBACK_TYPE_SERVICE_ACKNOWLEDGE = "service_acknowledge"
 
 # Downlink messages file.
-SIGFOX_DOWNLINK_MESSAGES_FILE_NAME = "sigfox_downlink_messages.json"
+SIGFOX_DOWNLINK_MESSAGES_FILE_NAME = "/home/ludo/git/sigfox-ep-server/sigfox_downlink_messages.json"
 SIGFOX_DOWNLINK_MESSAGES_HEADER = "downlink_messages_list"
 SIGFOX_DOWNLINK_MESSAGES_HEADER_RECORD_TIME = "record_time"
 SIGFOX_DOWNLINK_MESSAGES_HEADER_EP_ID = "ep_id"

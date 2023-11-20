@@ -297,7 +297,7 @@ def SIGFOX_EP_SERVER_execute_callback(json_in) :
                 "measurement": INFLUX_DB_MEASUREMENT_DOWNLINK,
                 "time": int(time.time()),
                 "fields": {
-                    INFLUX_DB_FIELD_TIME_DOWNLINK_NETWORK : timestamp,
+                    INFLUX_DB_FIELD_TIME_DOWNLINK_NETWORK : int(time.time()),
                     INFLUX_DB_FIELD_DL_PAYLOAD : dl_payload,
                     INFLUX_DB_FIELD_DL_SUCCESS : dl_success,
                     INFLUX_DB_FIELD_DL_STATUS : dl_status

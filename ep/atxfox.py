@@ -37,43 +37,43 @@ def __ATXFOX_get_psfe(sigfox_ep_id):
         power_supply_type = __ATXFOX_PSFE[ATXFOX_EP_ID_LIST.index(sigfox_ep_id)]
     return power_supply_type
 
+### PUBLIC FUNCTIONS ###
+
 # Function adding the specific MeteoFox tags.
-def __ATXFOX_add_tags(json_body, sigfox_ep_id) :
-    for idx in range(len(json_body)) :
-        json_body[idx]["tags"] = {
+def ATXFOX_add_ep_tag(json_ul_data, sigfox_ep_id) :
+    for idx in range(len(json_ul_data)) :
+        json_ul_data[idx]["tags"] = {
             INFLUX_DB_TAG_SIGFOX_EP_ID : sigfox_ep_id,
             INFLUX_DB_TAG_RACK : __ATXFOX_get_rack(sigfox_ep_id),
             INFLUX_DB_TAG_PSFE : __ATXFOX_get_psfe(sigfox_ep_id)
         }
 
-### PUBLIC FUNCTIONS ###
-
 # Function for parsing ATXFox device payload and fill database.
 def ATXFOX_parse_ul_payload(timestamp, sigfox_ep_id, ul_payload):
     # Init JSON object.
-    json_body = []
+    json_ul_data = []
     # Startup frame.
     if (len(ul_payload) == (2 * COMMON_UL_PAYLOAD_STARTUP_SIZE)) :
         # Create JSON object.
         result = COMMON_create_json_startup_data(timestamp, ul_payload)
-        json_body = result[0]
+        json_ul_data = result[0]
         log_data = result[1]
         LOG_print("[ATXFOX] * Startup data * rack=" + __ATXFOX_get_rack(sigfox_ep_id) + " psfe=" + __ATXFOX_get_psfe(sigfox_ep_id) + " " + log_data)
     # Error stack frame.
-    if (len(ul_payload) == (2 * __ATXFOX_UL_PAYLOAD_ERROR_STACK_SIZE)) :
+    elif (len(ul_payload) == (2 * __ATXFOX_UL_PAYLOAD_ERROR_STACK_SIZE)) :
         # Create JSON object.
         result = COMMON_create_json_error_stack_data(timestamp, ul_payload, (__ATXFOX_UL_PAYLOAD_ERROR_STACK_SIZE / 2))
-        json_body = result[0]
+        json_ul_data = result[0]
         log_data = result[1]
         LOG_print("[ATXFOX] * Error stack * rack=" + __ATXFOX_get_rack(sigfox_ep_id) + " psfe=" + __ATXFOX_get_psfe(sigfox_ep_id) + " " + log_data)
     # Startup-shutdown frame.
-    if (len(ul_payload) == (2 * __ATXFOX_UL_PAYLOAD_STARTUP_SHUTDOWN_SIZE)) :
+    elif (len(ul_payload) == (2 * __ATXFOX_UL_PAYLOAD_STARTUP_SHUTDOWN_SIZE)) :
         # Parse fields.
         status = (int(ul_payload[0:2], 16))
         # Check status.
         if (status == 0x00) :
             # Create JSON object.
-            json_body = [
+            json_ul_data = [
             {
                 "measurement": INFLUX_DB_MEASUREMENT_METADATA,
                 "time": timestamp,
@@ -86,7 +86,7 @@ def ATXFOX_parse_ul_payload(timestamp, sigfox_ep_id, ul_payload):
             LOG_print("[ATXFOX] * Shutdown event * rack=" + __ATXFOX_get_rack(sigfox_ep_id) + " psfe=" + __ATXFOX_get_psfe(sigfox_ep_id))
         elif (status == 0x01) :
             # Create JSON object.
-            json_body = [
+            json_ul_data = [
             {
                 "measurement": INFLUX_DB_MEASUREMENT_METADATA,
                 "time": timestamp,
@@ -98,7 +98,7 @@ def ATXFOX_parse_ul_payload(timestamp, sigfox_ep_id, ul_payload):
             }]
             LOG_print("[ATXFOX] * Startup event * rack=" + __ATXFOX_get_rack(sigfox_ep_id) + " psfe=" + __ATXFOX_get_psfe(sigfox_ep_id))
     # Monitoring frame.
-    if (len(ul_payload) == (2 * __ATXFOX_UL_PAYLOAD_MONITORING_SIZE)) :
+    elif (len(ul_payload) == (2 * __ATXFOX_UL_PAYLOAD_MONITORING_SIZE)) :
         # Parse fields.
         vout_mv = int(ul_payload[0:4], 16) if (int(ul_payload[0:4], 16) != COMMON_ERROR_VALUE_ANALOG_16BITS) else COMMON_ERROR_DATA
         i_range = int(ul_payload[4:6], 16)
@@ -110,7 +110,7 @@ def ATXFOX_parse_ul_payload(timestamp, sigfox_ep_id, ul_payload):
         if (vout_mv != COMMON_ERROR_DATA) and (iout_ua != COMMON_ERROR_DATA) :
             pout_nw = (vout_mv * iout_ua)
         # Create JSON object.
-        json_body = [
+        json_ul_data = [
         {
             "measurement": INFLUX_DB_MEASUREMENT_MONITORING,
             "time": timestamp,
@@ -128,24 +128,21 @@ def ATXFOX_parse_ul_payload(timestamp, sigfox_ep_id, ul_payload):
         }]
         # Add valid fields to JSON.
         if (vout_mv != COMMON_ERROR_DATA) :
-            json_body[0]["fields"][INFLUX_DB_FIELD_VOUT] = vout_mv
+            json_ul_data[0]["fields"][INFLUX_DB_FIELD_VOUT] = vout_mv
         if (iout_ua != COMMON_ERROR_DATA) :
-            json_body[0]["fields"][INFLUX_DB_FIELD_IOUT] = iout_ua
+            json_ul_data[0]["fields"][INFLUX_DB_FIELD_IOUT] = iout_ua
         if (vmcu_mv != COMMON_ERROR_DATA) :
-            json_body[0]["fields"][INFLUX_DB_FIELD_VMCU] = vmcu_mv
+            json_ul_data[0]["fields"][INFLUX_DB_FIELD_VMCU] = vmcu_mv
         if (tmcu_degrees != COMMON_ERROR_DATA) :
-            json_body[0]["fields"][INFLUX_DB_FIELD_TMCU] = tmcu_degrees
+            json_ul_data[0]["fields"][INFLUX_DB_FIELD_TMCU] = tmcu_degrees
         if (pout_nw != COMMON_ERROR_DATA) :
-            json_body[0]["fields"][INFLUX_DB_FIELD_POUT] = pout_nw
+            json_ul_data[0]["fields"][INFLUX_DB_FIELD_POUT] = pout_nw
         LOG_print("[ATXFOX] * Monitoring data * rack=" + __ATXFOX_get_rack(sigfox_ep_id) + " psfe=" + __ATXFOX_get_psfe(sigfox_ep_id) +
                   " vout=" + str(vout_mv) + "mV i_range=" + str(i_range) + " iout=" + str(iout_ua) + "ua pout=" + str(pout_nw) +
                   "nW vmcu=" + str(vmcu_mv) + "mV tmcu=" + str(tmcu_degrees) + "dC")
-    # Fill data base.
-    if (len(json_body) > 0) :
-        __ATXFOX_add_tags(json_body, sigfox_ep_id)
-        INFLUX_DB_write_data(INFLUX_DB_DATABASE_ATXFOX, json_body)
     else :
-        LOG_print("[ATXFOX] * Invalid frame")
+        LOG_print("[ATXFOX] * Invalid UL payload")
+    return json_ul_data
         
 # Returns the default downlink payload to sent back to the device.
 def ATXFOX_get_default_dl_payload(sigfox_ep_id) :

@@ -22,6 +22,12 @@ METEOFOX_EP_ID_LIST = ["53B5", "5436", "546C", "5477", "5497", "549D", "54B6", "
 
 ### LOCAL FUNCTIONS ###
 
+# Function to compute sea-level pressure (barometric formula).
+def __METEOFOX_compute_sea_level_pressure(absolute_pressure, altitude, temperature) :
+    # a^(x) = exp(x*ln(a))
+    temperature_kelvin = temperature + 273.15
+    return (absolute_pressure * math.exp(-5.255 * math.log((temperature_kelvin) / (temperature_kelvin + 0.0065 * altitude))))
+
 # Function performing Sigfox ID to MeteoFox site conversion.
 def __METEOFOX_get_site(sigfox_ep_id) :
     # Default is unknown.
@@ -30,30 +36,24 @@ def __METEOFOX_get_site(sigfox_ep_id) :
         site = __METEOFOX_SITE[METEOFOX_EP_ID_LIST.index(sigfox_ep_id)]
     return site
 
+### PUBLIC FUNCTIONS ###
+
 # Function adding the specific MeteoFox tags.
-def __METEOFOX_add_tags(json_body, sigfox_ep_id) :
-    for idx in range(len(json_body)) :
-        json_body[idx]["tags"] = {
+def METEOFOX_add_ep_tag(json_ul_data, sigfox_ep_id) :
+    for idx in range(len(json_ul_data)) :
+        json_ul_data[idx]["tags"] = {
             INFLUX_DB_TAG_SIGFOX_EP_ID : sigfox_ep_id,
             INFLUX_DB_TAG_SITE : __METEOFOX_get_site(sigfox_ep_id)
         }
 
-# Function to compute sea-level pressure (barometric formula).
-def __METEOFOX_compute_sea_level_pressure(absolute_pressure, altitude, temperature) :
-    # a^(x) = exp(x*ln(a))
-    temperature_kelvin = temperature + 273.15
-    return (absolute_pressure * math.exp(-5.255 * math.log((temperature_kelvin) / (temperature_kelvin + 0.0065 * altitude))))
-
-### PUBLIC FUNCTIONS ###
-
 # Function for parsing MeteoFox device payload and fill database.
 def METEOFOX_parse_ul_payload(timestamp, sigfox_ep_id, ul_payload) :
     # Init JSON object.
-    json_body = []
+    json_ul_data = []
     # Keep alive frame (only for SW version older than 1.2.42).
     if (ul_payload == COMMON_UL_PAYLOAD_KEEP_ALIVE) :
         # Create JSON object.
-        json_body = [
+        json_ul_data = [
         {
             "time" : timestamp,
             "measurement" : INFLUX_DB_MEASUREMENT_METADATA,
@@ -64,42 +64,42 @@ def METEOFOX_parse_ul_payload(timestamp, sigfox_ep_id, ul_payload) :
         }]
         LOG_print("[METEOFOX] * Startup * site=" + __METEOFOX_get_site(sigfox_ep_id))
     # Startup frame.
-    if (len(ul_payload) == (2 * COMMON_UL_PAYLOAD_STARTUP_SIZE)) :
+    elif (len(ul_payload) == (2 * COMMON_UL_PAYLOAD_STARTUP_SIZE)) :
         # Create JSON object.
         result = COMMON_create_json_startup_data(timestamp, ul_payload)
-        json_body = result[0]
+        json_ul_data = result[0]
         log_data = result[1]
         LOG_print("[METEOFOX] * Startup data * site=" + __METEOFOX_get_site(sigfox_ep_id) + " " + log_data)
     # Geolocation frame.
-    if (len(ul_payload) == (2 * COMMON_UL_PAYLOAD_GEOLOC_SIZE)) :
+    elif (len(ul_payload) == (2 * COMMON_UL_PAYLOAD_GEOLOC_SIZE)) :
         # Create JSON object.
         result = COMMON_create_json_geoloc_data(timestamp, ul_payload)
-        json_body = result[0]
+        json_ul_data = result[0]
         log_data = result[1]
         LOG_print("[METEOFOX] * Geoloc data * site=" + __METEOFOX_get_site(sigfox_ep_id) + " " + log_data)
     # Old geolocation timeout frame.
-    if (len(ul_payload) == (2 * COMMON_UL_PAYLOAD_GEOLOC_TIMEOUT_SIZE_OLD)) :
+    elif (len(ul_payload) == (2 * COMMON_UL_PAYLOAD_GEOLOC_TIMEOUT_SIZE_OLD)) :
         # Create JSON object.
         result = COMMON_create_json_geoloc_timeout_data(timestamp, ul_payload, COMMON_UL_PAYLOAD_GEOLOC_TIMEOUT_SIZE_OLD)
-        json_body = result[0]
+        json_ul_data = result[0]
         log_data = result[1]
         LOG_print("[METEOFOX] * Geoloc timeout * site=" + __METEOFOX_get_site(sigfox_ep_id) + " " + log_data)
     # Geolocation timeout frame.
-    if (len(ul_payload) == (2 * COMMON_UL_PAYLOAD_GEOLOC_TIMEOUT_SIZE)) :
+    elif (len(ul_payload) == (2 * COMMON_UL_PAYLOAD_GEOLOC_TIMEOUT_SIZE)) :
         # Create JSON object.
         result = COMMON_create_json_geoloc_timeout_data(timestamp, ul_payload, COMMON_UL_PAYLOAD_GEOLOC_TIMEOUT_SIZE)
-        json_body = result[0]
+        json_ul_data = result[0]
         log_data = result[1]
         LOG_print("[METEOFOX] * Geoloc timeout * site=" + __METEOFOX_get_site(sigfox_ep_id) + " " + log_data)
     # Error stack frame.
-    if (len(ul_payload) == (2 * __METEOFOX_UL_PAYLOAD_ERROR_STACK_SIZE)) :
+    elif (len(ul_payload) == (2 * __METEOFOX_UL_PAYLOAD_ERROR_STACK_SIZE)) :
         # Create JSON object.
         result = COMMON_create_json_error_stack_data(timestamp, ul_payload, (__METEOFOX_UL_PAYLOAD_ERROR_STACK_SIZE / 2))
-        json_body = result[0]
+        json_ul_data = result[0]
         log_data = result[1]
         LOG_print("[METEOFOX] * Error stack * site=" + __METEOFOX_get_site(sigfox_ep_id) + " " + log_data)
     # Monitoring frame.
-    if (len(ul_payload) == (2 * __METEOFOX_UL_PAYLOAD_MONITORING_SIZE)) :
+    elif (len(ul_payload) == (2 * __METEOFOX_UL_PAYLOAD_MONITORING_SIZE)) :
         # Parse fields.
         tmcu_degrees = COMMON_one_complement_to_value(int(ul_payload[0:2], 16), 7) if (int(ul_payload[0:2], 16) != COMMON_ERROR_VALUE_TEMPERATURE) else COMMON_ERROR_DATA
         tpcb_degrees = COMMON_one_complement_to_value(int(ul_payload[2:4], 16), 7) if (int(ul_payload[2:4], 16) != COMMON_ERROR_VALUE_TEMPERATURE) else COMMON_ERROR_DATA
@@ -109,7 +109,7 @@ def METEOFOX_parse_ul_payload(timestamp, sigfox_ep_id, ul_payload) :
         vmcu_mv = int(ul_payload[13:16], 16) if (int(ul_payload[13:16], 16) != COMMON_ERROR_VALUE_ANALOG_12BITS) else COMMON_ERROR_DATA
         status = int(ul_payload[16:18], 16)
         # Create JSON object.
-        json_body = [
+        json_ul_data = [
         {
             "time" : timestamp,
             "measurement": INFLUX_DB_MEASUREMENT_MONITORING,
@@ -127,22 +127,22 @@ def METEOFOX_parse_ul_payload(timestamp, sigfox_ep_id, ul_payload) :
         }]
         # Add valid fields to JSON.
         if (tmcu_degrees != COMMON_ERROR_DATA) :
-            json_body[0]["fields"][INFLUX_DB_FIELD_TMCU] = tmcu_degrees
+            json_ul_data[0]["fields"][INFLUX_DB_FIELD_TMCU] = tmcu_degrees
         if (tpcb_degrees != COMMON_ERROR_DATA) :
-            json_body[0]["fields"][INFLUX_DB_FIELD_TPCB] = tpcb_degrees
+            json_ul_data[0]["fields"][INFLUX_DB_FIELD_TPCB] = tpcb_degrees
         if (hpcb_percent != COMMON_ERROR_DATA) :
-            json_body[0]["fields"][INFLUX_DB_FIELD_HPCB] = hpcb_percent
+            json_ul_data[0]["fields"][INFLUX_DB_FIELD_HPCB] = hpcb_percent
         if (vsrc_mv != COMMON_ERROR_DATA) :
-            json_body[0]["fields"][INFLUX_DB_FIELD_VSRC] = vsrc_mv
+            json_ul_data[0]["fields"][INFLUX_DB_FIELD_VSRC] = vsrc_mv
         if (vcap_mv != COMMON_ERROR_DATA) :
-            json_body[0]["fields"][INFLUX_DB_FIELD_VCAP] = vcap_mv
+            json_ul_data[0]["fields"][INFLUX_DB_FIELD_VCAP] = vcap_mv
         if (vmcu_mv != COMMON_ERROR_DATA) :
-            json_body[0]["fields"][INFLUX_DB_FIELD_VMCU] = vmcu_mv
+            json_ul_data[0]["fields"][INFLUX_DB_FIELD_VMCU] = vmcu_mv
         LOG_print("[METEOFOX] * Monitoring data * site=" + __METEOFOX_get_site(sigfox_ep_id) +
                   " tmcu=" + str(tmcu_degrees) + "dC tpcb=" + str(tpcb_degrees) + "dC hpcb=" + str(hpcb_percent) +
                   "% vsrc=" + str(vsrc_mv) + "mV vcap=" + str(vcap_mv) + "mV vmcu=" + str(vmcu_mv) + "mV status=" + hex(status))
     # IM weather data frame.
-    if (len(ul_payload) == (2 * __METEOFOX_UL_PAYLOAD_WEATHER_IM_SIZE)) :
+    elif (len(ul_payload) == (2 * __METEOFOX_UL_PAYLOAD_WEATHER_IM_SIZE)) :
         # Parse fields.
         tamb_degrees = COMMON_one_complement_to_value(int(ul_payload[0:2], 16), 7) if (int(ul_payload[0:2], 16) != COMMON_ERROR_VALUE_TEMPERATURE) else COMMON_ERROR_DATA
         hamb_percent = int(ul_payload[2:4], 16) if (int(ul_payload[2:4], 16) != COMMON_ERROR_VALUE_HUMIDITY) else COMMON_ERROR_DATA
@@ -162,7 +162,7 @@ def METEOFOX_parse_ul_payload(timestamp, sigfox_ep_id, ul_payload) :
             # Altitude not available.
             patm_sea_hpa = COMMON_ERROR_DATA
         # Create JSON object.
-        json_body = [
+        json_ul_data = [
         {
             "time" : timestamp,
             "measurement": INFLUX_DB_MEASUREMENT_WEATHER,
@@ -178,22 +178,22 @@ def METEOFOX_parse_ul_payload(timestamp, sigfox_ep_id, ul_payload) :
             },
         }]
         if (tamb_degrees != COMMON_ERROR_DATA) :
-            json_body[0]["fields"][INFLUX_DB_FIELD_TAMB] = tamb_degrees
+            json_ul_data[0]["fields"][INFLUX_DB_FIELD_TAMB] = tamb_degrees
         if (hamb_percent != COMMON_ERROR_DATA) :
-            json_body[0]["fields"][INFLUX_DB_FIELD_HAMB] = hamb_percent
+            json_ul_data[0]["fields"][INFLUX_DB_FIELD_HAMB] = hamb_percent
         if (light_percent != COMMON_ERROR_DATA) :
-            json_body[0]["fields"][INFLUX_DB_FIELD_LIGHT] = light_percent
+            json_ul_data[0]["fields"][INFLUX_DB_FIELD_LIGHT] = light_percent
         if (uv_index != COMMON_ERROR_DATA) :
-            json_body[0]["fields"][INFLUX_DB_FIELD_UV_INDEX] = uv_index
+            json_ul_data[0]["fields"][INFLUX_DB_FIELD_UV_INDEX] = uv_index
         if (patm_abs_hpa != COMMON_ERROR_DATA) :
-            json_body[0]["fields"][INFLUX_DB_FIELD_PATM_ABS] = patm_abs_hpa
+            json_ul_data[0]["fields"][INFLUX_DB_FIELD_PATM_ABS] = patm_abs_hpa
         if (patm_sea_hpa != COMMON_ERROR_DATA) :
-            json_body[0]["fields"][INFLUX_DB_FIELD_PATM_SEA] = patm_sea_hpa
+            json_ul_data[0]["fields"][INFLUX_DB_FIELD_PATM_SEA] = patm_sea_hpa
         LOG_print("[METEOFOX] * IM weather data * site=" + __METEOFOX_get_site(sigfox_ep_id) +
                   " tamb=" + str(tamb_degrees) + "dC hamb=" + str(hamb_percent) + "% light=" + str(light_percent) + "% uv_index=" + str(uv_index) +
                   " patm_abs=" + str(patm_abs_hpa) + "hPa patm_sea=" + str(patm_sea_hpa) + "hpa")
     # CM weather data frame.
-    if (len(ul_payload) == (2 * __METEOFOX_UL_PAYLOAD_WEATHER_CM_SIZE)) :
+    elif (len(ul_payload) == (2 * __METEOFOX_UL_PAYLOAD_WEATHER_CM_SIZE)) :
         # Parse fields.
         tamb_degrees = COMMON_one_complement_to_value(int(ul_payload[0:2], 16), 7) if (int(ul_payload[0:2], 16) != COMMON_ERROR_VALUE_TEMPERATURE) else COMMON_ERROR_DATA
         hamb_percent = int(ul_payload[2:4], 16) if (int(ul_payload[2:4], 16) != COMMON_ERROR_VALUE_HUMIDITY) else COMMON_ERROR_DATA
@@ -217,7 +217,7 @@ def METEOFOX_parse_ul_payload(timestamp, sigfox_ep_id, ul_payload) :
             # Altitude not available.
             patm_sea_hpa = COMMON_ERROR_DATA
         # Create JSON object.
-        json_body = [
+        json_ul_data = [
         {
             "time" : timestamp,
             "measurement": INFLUX_DB_MEASUREMENT_WEATHER,
@@ -233,36 +233,33 @@ def METEOFOX_parse_ul_payload(timestamp, sigfox_ep_id, ul_payload) :
             },
         }]
         if (tamb_degrees != COMMON_ERROR_DATA) :
-            json_body[0]["fields"][INFLUX_DB_FIELD_TAMB] = tamb_degrees
+            json_ul_data[0]["fields"][INFLUX_DB_FIELD_TAMB] = tamb_degrees
         if (hamb_percent != COMMON_ERROR_DATA) :
-            json_body[0]["fields"][INFLUX_DB_FIELD_HAMB] = hamb_percent
+            json_ul_data[0]["fields"][INFLUX_DB_FIELD_HAMB] = hamb_percent
         if (light_percent != COMMON_ERROR_DATA) :
-            json_body[0]["fields"][INFLUX_DB_FIELD_LIGHT] = light_percent
+            json_ul_data[0]["fields"][INFLUX_DB_FIELD_LIGHT] = light_percent
         if (uv_index != COMMON_ERROR_DATA) :
-            json_body[0]["fields"][INFLUX_DB_FIELD_UV_INDEX] = uv_index
+            json_ul_data[0]["fields"][INFLUX_DB_FIELD_UV_INDEX] = uv_index
         if (patm_abs_hpa != COMMON_ERROR_DATA) :
-            json_body[0]["fields"][INFLUX_DB_FIELD_PATM_ABS] = patm_abs_hpa
+            json_ul_data[0]["fields"][INFLUX_DB_FIELD_PATM_ABS] = patm_abs_hpa
         if (patm_sea_hpa != COMMON_ERROR_DATA) :
-            json_body[0]["fields"][INFLUX_DB_FIELD_PATM_SEA] = patm_sea_hpa
+            json_ul_data[0]["fields"][INFLUX_DB_FIELD_PATM_SEA] = patm_sea_hpa
         if (wind_speed_average_kmh != COMMON_ERROR_DATA) :
-            json_body[0]["fields"][INFLUX_DB_FIELD_WSPD_AVRG] = wind_speed_average_kmh
+            json_ul_data[0]["fields"][INFLUX_DB_FIELD_WSPD_AVRG] = wind_speed_average_kmh
         if (wind_speed_peak_kmh != COMMON_ERROR_DATA) :
-            json_body[0]["fields"][INFLUX_DB_FIELD_WSPD_PEAK] = wind_speed_peak_kmh
+            json_ul_data[0]["fields"][INFLUX_DB_FIELD_WSPD_PEAK] = wind_speed_peak_kmh
         if (wind_direction_average_degrees != COMMON_ERROR_DATA) :
-            json_body[0]["fields"][INFLUX_DB_FIELD_WDIR_AVRG] = wind_direction_average_degrees
+            json_ul_data[0]["fields"][INFLUX_DB_FIELD_WDIR_AVRG] = wind_direction_average_degrees
         if (rain_mm != COMMON_ERROR_DATA) :
-            json_body[0]["fields"][INFLUX_DB_FIELD_RAIN] = rain_mm
+            json_ul_data[0]["fields"][INFLUX_DB_FIELD_RAIN] = rain_mm
         LOG_print("[METEOFOX] * CM weather data * site=" + __METEOFOX_get_site(sigfox_ep_id) +
                   " tamb=" + str(tamb_degrees) + "dC, hamb=" + str(hamb_percent) + "% light=" + str(light_percent) +
                   "% uv_index=" + str(uv_index) + " patm_abs=" + str(patm_abs_hpa) + "hPa patm_sea=" + str(patm_sea_hpa) +
                   "hPa wind_speed_average=" + str(wind_speed_average_kmh) + "km/h wind_speed_peak=" + str(wind_speed_peak_kmh) +
                   "km/h, wind_direction_average=" + str(wind_direction_average_degrees) +"d, rain=" + str(rain_mm) + "mm")
-    # Fill data base.
-    if (len(json_body) > 0) :
-        __METEOFOX_add_tags(json_body, sigfox_ep_id)
-        INFLUX_DB_write_data(INFLUX_DB_DATABASE_METEOFOX, json_body)
     else :
-        LOG_print("[METEOFOX] * Invalid frame")
+        LOG_print("[METEOFOX] * Invalid UL payload")
+    return json_ul_data
         
 # Returns the default downlink payload to sent back to the device.
 def METEOFOX_get_default_dl_payload(sigfox_ep_id) :

@@ -52,6 +52,7 @@ sigfox_ep_server_downlink_message_hash = 0
 sigfox_ep_server_database_name = COMMON_ERROR_DATA
 SIGFOX_EP_SERVER_parse_ul_payload = COMMON_ERROR_DATA
 SIGFOX_EP_SERVER_get_default_dl_payload = COMMON_ERROR_DATA
+SIGFOX_EP_SERVER_add_ep_tag = COMMON_ERROR_DATA
 
 ### LOCAL FUNCTIONS ###
 
@@ -113,33 +114,40 @@ def SIGFOX_EP_SERVER_set_database_pointers(sigfox_ep_id) :
     global sigfox_ep_server_database_name
     global SIGFOX_EP_SERVER_parse_ul_payload
     global SIGFOX_EP_SERVER_get_default_dl_payload
+    global SIGFOX_EP_SERVER_add_ep_tag
     # ATXFox.
     if (sigfox_ep_id in ATXFOX_EP_ID_LIST) :
         sigfox_ep_server_database_name = INFLUX_DB_DATABASE_ATXFOX
+        SIGFOX_EP_SERVER_add_ep_tag = ATXFOX_add_ep_tag
         SIGFOX_EP_SERVER_parse_ul_payload = ATXFOX_parse_ul_payload
         SIGFOX_EP_SERVER_get_default_dl_payload = ATXFOX_get_default_dl_payload
     # DinFox
     elif (sigfox_ep_id in DINFOX_EP_ID_LIST) :
         sigfox_ep_server_database_name = INFLUX_DB_DATABASE_DINFOX
+        SIGFOX_EP_SERVER_add_ep_tag = DINFOX_add_ep_tag
         SIGFOX_EP_SERVER_parse_ul_payload = DINFOX_parse_ul_payload
         SIGFOX_EP_SERVER_get_default_dl_payload = DINFOX_get_default_dl_payload
     # Meteofox.
     elif (sigfox_ep_id in METEOFOX_EP_ID_LIST) :
         sigfox_ep_server_database_name = INFLUX_DB_DATABASE_METEOFOX
+        SIGFOX_EP_SERVER_add_ep_tag = METEOFOX_add_ep_tag
         SIGFOX_EP_SERVER_parse_ul_payload = METEOFOX_parse_ul_payload
         SIGFOX_EP_SERVER_get_default_dl_payload = METEOFOX_get_default_dl_payload
     # Sensit.
     elif (sigfox_ep_id in SENSIT_EP_ID_LIST) :
         sigfox_ep_server_database_name = INFLUX_DB_DATABASE_SENSIT
+        SIGFOX_EP_SERVER_add_ep_tag = SENSIT_add_ep_tag
         SIGFOX_EP_SERVER_parse_ul_payload = SENSIT_parse_ul_payload
         SIGFOX_EP_SERVER_get_default_dl_payload = SENSIT_get_default_dl_payload
     # TrackFox.
     elif (sigfox_ep_id in TRACKFOX_EP_ID_LIST) :
         sigfox_ep_server_database_name = INFLUX_DB_DATABASE_TRACKFOX
+        SIGFOX_EP_SERVER_add_ep_tag = TRACKFOX_add_ep_tag
         SIGFOX_EP_SERVER_parse_ul_payload = TRACKFOX_parse_ul_payload
         SIGFOX_EP_SERVER_get_default_dl_payload = TRACKFOX_get_default_dl_payload
     else :
         sigfox_ep_server_database_name = COMMON_ERROR_DATA
+        SIGFOX_EP_SERVER_add_ep_tag = COMMON_ERROR_DATA
         SIGFOX_EP_SERVER_parse_ul_payload = COMMON_ERROR_DATA
         SIGFOX_EP_SERVER_get_default_dl_payload = COMMON_ERROR_DATA
  
@@ -148,6 +156,7 @@ def SIGFOX_EP_SERVER_compute_dl_payload(sigfox_ep_id) :
     # Global variables.
     global sigfox_ep_server_downlink_message_hash
     global sigfox_ep_server_database_name
+    global SIGFOX_EP_SERVER_add_ep_tag
     # Local variables.
     dl_message_found = False
     dl_message_record_time = int(time.time())
@@ -198,21 +207,19 @@ def SIGFOX_EP_SERVER_compute_dl_payload(sigfox_ep_id) :
             # Check size.
             if (len(dl_payload) == (2 * SIGFOX_DL_PAYLOAD_SIZE_BYTES)) :
                 # Log downlink in database.
-                json_body = [
+                json_dl_data = [
                 {
                     "measurement": INFLUX_DB_MEASUREMENT_DOWNLINK,
                     "time": int(time.time()),
                     "fields": {
+                        INFLUX_DB_TAG_DOWNLINK_HASH : sigfox_ep_server_downlink_message_hash,
                         INFLUX_DB_FIELD_TIME_DOWNLINK_RECORD : dl_message_record_time,
                         INFLUX_DB_FIELD_TIME_DOWNLINK_SERVER : int(time.time()),
                         INFLUX_DB_FIELD_DL_PAYLOAD : dl_payload,
-                    },
-                    "tags": {
-                        INFLUX_DB_TAG_SIGFOX_EP_ID : sigfox_ep_id,
-                        INFLUX_DB_TAG_DOWNLINK_HASH : sigfox_ep_server_downlink_message_hash,
                     }
-                }]
-                INFLUX_DB_write_data(sigfox_ep_server_database_name, json_body)
+                } ]
+                SIGFOX_EP_SERVER_add_ep_tag(json_dl_data, sigfox_ep_id)
+                INFLUX_DB_write_data(sigfox_ep_server_database_name, json_dl_data)
         return dl_payload
     return dl_payload
 
@@ -221,6 +228,7 @@ def SIGFOX_EP_SERVER_execute_callback(json_in) :
     # Global variables.
     global sigfox_ep_server_downlink_message_hash
     global SIGFOX_EP_SERVER_parse_ul_payload
+    global SIGFOX_EP_SERVER_add_ep_tag
     # Local variables.
     http_return_code = 204
     json_out = []
@@ -257,7 +265,12 @@ def SIGFOX_EP_SERVER_execute_callback(json_in) :
             bidirectional_flag = json_in[SIGFOX_CALLBACK_JSON_HEADER_BIDIRECTIONAL_FLAG]
             LOG_print("[SIGFOX EP SERVER] * Data bidir callback: timestamp=" + str(timestamp) + " sigfox_ep_id=" + sigfox_ep_id + " message_counter=" + str(message_counter) + " ul_payload=" + ul_payload + " bidirectional_flag=" + bidirectional_flag)    
             # Parse UL payload.
-            SIGFOX_EP_SERVER_parse_ul_payload(timestamp, sigfox_ep_id, ul_payload)
+            json_ul_data = SIGFOX_EP_SERVER_parse_ul_payload(timestamp, sigfox_ep_id, ul_payload)
+            # Fill data base.
+            if (json_ul_data is not None) :
+                if (len(json_ul_data) > 0) :
+                    SIGFOX_EP_SERVER_add_ep_tag(json_ul_data, sigfox_ep_id)
+                    INFLUX_DB_write_data(sigfox_ep_server_database_name, json_ul_data)
             # Check bidirectional flag.
             if (bidirectional_flag == SIGFOX_CALLBACK_JSON_TRUE):
                 # Use uplink message counter as downlink message hash.
@@ -292,22 +305,20 @@ def SIGFOX_EP_SERVER_execute_callback(json_in) :
             dl_status = json_in[SIGFOX_CALLBACK_JSON_HEADER_DL_STATUS]
             LOG_print("[SIGFOX EP SERVER] * Service acknowledge callback: timestamp=" + str(timestamp) + " sigfox_ep_id=" + sigfox_ep_id + " dl_payload=" + dl_payload + " dl_success=" + dl_success + " dl_status=" + dl_status)
             # Log downlink network status in database.
-            json_body = [
+            json_dl_data = [
             {
                 "measurement": INFLUX_DB_MEASUREMENT_DOWNLINK,
                 "time": int(time.time()),
                 "fields": {
+                    INFLUX_DB_TAG_DOWNLINK_HASH : sigfox_ep_server_downlink_message_hash,
                     INFLUX_DB_FIELD_TIME_DOWNLINK_NETWORK : int(time.time()),
                     INFLUX_DB_FIELD_DL_PAYLOAD : dl_payload,
                     INFLUX_DB_FIELD_DL_SUCCESS : dl_success,
                     INFLUX_DB_FIELD_DL_STATUS : dl_status
-                },
-                "tags": {
-                    INFLUX_DB_TAG_SIGFOX_EP_ID : sigfox_ep_id,
-                    INFLUX_DB_TAG_DOWNLINK_HASH : sigfox_ep_server_downlink_message_hash,
                 }
-            }]
-            INFLUX_DB_write_data(sigfox_ep_server_database_name, json_body)
+            } ]
+            SIGFOX_EP_SERVER_add_ep_tag(json_dl_data, sigfox_ep_id)
+            INFLUX_DB_write_data(sigfox_ep_server_database_name, json_dl_data)
         # Invalid callback type.
         else :
             LOG_print("[SIGFOX EP SERVER] * Invalid callback type")

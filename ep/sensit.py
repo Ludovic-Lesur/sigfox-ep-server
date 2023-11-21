@@ -35,20 +35,20 @@ def __SENSIT_get_version(sigfox_ep_id) :
         version = __SENSIT_VERSION[SENSIT_EP_ID_LIST.index(sigfox_ep_id)]
     return version
 
+### PUBLIC FUNCTIONS ###
+
 # Function adding the specific Sensit tags.
-def __SENSIT_add_tags(json_body, sigfox_ep_id) :
-    for idx in range(len(json_body)) :
-        json_body[idx]["tags"] = {
+def SENSIT_add_ep_tag(json_ul_data, sigfox_ep_id) :
+    for idx in range(len(json_ul_data)) :
+        json_ul_data[idx]["tags"] = {
             INFLUX_DB_TAG_SIGFOX_EP_ID : sigfox_ep_id,
             INFLUX_DB_TAG_SITE : __SENSIT_get_site(sigfox_ep_id)
         }
 
-### PUBLIC FUNCTIONS ###
-
 # Function for parsing Sensit device payload and fill database. 
 def SENSIT_parse_ul_payload(timestamp, sigfox_ep_id, ul_payload) :
     # Init JSON object.
-    json_body = []
+    json_ul_data = []
     # Get version.
     sensit_version = __SENSIT_get_version(sigfox_ep_id)
     # Monitoring frame.
@@ -72,7 +72,7 @@ def SENSIT_parse_ul_payload(timestamp, sigfox_ep_id, ul_payload) :
                 tamb_degrees = ((((int(ul_payload[2:4], 16) << 2) & 0x3C0) + (int(ul_payload[4:6], 16) & 0x3F)) - 200.0) / (8.0)
             hamb_percent = (int(ul_payload[6:8], 16)) / (2.0)    
         # Create JSON object.
-        json_body = [
+        json_ul_data = [
         {
             "measurement": INFLUX_DB_MEASUREMENT_MONITORING,
             "time": timestamp,
@@ -100,12 +100,9 @@ def SENSIT_parse_ul_payload(timestamp, sigfox_ep_id, ul_payload) :
         }]
         LOG_print("[SENSIT] * Monitoring data * site=" + __SENSIT_get_site(sigfox_ep_id) +
                   " vbat=" + str(vbat_mv) + "mV mode=" + str(mode) + " tamb=" + str(tamb_degrees) + "dC hamb=" + str(hamb_percent) + "%")
-    # Fill data base.
-    if (len(json_body) > 0) :
-        __SENSIT_add_tags(json_body, sigfox_ep_id)
-        INFLUX_DB_write_data(INFLUX_DB_DATABASE_SENSIT, json_body)
     else :
-        LOG_print("[SENSIT] * Invalid frame")
+        LOG_print("[SENSIT] * Invalid UL payload")
+    return json_ul_data
         
 # Returns the default downlink payload to sent back to the device.
 def SENSIT_get_default_dl_payload(sigfox_ep_id) :

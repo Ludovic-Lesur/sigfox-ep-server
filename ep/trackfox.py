@@ -32,10 +32,14 @@ def __TRACKFOX_get_asset(sigfox_ep_id) :
 # Function adding the specific TrackFox tags.
 def TRACKFOX_add_ep_tag(json_ul_data, sigfox_ep_id) :
     for idx in range(len(json_ul_data)) :
-        json_ul_data[idx]["tags"] = {
-            INFLUX_DB_TAG_SIGFOX_EP_ID : sigfox_ep_id,
-            INFLUX_DB_TAG_ASSET : __TRACKFOX_get_asset(sigfox_ep_id)
-        }
+        if ("tags" in json_ul_data[idx]) :
+            json_ul_data[idx]["tags"][INFLUX_DB_TAG_SIGFOX_EP_ID] = sigfox_ep_id
+            json_ul_data[idx]["tags"][INFLUX_DB_TAG_ASSET] = __TRACKFOX_get_asset(sigfox_ep_id)
+        else :
+            json_ul_data[idx]["tags"] = {
+                INFLUX_DB_TAG_SIGFOX_EP_ID : sigfox_ep_id,
+                INFLUX_DB_TAG_ASSET : __TRACKFOX_get_asset(sigfox_ep_id)
+            }
 
 # Function for parsing TrackFox device payload and fill database.
 def TRACKFOX_parse_ul_payload(timestamp, sigfox_ep_id, ul_payload) :

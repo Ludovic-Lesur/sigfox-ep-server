@@ -179,11 +179,16 @@ def __DINFOX_add_ul_tags(json_ul_data, sigfox_ep_id, node_address, board_id, mpm
     # Get tags.
     node_name = __DINFOX_get_node(sigfox_ep_id, node_address)
     for idx in range(len(json_ul_data)) :
-        json_ul_data[idx]["tags"] = {
-            INFLUX_DB_TAG_NODE_ADDRESS : node_address,
-            INFLUX_DB_TAG_NODE : node_name,
-            INFLUX_DB_TAG_BOARD_ID : board_id
-        }
+        if ("tags" in json_ul_data[idx]) :
+            json_ul_data[idx]["tags"][INFLUX_DB_TAG_SIGFOX_EP_ID] = sigfox_ep_id
+            json_ul_data[idx]["tags"][INFLUX_DB_TAG_NODE] = node_name
+            json_ul_data[idx]["tags"][INFLUX_DB_TAG_BOARD_ID] = board_id
+        else :
+            json_ul_data[idx]["tags"] = {
+                INFLUX_DB_TAG_NODE_ADDRESS : node_address,
+                INFLUX_DB_TAG_NODE : node_name,
+                INFLUX_DB_TAG_BOARD_ID : board_id
+            }
         if (mpmcm_channel_index != COMMON_ERROR_DATA):
             json_ul_data[idx]["tags"][INFLUX_DB_TAG_CHANNEL] = mpmcm_channel_index
 
@@ -192,10 +197,14 @@ def __DINFOX_add_ul_tags(json_ul_data, sigfox_ep_id, node_address, board_id, mpm
 # Function adding the specific DinFox tags.
 def DINFOX_add_ep_tag(json_ul_data, sigfox_ep_id) :
     for idx in range(len(json_ul_data)) :
-        json_ul_data[idx]["tags"] = {
-            INFLUX_DB_TAG_SIGFOX_EP_ID : sigfox_ep_id,
-            INFLUX_DB_TAG_SYSTEM : __DINFOX_get_system(sigfox_ep_id),
-        }
+        if ("tags" in json_ul_data[idx]) :
+            json_ul_data[idx]["tags"][INFLUX_DB_TAG_SIGFOX_EP_ID] = sigfox_ep_id
+            json_ul_data[idx]["tags"][INFLUX_DB_TAG_SYSTEM] = __DINFOX_get_system(sigfox_ep_id)
+        else :
+            json_ul_data[idx]["tags"] = {
+                INFLUX_DB_TAG_SIGFOX_EP_ID : sigfox_ep_id,
+                INFLUX_DB_TAG_SYSTEM : __DINFOX_get_system(sigfox_ep_id)
+            }
 
 # Function for parsing TrackFox device payload and fill database.
 def DINFOX_parse_ul_payload(timestamp, sigfox_ep_id, ul_payload) :

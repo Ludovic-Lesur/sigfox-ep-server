@@ -42,11 +42,16 @@ def __ATXFOX_get_psfe(sigfox_ep_id):
 # Function adding the specific MeteoFox tags.
 def ATXFOX_add_ep_tag(json_ul_data, sigfox_ep_id) :
     for idx in range(len(json_ul_data)) :
-        json_ul_data[idx]["tags"] = {
-            INFLUX_DB_TAG_SIGFOX_EP_ID : sigfox_ep_id,
-            INFLUX_DB_TAG_RACK : __ATXFOX_get_rack(sigfox_ep_id),
-            INFLUX_DB_TAG_PSFE : __ATXFOX_get_psfe(sigfox_ep_id)
-        }
+        if ("tags" in json_ul_data[idx]) :
+            json_ul_data[idx]["tags"][INFLUX_DB_TAG_SIGFOX_EP_ID] = sigfox_ep_id
+            json_ul_data[idx]["tags"][INFLUX_DB_TAG_RACK] = __ATXFOX_get_rack(sigfox_ep_id)
+            json_ul_data[idx]["tags"][INFLUX_DB_TAG_PSFE] = __ATXFOX_get_psfe(sigfox_ep_id)
+        else :
+            json_ul_data[idx]["tags"] = {
+                INFLUX_DB_TAG_SIGFOX_EP_ID : sigfox_ep_id,
+                INFLUX_DB_TAG_RACK : __ATXFOX_get_rack(sigfox_ep_id),
+                INFLUX_DB_TAG_PSFE : __ATXFOX_get_psfe(sigfox_ep_id)
+            }
 
 # Function for parsing ATXFox device payload and fill database.
 def ATXFOX_parse_ul_payload(timestamp, sigfox_ep_id, ul_payload):

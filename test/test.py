@@ -124,28 +124,30 @@ DINFOX_TEST_REQUEST = [
     [SIGFOX_CALLBACK_TYPE_DATA_BIDIR, "1666374408", "4761", "408", "0c030bb6170b480bb7", "false"],
     # DINFox GPSM monitoring payload.
     [SIGFOX_CALLBACK_TYPE_DATA_BIDIR, "1666374409", "4761", "409", "10040bb8190bb00bb7", "false"],
-    # DINFox SM sensor 1 payload.
-    [SIGFOX_CALLBACK_TYPE_DATA_BIDIR, "1666374410", "4761", "410", "14050123ffff023404560b", "false"],
-    # DINFox SM sensor 2 payload.
-    [SIGFOX_CALLBACK_TYPE_DATA_BIDIR, "1666374411", "4761", "411", "14050bb21c1c3a", "false"],
+    # DINFox SM monitoring payload.
+    [SIGFOX_CALLBACK_TYPE_DATA_BIDIR, "1666374410", "4761", "410", "14050bb21c", "false"],
+    # DINFox SM electrical payload.
+    [SIGFOX_CALLBACK_TYPE_DATA_BIDIR, "1666374411", "4761", "411", "14050123ffff023404560b", "false"],
+    # DINFox SM sensor payload.
+    [SIGFOX_CALLBACK_TYPE_DATA_BIDIR, "1666374412", "4761", "412", "14051433", "false"],
     # DINFox DMM monitoring payload.
-    [SIGFOX_CALLBACK_TYPE_DATA_BIDIR, "1666374412", "4761", "412", "0008137b0bbc08", "false"],
+    [SIGFOX_CALLBACK_TYPE_DATA_BIDIR, "1666374413", "4761", "413", "000814290bb8000008", "false"],
     # DINFox R4S8CR electrical payload.
-    [SIGFOX_CALLBACK_TYPE_DATA_BIDIR, "1666374413", "479c", "413", "700ac981", "false"],
+    [SIGFOX_CALLBACK_TYPE_DATA_BIDIR, "1666374414", "479c", "414", "700ac981", "false"],
     # DINFox invalid Sigfox EP-ID.
-    [SIGFOX_CALLBACK_TYPE_DATA_BIDIR, "1666374414", "aabb", "414", "20000bb91a", "false"],
+    [SIGFOX_CALLBACK_TYPE_DATA_BIDIR, "1666374415", "aabb", "415", "20000bb91a", "false"],
     # DINFox invalid data.
-    [SIGFOX_CALLBACK_TYPE_DATA_BIDIR, "1666374415", "4761", "415", "2000", "false"],
+    [SIGFOX_CALLBACK_TYPE_DATA_BIDIR, "1666374416", "4761", "416", "2000", "false"],
     # DINFox DMM error stack data.
-    [SIGFOX_CALLBACK_TYPE_DATA_BIDIR, "1666374416", "4761", "416", "0008200f200f000000000000", "false"],
+    [SIGFOX_CALLBACK_TYPE_DATA_BIDIR, "1666374417", "4761", "417", "0008200f200f000000000000", "false"],
     # DINFox MPMCM electrical mains voltage payload.
-    [SIGFOX_CALLBACK_TYPE_DATA_BIDIR, "1666374417", "47ea", "417", "1c0911892d892f893b", "false"],
+    [SIGFOX_CALLBACK_TYPE_DATA_BIDIR, "1666374418", "47ea", "418", "1c0911892d892f893b", "false"],
     # DINFox MPMCM electrical mains frequency payload.
-    [SIGFOX_CALLBACK_TYPE_DATA_BIDIR, "1666374418", "47ea", "418", "1c09138213841393", "false"],
+    [SIGFOX_CALLBACK_TYPE_DATA_BIDIR, "1666374419", "47ea", "419", "1c09138213841393", "false"],
     # DINFox MPMCM electrical mains power payload.
-    [SIGFOX_CALLBACK_TYPE_DATA_BIDIR, "1666374419", "47ea", "419", "1c0900072c08c00b050dd8", "false"],
+    [SIGFOX_CALLBACK_TYPE_DATA_BIDIR, "1666374420", "47ea", "420", "1c0900072c08c00b050dd8", "false"],
     # DINFox MPMCM electrical mains power factor payload.
-    [SIGFOX_CALLBACK_TYPE_DATA_BIDIR, "1666374420", "47ea", "420", "1c0903c2c2cf", "false"]
+    [SIGFOX_CALLBACK_TYPE_DATA_BIDIR, "1666374421", "47ea", "421", "1c0903c2c2cf", "false"]
 ]
 
 # Function to send a test requests list.

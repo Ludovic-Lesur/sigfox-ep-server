@@ -289,7 +289,12 @@ def SIGFOX_EP_SERVER_execute_callback(json_in) :
         elif (callback_type == SIGFOX_CALLBACK_TYPE_SERVICE_STATUS) :
             LOG_print("[SIGFOX EP SERVER] * Service status callback: timestamp=" + str(timestamp) + " sigfox_ep_id=" + sigfox_ep_id)
             # Parse keep alive frame.
-            SIGFOX_EP_SERVER_parse_ul_payload(timestamp, sigfox_ep_id, COMMON_UL_PAYLOAD_KEEP_ALIVE)
+            json_ul_data = SIGFOX_EP_SERVER_parse_ul_payload(timestamp, sigfox_ep_id, COMMON_UL_PAYLOAD_KEEP_ALIVE)
+            # Fill data base.
+            if (json_ul_data is not None) :
+                if (len(json_ul_data) > 0) :
+                    SIGFOX_EP_SERVER_add_ep_tag(json_ul_data, sigfox_ep_id)
+                    INFLUX_DB_write_data(sigfox_ep_server_database_name, json_ul_data)
         # Service acknowledge callback.
         elif (callback_type == SIGFOX_CALLBACK_TYPE_SERVICE_ACKNOWLEDGE) :
             # Check mandatory JSON fields.

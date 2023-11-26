@@ -11,29 +11,10 @@ from ep.dinfox import *
 from ep.meteofox import *
 from ep.sensit import *
 from ep.trackfox import *
+from utils.common import *
 from version import *
 
 ### LOCAL MACROS ###
-
-# HTTP server port.
-SIGFOX_EP_SERVER_HTTP_PORT = 65000
-
-# Sigfox cloud callbacks JSON headers.
-SIGFOX_CALLBACK_JSON_HEADER_TYPE = "type"
-SIGFOX_CALLBACK_JSON_HEADER_TIME = "time"
-SIGFOX_CALLBACK_JSON_HEADER_EP_ID = "ep_id"
-SIGFOX_CALLBACK_JSON_HEADER_MESSAGE_COUNTER = "message_counter"
-SIGFOX_CALLBACK_JSON_HEADER_UL_PAYLOAD = "ul_payload"
-SIGFOX_CALLBACK_JSON_HEADER_BIDIRECTIONAL_FLAG = "bidirectional_flag"
-SIGFOX_CALLBACK_JSON_HEADER_DL_PAYLOAD = "dl_payload"
-SIGFOX_CALLBACK_JSON_HEADER_DL_SUCCESS = "dl_success"
-SIGFOX_CALLBACK_JSON_HEADER_DL_STATUS = "dl_status"
-SIGFOX_CALLBACK_JSON_TRUE = "true"
-
-# Callback types.
-SIGFOX_CALLBACK_TYPE_DATA_BIDIR = "data_bidir"
-SIGFOX_CALLBACK_TYPE_SERVICE_STATUS = "service_status"
-SIGFOX_CALLBACK_TYPE_SERVICE_ACKNOWLEDGE = "service_acknowledge"
 
 # Downlink messages file.
 SIGFOX_DOWNLINK_MESSAGES_FILE_NAME = "/home/ludo/git/sigfox-ep-server/sigfox_downlink_messages.json"
@@ -42,8 +23,6 @@ SIGFOX_DOWNLINK_MESSAGES_HEADER_RECORD_TIME = "record_time"
 SIGFOX_DOWNLINK_MESSAGES_HEADER_EP_ID = "ep_id"
 SIGFOX_DOWNLINK_MESSAGES_HEADER_DL_PAYLOAD = "dl_payload"
 SIGFOX_DOWNLINK_MESSAGES_HEADER_PERMANENT = "permanent"
-SIGFOX_DOWNLINK_MESSAGES_TRUE = "true"
-SIGFOX_DOWNLINK_MESSAGES_FALSE = "false"
 SIGFOX_DL_PAYLOAD_SIZE_BYTES = 8
 
 ### LOCAL GLOBAL VARIABLES ###
@@ -170,7 +149,7 @@ def SIGFOX_EP_SERVER_compute_dl_payload(sigfox_ep_id) :
         downlink_messages_file.close()
         # Check header.
         if (SIGFOX_DOWNLINK_MESSAGES_HEADER not in downlink_messages_json) :
-            LOG_print("[SIGFOX EP SERVER] * Downlink messages file header not found")
+            LOG_print("[SIGFOX EP SERVER] * ERROR: downlink messages file header not found")
             raise Exception
         # Messages loop (since the JSON file is written in chonological order, the oldest element is the first one during reading).
         downlink_messages = downlink_messages_json[SIGFOX_DOWNLINK_MESSAGES_HEADER]
@@ -180,7 +159,7 @@ def SIGFOX_EP_SERVER_compute_dl_payload(sigfox_ep_id) :
                 (SIGFOX_DOWNLINK_MESSAGES_HEADER_EP_ID not in dl_message) or
                 (SIGFOX_DOWNLINK_MESSAGES_HEADER_DL_PAYLOAD not in dl_message) or 
                 (SIGFOX_DOWNLINK_MESSAGES_HEADER_PERMANENT not in dl_message)) :
-                LOG_print("[SIGFOX EP SERVER] * Invalid JSON content in downlink messages file")
+                LOG_print("[SIGFOX EP SERVER] * ERROR: missing headers in downlink messages file")
                 raise Exception
             # Compare EP-ID.
             if (int(dl_message[SIGFOX_DOWNLINK_MESSAGES_HEADER_EP_ID], 16) == int(sigfox_ep_id, 16)) :
@@ -190,7 +169,7 @@ def SIGFOX_EP_SERVER_compute_dl_payload(sigfox_ep_id) :
                     dl_payload = dl_message[SIGFOX_DOWNLINK_MESSAGES_HEADER_DL_PAYLOAD]
                     dl_message_found = True
                 # Check mode.
-                if (dl_message[SIGFOX_DOWNLINK_MESSAGES_HEADER_PERMANENT] == SIGFOX_DOWNLINK_MESSAGES_FALSE) :
+                if (dl_message[SIGFOX_DOWNLINK_MESSAGES_HEADER_PERMANENT] == JSON_FALSE) :
                     # Force payload reading.
                     dl_payload = dl_message[SIGFOX_DOWNLINK_MESSAGES_HEADER_DL_PAYLOAD]
                     # Remove message from the file.
@@ -237,7 +216,7 @@ def SIGFOX_EP_SERVER_execute_callback(json_in) :
         if ((SIGFOX_CALLBACK_JSON_HEADER_TYPE not in json_in) or
             (SIGFOX_CALLBACK_JSON_HEADER_TIME not in json_in) or
             (SIGFOX_CALLBACK_JSON_HEADER_EP_ID not in json_in)) : 
-            LOG_print("[SIGFOX EP SERVER] * Invalid callback JSON content (common fields)")
+            LOG_print("[SIGFOX EP SERVER] * ERROR: missing headers in callback JSON (common fields)")
             http_return_code = 415
             raise Exception
         # Read fields.
@@ -248,7 +227,7 @@ def SIGFOX_EP_SERVER_execute_callback(json_in) :
         SIGFOX_EP_SERVER_set_database_pointers(sigfox_ep_id)
         # Directly returns if the end-point ID is unknwon.
         if (sigfox_ep_server_database_name == COMMON_ERROR_DATA) :
-            LOG_print("[SIGFOX EP SERVER] * Unknwon Sigfox EP-ID.")
+            LOG_print("[SIGFOX EP SERVER] * ERROR: unknwon Sigfox EP-ID.")
             raise Exception
         # Data bidir callback.
         if (callback_type == SIGFOX_CALLBACK_TYPE_DATA_BIDIR) :
@@ -256,7 +235,7 @@ def SIGFOX_EP_SERVER_execute_callback(json_in) :
             if ((SIGFOX_CALLBACK_JSON_HEADER_MESSAGE_COUNTER not in json_in) or
                 (SIGFOX_CALLBACK_JSON_HEADER_UL_PAYLOAD not in json_in) or
                 (SIGFOX_CALLBACK_JSON_HEADER_BIDIRECTIONAL_FLAG not in json_in)) :
-                LOG_print("[SIGFOX EP SERVER] * Invalid callback JSON content (specific fields)")
+                LOG_print("[SIGFOX EP SERVER] * ERROR: missing headers in callback JSON (specific fields)")
                 http_return_code = 424
                 raise Exception
             # Parse fields.
@@ -272,7 +251,7 @@ def SIGFOX_EP_SERVER_execute_callback(json_in) :
                     SIGFOX_EP_SERVER_add_ep_tag(json_ul_data, sigfox_ep_id)
                     INFLUX_DB_write_data(sigfox_ep_server_database_name, json_ul_data)
             # Check bidirectional flag.
-            if (bidirectional_flag == SIGFOX_CALLBACK_JSON_TRUE):
+            if (bidirectional_flag == JSON_TRUE):
                 # Use uplink message counter as downlink message hash.
                 sigfox_ep_server_downlink_message_hash = message_counter
                 # Compute DL payload.
@@ -301,7 +280,7 @@ def SIGFOX_EP_SERVER_execute_callback(json_in) :
             if ((SIGFOX_CALLBACK_JSON_HEADER_DL_PAYLOAD not in json_in) or
                 (SIGFOX_CALLBACK_JSON_HEADER_DL_SUCCESS not in json_in) or
                 (SIGFOX_CALLBACK_JSON_HEADER_DL_STATUS not in json_in)) :
-                LOG_print("[SIGFOX EP SERVER] * Invalid callback JSON content (specific fields)")
+                LOG_print("[SIGFOX EP SERVER] * ERROR: missing headers in callback JSON (specific fields)")
                 http_return_code = 424
                 raise Exception
             # Parse fields.
@@ -326,7 +305,7 @@ def SIGFOX_EP_SERVER_execute_callback(json_in) :
             INFLUX_DB_write_data(sigfox_ep_server_database_name, json_dl_data)
         # Invalid callback type.
         else :
-            LOG_print("[SIGFOX EP SERVER] * Invalid callback type")
+            LOG_print("[SIGFOX EP SERVER] * ERROR: invalid callback type")
         raise Exception
     except :
         return http_return_code, json_out
@@ -364,6 +343,7 @@ class ServerHandler(BaseHTTPRequestHandler):
                     self.end_headers()
                     self.wfile.write(json.dumps(json_out))
         else :
+            LOG_print("ERROR: invalid HTTP content type")
             self.send_response(400)
 
 ### MAIN PROGRAM ###

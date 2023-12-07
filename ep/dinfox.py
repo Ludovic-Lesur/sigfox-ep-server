@@ -61,6 +61,7 @@ __DINFOX_SM_UL_PAYLOAD_SENSOR_SIZE = 2
 __DINFOX_DMM_UL_PAYLOAD_MONITORING_SIZE = 7
 
 __DINFOX_MPMCM_UL_PAYLOAD_SIZE_MAINS_POWER_FACTOR = 4
+__DINFOX_MPMCM_UL_PAYLOAD_SIZE_MAINS_ENERGY = 5
 __DINFOX_MPMCM_UL_PAYLOAD_SIZE_MAINS_FREQUENCY = 6
 __DINFOX_MPMCM_UL_PAYLOAD_SIZE_MAINS_VOLTAGE = 7
 __DINFOX_MPMCM_UL_PAYLOAD_SIZE_MAINS_POWER = 9
@@ -112,24 +113,43 @@ def __DINFOX_get_ua(dinfox_current) :
         current_ua = (value * 100000)
     return current_ua
 
-# Convert DINFox voltage representation to mV.
-def __DINFOX_get_mW(dinfox_electrical_power) :
+# Convert DINFox electrical power representation to mW or mVA.
+def __DINFOX_get_mw_mva(dinfox_electrical_power) :
     # Reset result.
-    electrical_power_mw = COMMON_ERROR_DATA
+    electrical_power_mw_mva = COMMON_ERROR_DATA
     # Extract sign, unit and value.
     sign = ((dinfox_electrical_power >> 15) & 0x0001)
     unit = ((dinfox_electrical_power >> 13) & 0x0003)
     value = ((dinfox_electrical_power >> 0) & 0x1FFF)
     # Convert.
     if (unit == 0):
-        electrical_power_mw = ((-1) ** (sign)) * (value * 1)
+        electrical_power_mw_mva = ((-1) ** (sign)) * (value * 1)
     elif (unit == 1):
-        electrical_power_mw = ((-1) ** (sign)) * (value * 100)
+        electrical_power_mw_mva = ((-1) ** (sign)) * (value * 100)
     elif (unit == 2):
-        electrical_power_mw = ((-1) ** (sign)) * (value * 1000)
+        electrical_power_mw_mva = ((-1) ** (sign)) * (value * 1000)
     else:
-        electrical_power_mw = ((-1) ** (sign)) * (value * 100000)
-    return electrical_power_mw
+        electrical_power_mw_mva = ((-1) ** (sign)) * (value * 100000)
+    return electrical_power_mw_mva
+
+# Convert DINFox electrical energy representation to mWh or mVAh.
+def __DINFOX_get_mwh_mvah(dinfox_electrical_energy) :
+    # Reset result.
+    electrical_energy_mwh_mvah = COMMON_ERROR_DATA
+    # Extract sign, unit and value.
+    sign = ((dinfox_electrical_energy >> 15) & 0x0001)
+    unit = ((dinfox_electrical_energy >> 13) & 0x0003)
+    value = ((dinfox_electrical_energy >> 0) & 0x1FFF)
+    # Convert.
+    if (unit == 0):
+        electrical_energy_mwh_mvah = ((-1) ** (sign)) * (value * 1)
+    elif (unit == 1):
+        electrical_energy_mwh_mvah = ((-1) ** (sign)) * (value * 100)
+    elif (unit == 2):
+        electrical_energy_mwh_mvah = ((-1) ** (sign)) * (value * 1000)
+    else:
+        electrical_energy_mwh_mvah = ((-1) ** (sign)) * (value * 100000)
+    return electrical_energy_mwh_mvah
 
 # Convert DINFox power factor to floating number.
 def __DINFOX_get_power_factor(dinfox_power_factor) :
@@ -181,7 +201,7 @@ def __DINFOX_add_ul_tags(json_ul_data, sigfox_ep_id, node_address, board_id, mpm
     node_name = __DINFOX_get_node(sigfox_ep_id, node_address)
     for idx in range(len(json_ul_data)) :
         if ("tags" in json_ul_data[idx]) :
-            json_ul_data[idx]["tags"][INFLUX_DB_TAG_SIGFOX_EP_ID] = sigfox_ep_id
+            json_ul_data[idx]["tags"][INFLUX_DB_TAG_NODE_ADDRESS] = node_address
             json_ul_data[idx]["tags"][INFLUX_DB_TAG_NODE] = node_name
             json_ul_data[idx]["tags"][INFLUX_DB_TAG_BOARD_ID] = board_id
         else :
@@ -715,10 +735,10 @@ def DINFOX_parse_ul_payload(timestamp, sigfox_ep_id, ul_payload) :
             # Mains power frame.
             elif (node_ul_payload_size == (2 * __DINFOX_MPMCM_UL_PAYLOAD_SIZE_MAINS_POWER)) :
                 mpmcm_channel_index = (int(node_ul_payload[0:2], 16) >> 0) & 0x03
-                pact_mean = __DINFOX_get_mW(int(node_ul_payload[2:6], 16))   if (int(node_ul_payload[2:6], 16)   != COMMON_ERROR_VALUE_ELECTRICAL_POWER) else COMMON_ERROR_DATA
-                pact_max =  __DINFOX_get_mW(int(node_ul_payload[6:10], 16))  if (int(node_ul_payload[6:10], 16)  != COMMON_ERROR_VALUE_ELECTRICAL_POWER) else COMMON_ERROR_DATA
-                papp_mean = __DINFOX_get_mW(int(node_ul_payload[10:14], 16)) if (int(node_ul_payload[10:14], 16) != COMMON_ERROR_VALUE_ELECTRICAL_POWER) else COMMON_ERROR_DATA
-                papp_max =  __DINFOX_get_mW(int(node_ul_payload[14:18], 16)) if (int(node_ul_payload[14:18], 16) != COMMON_ERROR_VALUE_ELECTRICAL_POWER) else COMMON_ERROR_DATA
+                pact_mean = __DINFOX_get_mw_mva(int(node_ul_payload[2:6], 16))   if (int(node_ul_payload[2:6], 16)   != COMMON_ERROR_VALUE_ELECTRICAL_POWER) else COMMON_ERROR_DATA
+                pact_max =  __DINFOX_get_mw_mva(int(node_ul_payload[6:10], 16))  if (int(node_ul_payload[6:10], 16)  != COMMON_ERROR_VALUE_ELECTRICAL_POWER) else COMMON_ERROR_DATA
+                papp_mean = __DINFOX_get_mw_mva(int(node_ul_payload[10:14], 16)) if (int(node_ul_payload[10:14], 16) != COMMON_ERROR_VALUE_ELECTRICAL_POWER) else COMMON_ERROR_DATA
+                papp_max =  __DINFOX_get_mw_mva(int(node_ul_payload[14:18], 16)) if (int(node_ul_payload[14:18], 16) != COMMON_ERROR_VALUE_ELECTRICAL_POWER) else COMMON_ERROR_DATA
                 # Create JSON object.
                 json_ul_data = [
                 {
@@ -777,6 +797,34 @@ def DINFOX_parse_ul_payload(timestamp, sigfox_ep_id, ul_payload) :
                     json_ul_data[0]["fields"][INFLUX_DB_FIELD_PF_MAX] = pf_max
                 LOG_print("[DINFOX MPMCM] * Electrical mains frequency payload * system=" + system_name + " node=" + node_name + " channel=" + str(mpmcm_channel_index) +
                           " pf_min=" + str(pf_min) + " pf_mean=" + str(pf_mean) + " pf_max=" + str(pf_max))
+            # Mains energy frame.
+            elif (node_ul_payload_size == (2 * __DINFOX_MPMCM_UL_PAYLOAD_SIZE_MAINS_ENERGY)) :
+                mpmcm_channel_index = (int(node_ul_payload[0:2], 16) >> 0) & 0x03
+                eact = __DINFOX_get_mwh_mvah(int(node_ul_payload[2:6], 16)) if (int(node_ul_payload[2:6], 16) != COMMON_ERROR_VALUE_ELECTRICAL_ENERGY) else COMMON_ERROR_DATA
+                eapp = __DINFOX_get_mwh_mvah(int(node_ul_payload[6:10], 16)) if (int(node_ul_payload[6:10], 16) != COMMON_ERROR_VALUE_ELECTRICAL_ENERGY) else COMMON_ERROR_DATA
+                # Create JSON object.
+                json_ul_data = [
+                {
+                    "measurement": INFLUX_DB_MEASUREMENT_ELECTRICAL,
+                    "time": timestamp,
+                    "fields": {
+                        INFLUX_DB_FIELD_TIME_LAST_ELECTRICAL_DATA : timestamp,
+                    },
+                },
+                {
+                    "measurement": INFLUX_DB_MEASUREMENT_METADATA,
+                    "time": timestamp,
+                    "fields": {
+                        INFLUX_DB_FIELD_TIME_LAST_COMMUNICATION : timestamp
+                    },
+                }]
+                # Add valid fields to JSON.
+                if (eact != COMMON_ERROR_DATA) :
+                    json_ul_data[0]["fields"][INFLUX_DB_FIELD_EACT] = eact
+                if (eapp != COMMON_ERROR_DATA) :
+                    json_ul_data[0]["fields"][INFLUX_DB_FIELD_EAPP] = eapp
+                LOG_print("[DINFOX MPMCM] * Electrical mains energy payload * system=" + system_name + " node=" + node_name + " channel=" + str(mpmcm_channel_index) +
+                          " eact=" + str(eact) + "mWh eapp=" + str(eapp) + "mVAh")
             else:
                 LOG_print("[DINFOX MPMCM] * system=" + system_name + " node=" + node_name + " * Invalid UL payload")
         # R4S8CR.

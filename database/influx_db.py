@@ -132,6 +132,9 @@ INFLUX_DB_FIELD_PACT_MAX = "pact_max"
 INFLUX_DB_FIELD_PAPP_MIN = "papp_min"
 INFLUX_DB_FIELD_PAPP_MEAN = "papp_mean"
 INFLUX_DB_FIELD_PAPP_MAX = "papp_max"
+# Energy
+INFLUX_DB_FIELD_EACT = "eact"
+INFLUX_DB_FIELD_EAPP = "eapp"
 # Power factor.
 INFLUX_DB_FIELD_PF_MIN = "pf_min"
 INFLUX_DB_FIELD_PF_MEAN = "pf_mean"
@@ -164,6 +167,7 @@ INFLUX_DB_TAG_CHANNEL = "channel"
 
 # Influx DB parameters.
 __INFLUX_DB_DATABASE_HTTP_PORT = 8086
+
 # Databases list.
 __INFLUX_DB_DATABASE_LIST = [
     INFLUX_DB_DATABASE_SIGFOX_EP_SERVER,

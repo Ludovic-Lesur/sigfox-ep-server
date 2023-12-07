@@ -130,12 +130,14 @@ DINFOX_TEST_REQUEST = [
     # DINFox MPMCM electrical mains power payload.
     [SIGFOX_CALLBACK_TYPE_DATA_BIDIR, "1666374420", "47ea", "420", "1c0900072c08c00b050dd8", JSON_FALSE],
     # DINFox MPMCM electrical mains power factor payload.
-    [SIGFOX_CALLBACK_TYPE_DATA_BIDIR, "1666374421", "47ea", "421", "1c0903c2c2cf", JSON_FALSE]
+    [SIGFOX_CALLBACK_TYPE_DATA_BIDIR, "1666374421", "47ea", "421", "1c0903c2c2cf", JSON_FALSE],
+    # DINFox MPMCM electrical mains energy payload.
+    [SIGFOX_CALLBACK_TYPE_DATA_BIDIR, "1666374422", "47ea", "422", "1c09031c231c41", JSON_FALSE]
 ]
 
 # Function to send a test requests list.
 def TEST_make(log_message, request_table):
-    # Loval variables.
+    # Local variables.
     json_from_backend = []
     print(log_message)
     for idx in range(len(request_table)) :

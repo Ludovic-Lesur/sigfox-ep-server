@@ -7,7 +7,7 @@ from ep.common import *
 ### LOCAL MACROS ###
 
 # TrackFox tags.
-__TRACKFOX_ASSET = ["Car", "Bike", "Hiking", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A"]
+__TRACKFOX_ASSET = ["Car", "Bike", "Hiking", "Hiking_spare", "Proto_HW1.1"]
 # Sigfox frames length.
 __TRACKFOX_UL_PAYLOAD_MONITORING_SIZE = 9
 __TRACKFOX_UL_PAYLOAD_ERROR_STACK_SIZE = 12
@@ -15,7 +15,7 @@ __TRACKFOX_UL_PAYLOAD_ERROR_STACK_SIZE = 12
 ### PUBLIC MACROS ###
 
 # TrackFox EP-IDs.
-TRACKFOX_EP_ID_LIST = ["4257", "428D", "42F1", "43B9", "43CD", "44AA", "44D2", "4505", "45A0", "45AB"]
+TRACKFOX_EP_ID_LIST = ["4257", "428D", "42F1", "43B9", "43CD"]
 
 ### LOCAL FUNCTIONS ###
 

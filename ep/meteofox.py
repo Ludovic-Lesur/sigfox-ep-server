@@ -8,7 +8,7 @@ from ep.common import *
 ### LOCAL MACROS ###
 
 # MeteoFox tags.
-__METEOFOX_SITE = ["Proto_HW1.0", "Proto_HW2.0", "Le_Vigan", "Prat_Albis", "Eaunes", "Labege", "Saint_Leon", "Kourou", "N/A", "N/A", "N/A", "N/A"]
+__METEOFOX_SITE = ["Proto_HW1.0", "Proto_HW2.0", "Le_Vigan", "Prat_Albis", "Eaunes", "Labege", "Saint_Leon", "Kourou"]
 # Sigfox frame lengths.
 __METEOFOX_UL_PAYLOAD_MONITORING_SIZE = 9
 __METEOFOX_UL_PAYLOAD_WEATHER_IM_SIZE = 6
@@ -18,7 +18,7 @@ __METEOFOX_UL_PAYLOAD_ERROR_STACK_SIZE = 12
 ### PUBLIC MACROS ###
 
 # MeteoFox EP-IDs.
-METEOFOX_EP_ID_LIST = ["53B5", "5436", "546C", "5477", "5497", "549D", "54B6", "54E4", "5521", "557B", "592C", "595E"]
+METEOFOX_EP_ID_LIST = ["53B5", "5436", "546C", "5477", "5497", "549D", "54B6", "54E4"]
 
 ### LOCAL FUNCTIONS ###
 

@@ -9,7 +9,7 @@ from ep.common import *
 # TrackFox tags.
 __TRACKFOX_ASSET = ["Car", "Bike", "Hiking", "Hiking_spare", "Proto_HW1.1"]
 # Sigfox frames length.
-__TRACKFOX_UL_PAYLOAD_MONITORING_SIZE = 9
+__TRACKFOX_UL_PAYLOAD_MONITORING_SIZE = 7
 __TRACKFOX_UL_PAYLOAD_ERROR_STACK_SIZE = 12
 
 ### PUBLIC MACROS ###
@@ -78,11 +78,9 @@ def TRACKFOX_parse_ul_payload(timestamp, sigfox_ep_id, ul_payload) :
         # Parse fields.
         tamb_degrees = COMMON_one_complement_to_value(int(ul_payload[0:2], 16), 7) if (int(ul_payload[0:2], 16) != COMMON_ERROR_VALUE_TEMPERATURE) else COMMON_ERROR_DATA
         hamb_percent = int(ul_payload[2:4], 16) if (int(ul_payload[2:4], 16) != COMMON_ERROR_VALUE_HUMIDITY) else COMMON_ERROR_DATA
-        tmcu_degrees = COMMON_one_complement_to_value(int(ul_payload[4:6], 16), 7) if (int(ul_payload[4:6], 16) != COMMON_ERROR_VALUE_TEMPERATURE) else COMMON_ERROR_DATA
-        vsrc_mv = int(ul_payload[6:10], 16) if (int(ul_payload[6:10], 16) != COMMON_ERROR_VALUE_ANALOG_16BITS) else COMMON_ERROR_DATA
-        vcap_mv = int(ul_payload[10:13], 16) if (int(ul_payload[10:13], 16) != COMMON_ERROR_VALUE_ANALOG_12BITS) else COMMON_ERROR_DATA
-        vmcu_mv = int(ul_payload[13:16], 16) if (int(ul_payload[13:16], 16) != COMMON_ERROR_VALUE_ANALOG_12BITS) else COMMON_ERROR_DATA
-        status = int(ul_payload[16:18], 16)
+        vsrc_mv = int(ul_payload[4:8], 16) if (int(ul_payload[4:8], 16) != COMMON_ERROR_VALUE_ANALOG_16BITS) else COMMON_ERROR_DATA
+        vcap_mv = int(ul_payload[8:12], 16) if (int(ul_payload[8:12], 16) != COMMON_ERROR_VALUE_ANALOG_16BITS) else COMMON_ERROR_DATA
+        status = int(ul_payload[12:14], 16)
         # Create JSON object.
         json_ul_data = [
         {
@@ -105,17 +103,12 @@ def TRACKFOX_parse_ul_payload(timestamp, sigfox_ep_id, ul_payload) :
             json_ul_data[0]["fields"][INFLUX_DB_FIELD_TAMB] = tamb_degrees
         if (hamb_percent != COMMON_ERROR_DATA) :
             json_ul_data[0]["fields"][INFLUX_DB_FIELD_HAMB] = hamb_percent
-        if (tmcu_degrees != COMMON_ERROR_DATA) :
-            json_ul_data[0]["fields"][INFLUX_DB_FIELD_TMCU] = tmcu_degrees
         if (vsrc_mv != COMMON_ERROR_DATA) :
             json_ul_data[0]["fields"][INFLUX_DB_FIELD_VSRC] = vsrc_mv
         if (vcap_mv != COMMON_ERROR_DATA) :
             json_ul_data[0]["fields"][INFLUX_DB_FIELD_VCAP] = vcap_mv
-        if (vmcu_mv != COMMON_ERROR_DATA) :
-            json_ul_data[0]["fields"][INFLUX_DB_FIELD_VMCU] = vmcu_mv
         LOG_print("[TRACKFOX] * Monitoring data * asset=" + __TRACKFOX_get_asset(sigfox_ep_id) +
-                  " tamb=" + str(tamb_degrees) + "dC hamb=" + str(hamb_percent) + "% tmcu=" + str(tmcu_degrees) +
-                  "dC vsrc=" + str(vsrc_mv) + "mV vcap=" + str(vcap_mv) + "mV vmcu=" + str(vmcu_mv) + "mV status=" + hex(status))
+                  " tamb=" + str(tamb_degrees) + "dC hamb=" + str(hamb_percent) + "% vsrc=" + str(vsrc_mv) + "mV vcap=" + str(vcap_mv) + "mV status=" + hex(status))
     else :
         LOG_print("[TRACKFOX] * Invalid UL payload")
     return json_ul_data

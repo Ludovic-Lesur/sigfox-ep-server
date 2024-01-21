@@ -80,7 +80,7 @@ DINFOX_EP_ID_LIST = ["4761", "479C", "47A7", "47EA", "4894"]
 
 ### LOCAL GLOBAL VARIABLES ###
 
-dinfox_zero_energy_insertion_date = "2000-01-01"
+dinfox_zero_energy_insertion_date = ["2000-01-01", "2000-01-01", "2000-01-01", "2000-01-01"]
 
 ### LOCAL FUNCTIONS ###
 
@@ -828,9 +828,9 @@ def DINFOX_parse_ul_payload(timestamp, sigfox_ep_id, ul_payload) :
                     },
                 }]
                 # Check if day changed.
-                if (str(date.today()) != dinfox_zero_energy_insertion_date) :
+                if (str(date.today()) != dinfox_zero_energy_insertion_date[mpmcm_channel_index]) :
                     # Update local variable.
-                    dinfox_zero_energy_insertion_date = str(date.today())
+                    dinfox_zero_energy_insertion_date[mpmcm_channel_index] = str(date.today())
                     # Create additional point.
                     json_zero_energy = {
                         "measurement": INFLUX_DB_MEASUREMENT_ELECTRICAL,
@@ -843,7 +843,7 @@ def DINFOX_parse_ul_payload(timestamp, sigfox_ep_id, ul_payload) :
                     }
                     # Insert additional point.
                     json_ul_data.append(json_zero_energy)
-                    LOG_print("[DINFOX MPMCM] Daily zero energy insertion")
+                    LOG_print("[DINFOX MPMCM] Daily zero energy insertion on channel " + str(mpmcm_channel_index))
                 # Add valid fields to JSON.
                 if (eact != COMMON_ERROR_DATA) :
                     json_ul_data[0]["fields"][INFLUX_DB_FIELD_EACT] = eact

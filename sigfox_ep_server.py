@@ -106,7 +106,7 @@ def SIGFOX_EP_SERVER_set_database_pointers(sigfox_ep_id) :
         SIGFOX_EP_SERVER_add_ep_tag = DINFOX_add_ep_tag
         SIGFOX_EP_SERVER_parse_ul_payload = DINFOX_parse_ul_payload
         SIGFOX_EP_SERVER_get_default_dl_payload = DINFOX_get_default_dl_payload
-    # Meteofox.
+    # MeteoFox.
     elif (sigfox_ep_id in METEOFOX_EP_ID_LIST) :
         sigfox_ep_server_database_name = INFLUX_DB_DATABASE_METEOFOX
         SIGFOX_EP_SERVER_add_ep_tag = METEOFOX_add_ep_tag
@@ -151,7 +151,7 @@ def SIGFOX_EP_SERVER_compute_dl_payload(sigfox_ep_id) :
         if (SIGFOX_DOWNLINK_MESSAGES_HEADER not in downlink_messages_json) :
             LOG_print("[SIGFOX EP SERVER] * ERROR: downlink messages file header not found")
             raise Exception
-        # Messages loop (since the JSON file is written in chonological order, the oldest element is the first one during reading).
+        # Messages loop (since the JSON file is written in chronological order, the oldest element is the first one during reading).
         downlink_messages = downlink_messages_json[SIGFOX_DOWNLINK_MESSAGES_HEADER]
         for dl_message_idx, dl_message in enumerate(downlink_messages) :
             # Check fields.
@@ -163,7 +163,7 @@ def SIGFOX_EP_SERVER_compute_dl_payload(sigfox_ep_id) :
                 raise Exception
             # Compare EP-ID.
             if (int(dl_message[SIGFOX_DOWNLINK_MESSAGES_HEADER_EP_ID], 16) == int(sigfox_ep_id, 16)) :
-                # Select the oldest non permament message, or the oldest permament message.
+                # Select the oldest non permanent message, or the oldest permanent message.
                 if (dl_message_found == False) :
                     # Read payload and update flag.
                     dl_payload = dl_message[SIGFOX_DOWNLINK_MESSAGES_HEADER_DL_PAYLOAD]
@@ -225,9 +225,9 @@ def SIGFOX_EP_SERVER_execute_callback(json_in) :
         sigfox_ep_id = json_in[SIGFOX_CALLBACK_JSON_HEADER_EP_ID].upper()
         # Update functions pointer.
         SIGFOX_EP_SERVER_set_database_pointers(sigfox_ep_id)
-        # Directly returns if the end-point ID is unknwon.
+        # Directly returns if the end-point ID is unknown.
         if (sigfox_ep_server_database_name == COMMON_ERROR_DATA) :
-            LOG_print("[SIGFOX EP SERVER] * ERROR: unknwon Sigfox EP-ID.")
+            LOG_print("[SIGFOX EP SERVER] * ERROR: unknown Sigfox EP-ID.")
             raise Exception
         # Data bidir callback.
         if (callback_type == SIGFOX_CALLBACK_TYPE_DATA_BIDIR) :

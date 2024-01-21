@@ -3,6 +3,7 @@ from __future__ import print_function
 from database.influx_db import *
 from log import *
 from ep.common import *
+from datetime import date
 
 ### LOCAL MACROS ###
 
@@ -76,6 +77,10 @@ __DINFOX_COMMON_UL_PAYLOAD_ERROR_STACK_SIZE = 10
 
 # TrackFox EP-IDs.
 DINFOX_EP_ID_LIST = ["4761", "479C", "47A7", "47EA", "4894"]
+
+### LOCAL GLOBAL VARIABLES ###
+
+dinfox_zero_energy_insertion_date = "2000-01-01"
 
 ### LOCAL FUNCTIONS ###
 
@@ -231,6 +236,8 @@ def DINFOX_add_ep_tag(json_ul_data, sigfox_ep_id) :
 
 # Function for parsing TrackFox device payload and fill database.
 def DINFOX_parse_ul_payload(timestamp, sigfox_ep_id, ul_payload) :
+    # Global variables.
+    global dinfox_zero_energy_insertion_date
     # Init JSON object.
     json_ul_data = []
     # MPMCM specific tag.
@@ -820,6 +827,23 @@ def DINFOX_parse_ul_payload(timestamp, sigfox_ep_id, ul_payload) :
                         INFLUX_DB_FIELD_TIME_LAST_COMMUNICATION : timestamp
                     },
                 }]
+                # Check if day changed.
+                if (str(date.today()) != dinfox_zero_energy_insertion_date) :
+                    # Update local variable.
+                    dinfox_zero_energy_insertion_date = str(date.today())
+                    # Create additional point.
+                    json_zero_energy = {
+                        "measurement": INFLUX_DB_MEASUREMENT_ELECTRICAL,
+                        "time": (timestamp + 1),
+                        "fields": {
+                            INFLUX_DB_FIELD_TIME_LAST_ELECTRICAL_DATA : timestamp,
+                            INFLUX_DB_FIELD_EACT : 0,
+                            INFLUX_DB_FIELD_EAPP : 0
+                        }
+                    }
+                    # Insert additional point.
+                    json_ul_data.append(json_zero_energy)
+                    LOG_print("[DINFOX MPMCM] Daily zero energy insertion")
                 # Add valid fields to JSON.
                 if (eact != COMMON_ERROR_DATA) :
                     json_ul_data[0]["fields"][INFLUX_DB_FIELD_EACT] = eact

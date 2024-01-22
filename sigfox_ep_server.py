@@ -363,6 +363,10 @@ SIGFOX_EP_SERVER_init_downlink_messages_file()
 SocketServer.TCPServer.allow_reuse_address = True
 sigfox_ep_server_handler = ServerHandler
 sigfox_ep_server = SocketServer.TCPServer(("", SIGFOX_EP_SERVER_HTTP_PORT), sigfox_ep_server_handler)
+sigfox_ep_server.timeout = 10
 LOG_print("")
 LOG_print("[SIGFOX EP SERVER] * Starting server at port " + str(SIGFOX_EP_SERVER_HTTP_PORT))
-sigfox_ep_server.serve_forever()
+# Main loop.
+while True:
+    LOG_print("[SIGFOX EP SERVER] * Handle request")
+    sigfox_ep_server.handle_request()

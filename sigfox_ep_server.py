@@ -197,7 +197,7 @@ def SIGFOX_EP_SERVER_compute_dl_payload(sigfox_ep_id) :
                         INFLUX_DB_FIELD_DOWNLINK_HASH : sigfox_ep_server_downlink_message_hash,
                         INFLUX_DB_FIELD_TIME_DOWNLINK_RECORD : dl_message_record_time,
                         INFLUX_DB_FIELD_TIME_DOWNLINK_SERVER : int(time.time()),
-                        INFLUX_DB_FIELD_DL_PAYLOAD : dl_payload,
+                        INFLUX_DB_FIELD_DL_PAYLOAD : dl_payload.upper(),
                     }
                 } ]
                 SIGFOX_EP_SERVER_add_ep_tag(json_dl_data, sigfox_ep_id)

@@ -253,11 +253,42 @@ def DINFOX_parse_ul_payload(timestamp, sigfox_ep_id, ul_payload) :
     node_ul_payload_size = len(ul_payload) - (2 * __DINFOX_UL_PAYLOAD_HEADER_SIZE)
     # Common startup frame for all nodes.
     if (node_ul_payload_size == (2 * COMMON_UL_PAYLOAD_STARTUP_SIZE)):
-        # Create JSON object.
-        result = COMMON_create_json_startup_data(timestamp, node_ul_payload)
-        json_ul_data = result[0]
-        log_data = result[1]
-        LOG_print("[DINFOX] * Startup data * system=" + system_name + " node=" + node_name + " " + log_data)
+        # Check marker to select between startup or action log.
+        marker = ((int(node_ul_payload[0:2], 16) >> 4) & 0x0F);
+        if (marker == 0x0F) :
+            # Action log frame.
+            downlink_hash = (int(node_ul_payload[0:4], 16) & 0x0FFF);
+            register_address = int(node_ul_payload[4:6], 16)
+            register_value = int(node_ul_payload[6:14], 16)
+            node_access_status = int(node_ul_payload[14:16], 16)
+            # Create JSON object.
+            json_ul_data = [
+            {
+                "measurement": INFLUX_DB_MEASUREMENT_DOWNLINK,
+                "time": timestamp,
+                "fields": {
+                   INFLUX_DB_FIELD_TIME_LAST_ACTION_LOG_DATA : timestamp,
+                   INFLUX_DB_FIELD_DOWNLINK_HASH : downlink_hash,
+                   INFLUX_DB_FIELD_REGISTER_ADDRESS : register_address,
+                   INFLUX_DB_FIELD_REGISTER_VALUE : register_value,
+                   INFLUX_DB_FIELD_NODE_ACCESS_STATUS : node_access_status
+                },
+            },
+            {
+                "measurement": INFLUX_DB_MEASUREMENT_METADATA,
+                "time": timestamp,
+                "fields": {
+                    INFLUX_DB_FIELD_TIME_LAST_COMMUNICATION : timestamp
+                },
+            }]
+            LOG_print("[DINFOX] * Action log data * system=" + system_name + " node=" + node_name +
+                      " downlink_hash=" + str(downlink_hash) + " register_address=" + str(register_address) + " register_value=" + str(register_value) + " node_access_status=" + str(node_access_status))
+        else :
+            # Create JSON object.
+            result = COMMON_create_json_startup_data(timestamp, node_ul_payload)
+            json_ul_data = result[0]
+            log_data = result[1]
+            LOG_print("[DINFOX] * Startup data * system=" + system_name + " node=" + node_name + " " + log_data)
     # Common error stack frame for all nodes.
     elif (node_ul_payload_size == (2 * __DINFOX_COMMON_UL_PAYLOAD_ERROR_STACK_SIZE)):
         result = COMMON_create_json_error_stack_data(timestamp, node_ul_payload, (__DINFOX_COMMON_UL_PAYLOAD_ERROR_STACK_SIZE / 2))

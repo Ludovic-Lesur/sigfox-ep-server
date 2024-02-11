@@ -194,7 +194,7 @@ def SIGFOX_EP_SERVER_compute_dl_payload(sigfox_ep_id) :
                     "measurement": INFLUX_DB_MEASUREMENT_DOWNLINK,
                     "time": int(time.time()),
                     "fields": {
-                        INFLUX_DB_TAG_DOWNLINK_HASH : sigfox_ep_server_downlink_message_hash,
+                        INFLUX_DB_FIELD_DOWNLINK_HASH : sigfox_ep_server_downlink_message_hash,
                         INFLUX_DB_FIELD_TIME_DOWNLINK_RECORD : dl_message_record_time,
                         INFLUX_DB_FIELD_TIME_DOWNLINK_SERVER : int(time.time()),
                         INFLUX_DB_FIELD_DL_PAYLOAD : dl_payload,
@@ -297,7 +297,7 @@ def SIGFOX_EP_SERVER_execute_callback(json_in) :
                 "measurement": INFLUX_DB_MEASUREMENT_DOWNLINK,
                 "time": int(time.time()),
                 "fields": {
-                    INFLUX_DB_TAG_DOWNLINK_HASH : sigfox_ep_server_downlink_message_hash,
+                    INFLUX_DB_FIELD_DOWNLINK_HASH : sigfox_ep_server_downlink_message_hash,
                     INFLUX_DB_FIELD_TIME_DOWNLINK_NETWORK : int(time.time()),
                     INFLUX_DB_FIELD_DL_PAYLOAD : dl_payload,
                     INFLUX_DB_FIELD_DL_SUCCESS : dl_success,

@@ -165,12 +165,15 @@ def SIGFOX_EP_SERVER_compute_dl_payload(sigfox_ep_id) :
             if (int(dl_message[SIGFOX_DOWNLINK_MESSAGES_HEADER_EP_ID], 16) == int(sigfox_ep_id, 16)) :
                 # Select the oldest non permanent message, or the oldest permanent message.
                 if (dl_message_found == False) :
-                    # Read payload and update flag.
+                    # Read record time payload and.
+                    dl_message_record_time = int(dl_message[SIGFOX_DOWNLINK_MESSAGES_HEADER_RECORD_TIME])
                     dl_payload = dl_message[SIGFOX_DOWNLINK_MESSAGES_HEADER_DL_PAYLOAD]
+                    # Update flag.
                     dl_message_found = True
                 # Check mode.
                 if (dl_message[SIGFOX_DOWNLINK_MESSAGES_HEADER_PERMANENT] == JSON_FALSE) :
-                    # Force payload reading.
+                    # Force reading.
+                    dl_message_record_time = int(dl_message[SIGFOX_DOWNLINK_MESSAGES_HEADER_RECORD_TIME])
                     dl_payload = dl_message[SIGFOX_DOWNLINK_MESSAGES_HEADER_DL_PAYLOAD]
                     # Remove message from the file.
                     del downlink_messages[dl_message_idx]

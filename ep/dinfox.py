@@ -63,6 +63,7 @@ __DINFOX_SM_UL_PAYLOAD_SENSOR_SIZE = 2
 
 __DINFOX_DMM_UL_PAYLOAD_MONITORING_SIZE = 7
 
+__DINFOX_MPMCM_UL_PAYLOAD_SIZE_STATUS = 1
 __DINFOX_MPMCM_UL_PAYLOAD_SIZE_MAINS_POWER_FACTOR = 4
 __DINFOX_MPMCM_UL_PAYLOAD_SIZE_MAINS_ENERGY = 5
 __DINFOX_MPMCM_UL_PAYLOAD_SIZE_MAINS_FREQUENCY = 6
@@ -701,17 +702,14 @@ def DINFOX_parse_ul_payload(timestamp, sigfox_ep_id, ul_payload) :
                 LOG_print("[DINFOX DMM] * system=" + system_name + " node=" + node_name + " * Invalid UL payload")
         # MPMCM.
         elif (board_id == __DINFOX_BOARD_ID_MPMCM):
-            # Mains voltage frame.
-            if (node_ul_payload_size == (2 * __DINFOX_MPMCM_UL_PAYLOAD_SIZE_MAINS_VOLTAGE)) :
+            # Status frame.
+            if (node_ul_payload_size == (2 * __DINFOX_MPMCM_UL_PAYLOAD_SIZE_STATUS)) :
                 mvd =  (int(node_ul_payload[0:2], 16) >> 5) & 0x01
                 ticd = (int(node_ul_payload[0:2], 16) >> 4) & 0x01
                 ch4d = (int(node_ul_payload[0:2], 16) >> 3) & 0x01
                 ch3d = (int(node_ul_payload[0:2], 16) >> 2) & 0x01
                 ch2d = (int(node_ul_payload[0:2], 16) >> 1) & 0x01
                 ch1d = (int(node_ul_payload[0:2], 16) >> 0) & 0x01
-                vrms_min =  __DINFOX_get_mv(int(node_ul_payload[2:6], 16))   if (int(node_ul_payload[2:6], 16)   != COMMON_ERROR_VALUE_VOLTAGE) else COMMON_ERROR_DATA
-                vrms_mean = __DINFOX_get_mv(int(node_ul_payload[6:10], 16))  if (int(node_ul_payload[6:10], 16)  != COMMON_ERROR_VALUE_VOLTAGE) else COMMON_ERROR_DATA
-                vrms_max =  __DINFOX_get_mv(int(node_ul_payload[10:14], 16)) if (int(node_ul_payload[10:14], 16) != COMMON_ERROR_VALUE_VOLTAGE) else COMMON_ERROR_DATA
                 # Create JSON object.
                 json_ul_data = [
                 {
@@ -734,6 +732,30 @@ def DINFOX_parse_ul_payload(timestamp, sigfox_ep_id, ul_payload) :
                         INFLUX_DB_FIELD_TIME_LAST_COMMUNICATION : timestamp
                     },
                 }]
+                LOG_print("[DINFOX MPMCM] * Electrical mains voltage payload * system=" + system_name + " node=" + node_name +
+                          " mvd=" + str(mvd) + " ticd=" + str(ticd) + " ch1d=" + str(ch1d) + " ch2d=" + str(ch2d) + " ch3d=" + str(ch3d) + " ch4d=" + str(ch4d))
+            # Mains voltage frame.
+            elif (node_ul_payload_size == (2 * __DINFOX_MPMCM_UL_PAYLOAD_SIZE_MAINS_VOLTAGE)) :
+                mpmcm_channel_index = (int(node_ul_payload[0:2], 16) >> 0) & 0x07
+                vrms_min =  __DINFOX_get_mv(int(node_ul_payload[2:6], 16))   if (int(node_ul_payload[2:6], 16)   != COMMON_ERROR_VALUE_VOLTAGE) else COMMON_ERROR_DATA
+                vrms_mean = __DINFOX_get_mv(int(node_ul_payload[6:10], 16))  if (int(node_ul_payload[6:10], 16)  != COMMON_ERROR_VALUE_VOLTAGE) else COMMON_ERROR_DATA
+                vrms_max =  __DINFOX_get_mv(int(node_ul_payload[10:14], 16)) if (int(node_ul_payload[10:14], 16) != COMMON_ERROR_VALUE_VOLTAGE) else COMMON_ERROR_DATA
+                # Create JSON object.
+                json_ul_data = [
+                {
+                    "measurement": INFLUX_DB_MEASUREMENT_ELECTRICAL,
+                    "time": timestamp,
+                    "fields": {
+                        INFLUX_DB_FIELD_TIME_LAST_ELECTRICAL_DATA : timestamp,
+                    },
+                },
+                {
+                    "measurement": INFLUX_DB_MEASUREMENT_METADATA,
+                    "time": timestamp,
+                    "fields": {
+                        INFLUX_DB_FIELD_TIME_LAST_COMMUNICATION : timestamp
+                    },
+                }]
                 # Add valid fields to JSON.
                 if (vrms_min != COMMON_ERROR_DATA) :
                     json_ul_data[0]["fields"][INFLUX_DB_FIELD_VRMS_MIN] = vrms_min
@@ -741,8 +763,7 @@ def DINFOX_parse_ul_payload(timestamp, sigfox_ep_id, ul_payload) :
                     json_ul_data[0]["fields"][INFLUX_DB_FIELD_VRMS_MEAN] = vrms_mean
                 if (vrms_max != COMMON_ERROR_DATA) :
                     json_ul_data[0]["fields"][INFLUX_DB_FIELD_VRMS_MAX] = vrms_max
-                LOG_print("[DINFOX MPMCM] * Electrical mains voltage payload * system=" + system_name + " node=" + node_name +
-                          " mvd=" + str(mvd) + " ticd=" + str(ticd) + " ch1d=" + str(ch1d) + " ch2d=" + str(ch2d) + " ch3d=" + str(ch3d) + " ch4d=" + str(ch4d) +
+                LOG_print("[DINFOX MPMCM] * Electrical mains voltage payload * system=" + system_name + " node=" + node_name + " channel=" + str(mpmcm_channel_index) +
                           " vrms_min=" + str(vrms_min) + "mV vrms_mean=" + str(vrms_mean) + "mV vrms_max=" + str(vrms_max) + "mV")
             # Mains frequency frame.
             elif (node_ul_payload_size == (2 * __DINFOX_MPMCM_UL_PAYLOAD_SIZE_MAINS_FREQUENCY)) :

@@ -54,7 +54,7 @@ def METEOFOX_add_ep_tag(json_ul_data, sigfox_ep_id) :
 def METEOFOX_parse_ul_payload(timestamp, sigfox_ep_id, ul_payload) :
     # Init JSON object.
     json_ul_data = []
-    # Keep alive frame (only for SW version older than 1.2.42).
+    # Keep alive frame (only for embedded software version older than sw1.2.42).
     if (ul_payload == COMMON_UL_PAYLOAD_KEEP_ALIVE) :
         # Create JSON object.
         json_ul_data = [

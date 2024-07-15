@@ -17,7 +17,7 @@ git_version=`git describe --long --always`
 diff=`git diff`
 
 # Extract fields
-sscanf $git_version "SW([0-9]+).([0-9]+)-([0-9]+)-g(.+)"
+sscanf $git_version "sw([0-9]+).([0-9]+)-([0-9]+)-g(.+)"
 
 # Manage dirty flag.
 dirty_flag=0

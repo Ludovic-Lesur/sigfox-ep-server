@@ -43,7 +43,7 @@ def SIGFOX_EP_SERVER_init_database() :
 # Update startup time and script software version in database.
 def SIGFOX_EP_SERVER_write_software_version() :
     # Add script version in database.
-    sigfox_ep_server_version = "SW" + str(GIT_MAJOR_VERSION) + "." + str(GIT_MINOR_VERSION) + "." + str(GIT_COMMIT_INDEX)
+    sigfox_ep_server_version = "sw" + str(GIT_MAJOR_VERSION) + "." + str(GIT_MINOR_VERSION) + "." + str(GIT_COMMIT_INDEX)
     if (GIT_DIRTY_FLAG != 0) :
         sigfox_ep_server_version = sigfox_ep_server_version + ".d"
     LOG_print("")

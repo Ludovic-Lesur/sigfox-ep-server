@@ -2,7 +2,7 @@ from __future__ import print_function
 import requests
 import time
 
-from common import *
+from defs import *
 
 # HTTP server.
 SIGFOX_EP_SERVER_ADDRESS = SIGFOX_EP_SERVER_LOCAL_ADDRESS + ":" + str(SIGFOX_EP_SERVER_HTTP_PORT)
@@ -34,7 +34,7 @@ METEOFOX_TEST_REQUEST = [
     # MeteoFox invalid Sigfox EP-ID.
     [SIGFOX_CALLBACK_TYPE_DATA_BIDIR, "1666374011", "0123", "11", "050c3900f29d1d2f7f", JSON_FALSE],
     # MeteoFox invalid data.
-    [SIGFOX_CALLBACK_TYPE_DATA_BIDIR, "1666374012", "53b5", "12", "010203", JSON_FALSE]
+    [SIGFOX_CALLBACK_TYPE_DATA_BIDIR, "1666374012", "53b5", "12", "01020304", JSON_FALSE]
 ]
 
 SENSIT_TEST_REQUEST = [

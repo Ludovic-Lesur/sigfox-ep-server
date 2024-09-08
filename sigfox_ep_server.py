@@ -11,7 +11,7 @@ from ep.dinfox import *
 from ep.meteofox import *
 from ep.sensit import *
 from ep.trackfox import *
-from utils.common import *
+from utils.defs import *
 from version import *
 
 ### LOCAL MACROS ###

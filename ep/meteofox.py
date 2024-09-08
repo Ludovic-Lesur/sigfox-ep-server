@@ -81,20 +81,27 @@ def METEOFOX_parse_ul_payload(timestamp, sigfox_ep_id, ul_payload) :
         json_ul_data = result[0]
         log_data = result[1]
         LOG_print("[METEOFOX] * Geoloc data * site=" + __METEOFOX_get_site(sigfox_ep_id) + " " + log_data)
-    # Old geolocation timeout frame.
-    elif (len(ul_payload) == (2 * COMMON_UL_PAYLOAD_GEOLOC_TIMEOUT_SIZE_OLD)) :
+    # Geolocation timeout frame V1.
+    elif (len(ul_payload) == (2 * COMMON_UL_PAYLOAD_GEOLOC_TIMEOUT_SIZE_V1)) :
         # Create JSON object.
-        result = COMMON_create_json_geoloc_timeout_data(timestamp, ul_payload, COMMON_UL_PAYLOAD_GEOLOC_TIMEOUT_SIZE_OLD)
+        result = COMMON_create_json_geoloc_timeout_data(timestamp, ul_payload, COMMON_UL_PAYLOAD_GEOLOC_TIMEOUT_SIZE_V1)
         json_ul_data = result[0]
         log_data = result[1]
-        LOG_print("[METEOFOX] * Geoloc timeout * site=" + __METEOFOX_get_site(sigfox_ep_id) + " " + log_data)
-    # Geolocation timeout frame.
-    elif (len(ul_payload) == (2 * COMMON_UL_PAYLOAD_GEOLOC_TIMEOUT_SIZE)) :
+        LOG_print("[METEOFOX] * Geoloc timeout V1 * site=" + __METEOFOX_get_site(sigfox_ep_id) + " " + log_data)
+    # Geolocation timeout frame V2.
+    elif (len(ul_payload) == (2 * COMMON_UL_PAYLOAD_GEOLOC_TIMEOUT_SIZE_V2)) :
         # Create JSON object.
-        result = COMMON_create_json_geoloc_timeout_data(timestamp, ul_payload, COMMON_UL_PAYLOAD_GEOLOC_TIMEOUT_SIZE)
+        result = COMMON_create_json_geoloc_timeout_data(timestamp, ul_payload, COMMON_UL_PAYLOAD_GEOLOC_TIMEOUT_SIZE_V2)
         json_ul_data = result[0]
         log_data = result[1]
-        LOG_print("[METEOFOX] * Geoloc timeout * site=" + __METEOFOX_get_site(sigfox_ep_id) + " " + log_data)
+        LOG_print("[METEOFOX] * Geoloc timeout V2 * site=" + __METEOFOX_get_site(sigfox_ep_id) + " " + log_data)
+    # Geolocation timeout frame V3.
+    elif (len(ul_payload) == (2 * COMMON_UL_PAYLOAD_GEOLOC_TIMEOUT_SIZE_V3)) :
+        # Create JSON object.
+        result = COMMON_create_json_geoloc_timeout_data(timestamp, ul_payload, COMMON_UL_PAYLOAD_GEOLOC_TIMEOUT_SIZE_V3)
+        json_ul_data = result[0]
+        log_data = result[1]
+        LOG_print("[METEOFOX] * Geoloc timeout V3 * site=" + __METEOFOX_get_site(sigfox_ep_id) + " " + log_data)
     # Error stack frame.
     elif (len(ul_payload) == (2 * __METEOFOX_UL_PAYLOAD_ERROR_STACK_SIZE)) :
         # Create JSON object.

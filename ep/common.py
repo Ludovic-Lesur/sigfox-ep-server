@@ -10,8 +10,9 @@ COMMON_UL_PAYLOAD_KEEP_ALIVE = "control_keep_alive_payload"
 # Common UL payload sizes.
 COMMON_UL_PAYLOAD_STARTUP_SIZE = 8
 COMMON_UL_PAYLOAD_GEOLOC_SIZE = 11
-COMMON_UL_PAYLOAD_GEOLOC_TIMEOUT_SIZE_OLD = 1
-COMMON_UL_PAYLOAD_GEOLOC_TIMEOUT_SIZE = 3
+COMMON_UL_PAYLOAD_GEOLOC_TIMEOUT_SIZE_V1 = 1
+COMMON_UL_PAYLOAD_GEOLOC_TIMEOUT_SIZE_V2 = 3
+COMMON_UL_PAYLOAD_GEOLOC_TIMEOUT_SIZE_V3 = 2
 # Error values.
 COMMON_ERROR_DATA = "error"
 COMMON_ERROR_VALUE_ANALOG_12BITS = 0xFFF
@@ -92,7 +93,7 @@ def COMMON_create_json_geoloc_data(timestamp, ul_payload) :
     if (longitude_east == 0):
         longitude = -longitude
     altitude = int(ul_payload[16:20], 16)
-    gps_fix_duration = int(ul_payload[20:22], 16)
+    gps_acquisition_duration = int(ul_payload[20:22], 16)
     # Create JSON object.
     json_body = [
     {
@@ -103,7 +104,7 @@ def COMMON_create_json_geoloc_data(timestamp, ul_payload) :
             INFLUX_DB_FIELD_LATITUDE : latitude,
             INFLUX_DB_FIELD_LONGITUDE : longitude,
             INFLUX_DB_FIELD_ALTITUDE : altitude,
-            INFLUX_DB_FIELD_GPS_FIX_DURATION : gps_fix_duration
+            INFLUX_DB_FIELD_GPS_ACQUISITION_DURATION : gps_acquisition_duration
         },
     },
     {
@@ -113,13 +114,13 @@ def COMMON_create_json_geoloc_data(timestamp, ul_payload) :
             INFLUX_DB_FIELD_TIME_LAST_COMMUNICATION : timestamp
         },
     }]
-    log_data = "latitude=" + str(latitude) + ", longitude=" + str(longitude) + ", altitude=" + str(altitude) + "m, gps_fix_duration=" + str(gps_fix_duration) + "s"
+    log_data = "latitude=" + str(latitude) + ", longitude=" + str(longitude) + ", altitude=" + str(altitude) + "m, gps_acquisition_duration=" + str(gps_acquisition_duration) + "s"
     return json_body, log_data
     
 # Function for parsing geoloc timeout frame.
 def COMMON_create_json_geoloc_timeout_data(timestamp, ul_payload, ul_payload_size) :
-    # Old format.
-    if (ul_payload_size == COMMON_UL_PAYLOAD_GEOLOC_TIMEOUT_SIZE_OLD) :
+    # V1 format.
+    if (ul_payload_size == COMMON_UL_PAYLOAD_GEOLOC_TIMEOUT_SIZE_V1) :
         # Parse field
         gps_timeout_duration = int(ul_payload[0:2], 16)
         # Create JSON object.
@@ -139,8 +140,8 @@ def COMMON_create_json_geoloc_timeout_data(timestamp, ul_payload, ul_payload_siz
             },
         }]
         log_data = "gps_timeout_duration=" + str(gps_timeout_duration) + "s."
-    # New format.
-    elif (ul_payload_size == COMMON_UL_PAYLOAD_GEOLOC_TIMEOUT_SIZE) :
+    # V2 format.
+    elif (ul_payload_size == COMMON_UL_PAYLOAD_GEOLOC_TIMEOUT_SIZE_V2) :
         # Parse fields
         gps_timeout_error_code = int(ul_payload[0:4], 16)
         gps_timeout_duration = int(ul_payload[4:6], 16)
@@ -162,6 +163,29 @@ def COMMON_create_json_geoloc_timeout_data(timestamp, ul_payload, ul_payload_siz
             },
         }]
         log_data = "gps_timeout_error_code=" + hex(gps_timeout_error_code) + " gps_timeout_duration=" + str(gps_timeout_duration) + "s."
+    # V3 format.
+    elif (ul_payload_size == COMMON_UL_PAYLOAD_GEOLOC_TIMEOUT_SIZE_V3) :
+        # Parse fields
+        gps_acquisition_status = int(ul_payload[0:2], 16)
+        gps_acquisition_duration = int(ul_payload[2:4], 16)
+        # Create JSON object.
+        json_body = [
+        {
+            "time" : timestamp,
+            "measurement": INFLUX_DB_MEASUREMENT_GEOLOC,
+            "fields": {
+                INFLUX_DB_FIELD_GPS_ACQUISITION_STATUS : gps_acquisition_status,
+                INFLUX_DB_FIELD_GPS_TIMEOUT_DURATION : gps_acquisition_duration
+            },
+        },
+        {
+            "time" : timestamp,
+            "measurement": INFLUX_DB_MEASUREMENT_METADATA,
+            "fields": {
+                INFLUX_DB_FIELD_TIME_LAST_COMMUNICATION : timestamp,
+            },
+        }]
+        log_data = "gps_acquisition_status=" + hex(gps_acquisition_status) + " gps_timeout_duration=" + str(gps_acquisition_duration) + "s."
     return json_body, log_data
     
 # Function for parsing error stack frame.

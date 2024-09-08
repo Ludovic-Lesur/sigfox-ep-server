@@ -24,7 +24,9 @@ __DINFOX_SYSTEM_3_NAME = "Mains_rack"
 __DINFOX_SYSTEM_3_NODE_ADDRESS = [0x00, 0x01, 0x08, 0x0C, 0x14, 0x1C]
 __DINFOX_SYSTEM_3_NODE = ["DMM_0", "DIM_0", "BPSM_0", "UHFM_0", "SM_0", "MPMCM_0"]
 
-__DINFOX_SYSTEM_4_NAME = "System_spare"
+__DINFOX_SYSTEM_4_NAME = "Linky rack"
+__DINFOX_SYSTEM_4_NODE_ADDRESS = [0x00, 0x01, 0x08, 0x0C, 0x14, 0x1C]
+__DINFOX_SYSTEM_4_NODE = ["DMM_0", "DIM_0", "BPSM_0", "UHFM_0", "SM_0", "MPMCM_0"]
 
 __DINFOX_SYSTEM = [__DINFOX_SYSTEM_0_NAME, __DINFOX_SYSTEM_1_NAME, __DINFOX_SYSTEM_2_NAME, __DINFOX_SYSTEM_3_NAME, __DINFOX_SYSTEM_4_NAME]
 
@@ -200,7 +202,11 @@ def __DINFOX_get_node(sigfox_ep_id, node_address) :
         elif (system_name == __DINFOX_SYSTEM_3_NAME):
             if (node_address in __DINFOX_SYSTEM_3_NODE_ADDRESS):
                 # Get node name.
-                node_name = __DINFOX_SYSTEM_3_NODE[__DINFOX_SYSTEM_3_NODE_ADDRESS.index(node_address)]    
+                node_name = __DINFOX_SYSTEM_3_NODE[__DINFOX_SYSTEM_3_NODE_ADDRESS.index(node_address)]
+        elif (system_name == __DINFOX_SYSTEM_4_NAME):
+            if (node_address in __DINFOX_SYSTEM_4_NODE_ADDRESS):
+                # Get node name.
+                node_name = __DINFOX_SYSTEM_4_NODE[__DINFOX_SYSTEM_4_NODE_ADDRESS.index(node_address)]
     return node_name
 
 # Function adding the specific DinFox tags.

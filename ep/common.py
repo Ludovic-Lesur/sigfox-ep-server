@@ -94,6 +94,8 @@ def COMMON_create_json_geoloc_data(timestamp, ul_payload) :
         longitude = -longitude
     altitude = int(ul_payload[16:20], 16)
     gps_acquisition_duration = int(ul_payload[20:22], 16)
+    # Manually add a success status into database.
+    gps_acquisition_status = 0
     # Create JSON object.
     json_body = [
     {
@@ -104,6 +106,7 @@ def COMMON_create_json_geoloc_data(timestamp, ul_payload) :
             INFLUX_DB_FIELD_LATITUDE : latitude,
             INFLUX_DB_FIELD_LONGITUDE : longitude,
             INFLUX_DB_FIELD_ALTITUDE : altitude,
+            INFLUX_DB_FIELD_GPS_ACQUISITION_STATUS : gps_acquisition_status,
             INFLUX_DB_FIELD_GPS_ACQUISITION_DURATION : gps_acquisition_duration
         },
     },

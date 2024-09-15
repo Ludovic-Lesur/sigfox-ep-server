@@ -194,14 +194,18 @@ influxdb_client = None
 def INFLUX_DB_init() :
     # Variables.
     global influxdb_client
-    # Wait for InfluxDB to be available.
+    influxdb_version = 0
     influxdb_found = False
+    # Wait for InfluxDB to be available.
+    LOG_print("[INFLUX_DB] * Creating client...")
     while influxdb_found == False:
         try:
             # Create client.
             influxdb_client = InfluxDBClient(host='localhost', port=__INFLUX_DB_DATABASE_HTTP_PORT)
+            # Ping database.
+            influxdb_version = influxdb_client.ping()
             influxdb_found = True
-            LOG_print("[INFLUX_DB] * Connection OK")
+            LOG_print("[INFLUX_DB] * Connection OK (" + str(influxdb_version) + ")")
             LOG_print("")
         except:
             influxdb_found = False

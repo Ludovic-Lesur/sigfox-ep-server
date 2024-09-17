@@ -3,7 +3,7 @@ import json
 import sys
 import time
 
-from common import *
+from defs import *
 
 ### MACROS ###
 
@@ -205,7 +205,7 @@ if (status == False) :
 	
 # Read server address.
 print("")
-sigfox_ep_server_name = raw_input("Sigfox EP server address = ")
+sigfox_ep_server_name = input("Sigfox EP server address = ")
 print("")
 
 # Update server address.
@@ -215,7 +215,7 @@ if (status == False) :
 
 # Read device type.
 print("")
-device_type_name = raw_input("Device type name = ")
+device_type_name = input("Device type name = ")
 print("")
 
 # Get device type ID.
@@ -234,8 +234,8 @@ if (status == False) :
 
 # Read timestamps
 print("")
-timestamp_start_epoch_ms = raw_input("Retrieve data from (EPOCH ms) = ")
-timestamp_stop_epoch_ms = raw_input("Retrieve data to (EPOCH ms) = ")
+timestamp_start_epoch_ms = input("Retrieve data from (EPOCH ms) = ")
+timestamp_stop_epoch_ms = input("Retrieve data to (EPOCH ms) = ")
 print("")
 
 # Get devices list.

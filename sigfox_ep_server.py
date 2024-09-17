@@ -1,6 +1,5 @@
 from __future__ import print_function
-from BaseHTTPServer import BaseHTTPRequestHandler
-import SocketServer
+from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
 
 from database.influx_db import *
@@ -316,7 +315,7 @@ def SIGFOX_EP_SERVER_execute_callback(json_in) :
         
 ### CLASS DECLARATIONS ###
 
-class ServerHandler(BaseHTTPRequestHandler):
+class SigfoxEpServer(BaseHTTPRequestHandler):
     # Get request.
     def do_GET(self):
         LOG_print("")
@@ -327,14 +326,15 @@ class ServerHandler(BaseHTTPRequestHandler):
         LOG_print("")
         LOG_print("[SIGFOX EP SERVER] * HEAD request received")
         self.send_response(400)
+        self.end_headers()
     # Post request.
     def do_POST(self):
         LOG_print("")
         LOG_print("[SIGFOX EP SERVER] * POST request received")
         # Check content type.
-        if ((self.headers.getheader("content-type")) == "application/json") :
+        if ((self.headers.get("content-type")) == "application/json") :
             # Get JSON content.
-            json_length = int(self.headers.getheader("content-length", 0))
+            json_length = int(self.headers.get("content-length", 0))
             json_in = json.loads(self.rfile.read(json_length))
             # Parse callback.
             http_return_code, json_out = SIGFOX_EP_SERVER_execute_callback(json_in)
@@ -344,10 +344,15 @@ class ServerHandler(BaseHTTPRequestHandler):
                 if (len(json_out) > 0) :
                     self.send_header("content-type", "application/json")
                     self.end_headers()
-                    self.wfile.write(json.dumps(json_out))
+                    self.wfile.write((json.dumps(json_out)).encode())
+                else :
+                    self.end_headers()
+            else :
+                self.end_headers()
         else :
             LOG_print("ERROR: invalid HTTP content type")
             self.send_response(400)
+            self.end_headers()
 
 ### MAIN PROGRAM ###
 
@@ -363,9 +368,7 @@ SIGFOX_EP_SERVER_write_software_version()
 # Init downlink messages file.
 SIGFOX_EP_SERVER_init_downlink_messages_file()
 # Start server.
-SocketServer.TCPServer.allow_reuse_address = True
-sigfox_ep_server_handler = ServerHandler
-sigfox_ep_server = SocketServer.TCPServer(("", SIGFOX_EP_SERVER_HTTP_PORT), sigfox_ep_server_handler)
+sigfox_ep_server = HTTPServer(("", SIGFOX_EP_SERVER_HTTP_PORT), SigfoxEpServer)
 sigfox_ep_server.timeout = 10
 LOG_print("")
 LOG_print("[SIGFOX EP SERVER] * Starting server at port " + str(SIGFOX_EP_SERVER_HTTP_PORT))

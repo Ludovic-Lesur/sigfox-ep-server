@@ -5,7 +5,7 @@ After=multi-user.target
 [Service]
 Type=simple
 User=ludo
-ExecStart=/usr/bin/python /home/ludo/git/sigfox-ep-server/sigfox_ep_server.py
+ExecStart=/usr/bin/python3 /home/ludo/git/sigfox-ep-server/sigfox_ep_server.py
 
 [Install]
 WantedBy=multi-user.target

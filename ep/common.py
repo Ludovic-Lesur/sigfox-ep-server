@@ -54,7 +54,7 @@ def COMMON_create_json_startup_data(timestamp, ul_payload) :
     version_dirty_flag = int(ul_payload[15:16], 16)
     version = "sw" + str(version_major) + "." + str(version_minor) + "." + str(version_commit_index)
     if (version_dirty_flag != 0) :
-        version = version + ".d"
+        version = version + ".dev"
     # Create JSON object.
     json_body = [
     {

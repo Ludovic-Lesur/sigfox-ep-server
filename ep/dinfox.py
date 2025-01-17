@@ -298,7 +298,7 @@ def DINFOX_parse_ul_payload(timestamp, sigfox_ep_id, ul_payload) :
             LOG_print("[DINFOX] * Startup data * system=" + system_name + " node=" + node_name + " " + log_data)
     # Common error stack frame for all nodes.
     elif (node_ul_payload_size == (2 * __DINFOX_COMMON_UL_PAYLOAD_ERROR_STACK_SIZE)):
-        result = COMMON_create_json_error_stack_data(timestamp, node_ul_payload, (__DINFOX_COMMON_UL_PAYLOAD_ERROR_STACK_SIZE / 2))
+        result = COMMON_create_json_error_stack_data(timestamp, node_ul_payload, (__DINFOX_COMMON_UL_PAYLOAD_ERROR_STACK_SIZE // 2))
         json_ul_data = result[0]
         log_data = result[1]
         LOG_print("[DINFOX] * Error stack data * system=" + system_name + " node=" + node_name + " " + log_data)

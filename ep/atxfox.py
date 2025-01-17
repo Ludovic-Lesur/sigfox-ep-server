@@ -67,7 +67,7 @@ def ATXFOX_parse_ul_payload(timestamp, sigfox_ep_id, ul_payload):
     # Error stack frame.
     elif (len(ul_payload) == (2 * __ATXFOX_UL_PAYLOAD_ERROR_STACK_SIZE)) :
         # Create JSON object.
-        result = COMMON_create_json_error_stack_data(timestamp, ul_payload, (__ATXFOX_UL_PAYLOAD_ERROR_STACK_SIZE / 2))
+        result = COMMON_create_json_error_stack_data(timestamp, ul_payload, (__ATXFOX_UL_PAYLOAD_ERROR_STACK_SIZE // 2))
         json_ul_data = result[0]
         log_data = result[1]
         LOG_print("[ATXFOX] * Error stack * rack=" + __ATXFOX_get_rack(sigfox_ep_id) + " psfe=" + __ATXFOX_get_psfe(sigfox_ep_id) + " " + log_data)

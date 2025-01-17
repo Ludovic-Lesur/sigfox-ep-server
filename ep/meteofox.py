@@ -105,7 +105,8 @@ def METEOFOX_parse_ul_payload(timestamp, sigfox_ep_id, ul_payload) :
     # Error stack frame.
     elif (len(ul_payload) == (2 * __METEOFOX_UL_PAYLOAD_ERROR_STACK_SIZE)) :
         # Create JSON object.
-        result = COMMON_create_json_error_stack_data(timestamp, ul_payload, (__METEOFOX_UL_PAYLOAD_ERROR_STACK_SIZE / 2))
+        LOG_print("[METEOFOX] * Error stack START")
+        result = COMMON_create_json_error_stack_data(timestamp, ul_payload, (__METEOFOX_UL_PAYLOAD_ERROR_STACK_SIZE // 2))
         json_ul_data = result[0]
         log_data = result[1]
         LOG_print("[METEOFOX] * Error stack * site=" + __METEOFOX_get_site(sigfox_ep_id) + " " + log_data)

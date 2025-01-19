@@ -9,6 +9,7 @@ from datetime import date
 
 # DINFox tags.
 __DINFOX_SYSTEM = ["Test_bench", "Prat_Albis", "Solar_rack", "Mains_rack", "Linky rack"]
+__DINFOX_NODE_NAME = ["LVRM", "BPSM", "DDRM", "UHFM", "GPSM", "SM", "DIM", "RRM", "DMM", "MPMCM", "R4S8CR"]
 __DINFOX_UNKNOWN_NAME = "Unknown"
 
 # Board ID definition.
@@ -23,29 +24,7 @@ __DINFOX_BOARD_ID_RRM = 7
 __DINFOX_BOARD_ID_DMM = 8
 __DINFOX_BOARD_ID_MPMCM = 9
 __DINFOX_BOARD_ID_R4S8CR = 10
-
-__DINFOX_NODE_ADDRESS_RANGE_LVRM = 8
-__DINFOX_NODE_ADDRESS_RANGE_DDRM = 8
-__DINFOX_NODE_ADDRESS_RANGE_RRM = 8
-__DINFOX_NODE_ADDRESS_RANGE_R4S8CR = 15
-
-__DINFOX_NODE_ADDRESS_DMM = 0x00
-__DINFOX_NODE_ADDRESS_DIM = 0x01
-__DINFOX_NODE_ADDRESS_BPSM = 0x02
-__DINFOX_NODE_ADDRESS_UHFM = 0x03
-__DINFOX_NODE_ADDRESS_GPSM = 0x04
-__DINFOX_NODE_ADDRESS_SM = 0x05
-__DINFOX_NODE_ADDRESS_MPMCM = 0x06
-__DINFOX_NODE_ADDRESS_LVRM_START = 0x20
-__DINFOX_NODE_ADDRESS_LVRM_END = (__DINFOX_NODE_ADDRESS_LVRM_START + __DINFOX_NODE_ADDRESS_RANGE_LVRM - 1)
-__DINFOX_NODE_ADDRESS_DDRM_START = 0x28
-__DINFOX_NODE_ADDRESS_DDRM_END = (__DINFOX_NODE_ADDRESS_DDRM_START + __DINFOX_NODE_ADDRESS_RANGE_DDRM - 1)
-__DINFOX_NODE_ADDRESS_RRM_START = 0x30
-__DINFOX_NODE_ADDRESS_RRM_END = (__DINFOX_NODE_ADDRESS_RRM_START + __DINFOX_NODE_ADDRESS_RANGE_RRM - 1)
-__DINFOX_NODE_ADDRESS_R4S8CR_START = 0x70
-__DINFOX_NODE_ADDRESS_R4S8CR_END = (__DINFOX_NODE_ADDRESS_R4S8CR_START + __DINFOX_NODE_ADDRESS_RANGE_R4S8CR - 1)
-__DINFOX_NODE_ADDRESS_LAST = 0x7F
-__DINFOX_NODE_ADDRESS_ERROR = 0xFF
+__DINFOX_BOARD_ID_LAST = 11
 
 # UL payloads structure.
 __DINFOX_UL_PAYLOAD_HEADER_SIZE = 2
@@ -183,42 +162,19 @@ def __DINFOX_get_system(sigfox_ep_id) :
         system_name = __DINFOX_SYSTEM[DINFOX_EP_ID_LIST.index(sigfox_ep_id)]
     return system_name
 
-# Function performing Sigfox ID and node address to node name conversion.
-def __DINFOX_get_node(sigfox_ep_id, node_address) :
+# Function performing board ID to node name conversion.
+def __DINFOX_get_node_name(board_id) :
     # Default is unknown.
     node_name = __DINFOX_UNKNOWN_NAME
-    system_name = __DINFOX_get_system(sigfox_ep_id)
-    # Check if system was found.
-    if (system_name != __DINFOX_UNKNOWN_NAME) :
-        # Build node name according to address.
-        if (node_address == __DINFOX_NODE_ADDRESS_DMM) :
-            node_name = "DMM"
-        elif (node_address == __DINFOX_NODE_ADDRESS_DIM) :
-            node_name = "DIM"
-        elif (node_address == __DINFOX_NODE_ADDRESS_BPSM) :
-            node_name = "BPSM"
-        elif (node_address == __DINFOX_NODE_ADDRESS_UHFM) :
-            node_name = "UHFM"
-        elif (node_address == __DINFOX_NODE_ADDRESS_GPSM) :
-            node_name = "GPSM"
-        elif (node_address == __DINFOX_NODE_ADDRESS_SM) :
-            node_name = "SM"
-        elif (node_address == __DINFOX_NODE_ADDRESS_MPMCM) :
-            node_name = "MPMCM"
-        elif ((node_address >= __DINFOX_NODE_ADDRESS_LVRM_START) and (node_address <= __DINFOX_NODE_ADDRESS_LVRM_END)) :
-            node_name = "LVRM_" + str(node_address - __DINFOX_NODE_ADDRESS_LVRM_START)
-        elif ((node_address >= __DINFOX_NODE_ADDRESS_DDRM_START) and (node_address <= __DINFOX_NODE_ADDRESS_DDRM_END)) :
-            node_name = "DDRM_" + str(node_address - __DINFOX_NODE_ADDRESS_DDRM_START)
-        elif ((node_address >= __DINFOX_NODE_ADDRESS_RRM_START) and (node_address <= __DINFOX_NODE_ADDRESS_RRM_END)) :
-            node_name = "RRM_" + str(node_address - __DINFOX_NODE_ADDRESS_RRM_START)
-        elif ((node_address >= __DINFOX_NODE_ADDRESS_R4S8CR_START) and (node_address <= __DINFOX_NODE_ADDRESS_R4S8CR_END)) :
-            node_name = "R4S8CR_" + str(node_address - __DINFOX_NODE_ADDRESS_R4S8CR_START)
+    # Check board ID.
+    if (board_id < __DINFOX_BOARD_ID_LAST) :
+        node_name = __DINFOX_NODE_NAME[board_id]
     return node_name
 
 # Function adding the specific DinFox tags.
 def __DINFOX_add_ul_tags(json_ul_data, sigfox_ep_id, node_address, board_id, mpmcm_channel_index) :
     # Get tags.
-    node_name = __DINFOX_get_node(sigfox_ep_id, node_address)
+    node_name = __DINFOX_get_node_name(board_id)
     for idx in range(len(json_ul_data)) :
         if ("tags" in json_ul_data[idx]) :
             json_ul_data[idx]["tags"][INFLUX_DB_TAG_NODE_ADDRESS] = node_address
@@ -260,7 +216,7 @@ def DINFOX_parse_ul_payload(timestamp, sigfox_ep_id, ul_payload) :
     board_id = int(ul_payload[2:4], 16)
     # Get system and node names for log print.
     system_name = __DINFOX_get_system(sigfox_ep_id)
-    node_name = __DINFOX_get_node(sigfox_ep_id, node_address)
+    node_name = __DINFOX_get_node_name(board_id)
     # Extract node payload.
     node_ul_payload = ul_payload[(2 * __DINFOX_UL_PAYLOAD_HEADER_SIZE):]
     node_ul_payload_size = len(ul_payload) - (2 * __DINFOX_UL_PAYLOAD_HEADER_SIZE)

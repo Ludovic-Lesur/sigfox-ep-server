@@ -8,7 +8,7 @@ from datetime import date
 ### LOCAL MACROS ###
 
 # DINFox tags.
-__DINFOX_SYSTEM = ["Test_bench", "Prat_Albis", "Solar_rack", "Mains_rack", "Linky rack"]
+__DINFOX_SYSTEM = ["Test_bench", "Prat_Albis", "Solar_rack", "Mains_rack", "Linky_rack"]
 __DINFOX_NODE_NAME = ["LVRM", "BPSM", "DDRM", "UHFM", "GPSM", "SM", "DIM", "RRM", "DMM", "MPMCM", "R4S8CR"]
 __DINFOX_UNKNOWN_NAME = "Unknown"
 

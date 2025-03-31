@@ -58,7 +58,7 @@ ATXFOX_TEST_REQUEST = [
     # ATXFox invalid data.
     [SIGFOX_CALLBACK_TYPE_DATA_BIDIR, "1666374203", "868e", "203", "31", JSON_FALSE],
     # ATXFox monitoring data without error.
-    [SIGFOX_CALLBACK_TYPE_DATA_BIDIR, "1666374204", "868e", "204", "2fa302063bad0d5f1d", JSON_FALSE], 
+    [SIGFOX_CALLBACK_TYPE_DATA_BIDIR, "1666374204", "868e", "204", "2fa302063bad0d5f1d", JSON_FALSE],
     # ATXFox monitoring data with error.
     [SIGFOX_CALLBACK_TYPE_DATA_BIDIR, "1666374205", "868e", "205", "0d9903ffffff0d611e", JSON_FALSE],
     # ATXFox error stack data.
@@ -156,40 +156,40 @@ def TEST_make(log_message, request_table):
     # Local variables.
     json_from_backend = []
     print(log_message)
-    for idx in range(len(request_table)) :
+    for idx in range(len(request_table)):
         # Check callback type.
         callback_type = request_table[idx][0]
-        if (callback_type == SIGFOX_CALLBACK_TYPE_DATA_BIDIR) :
+        if (callback_type == SIGFOX_CALLBACK_TYPE_DATA_BIDIR):
             # Create JSON body.
             json_from_backend = {
-                SIGFOX_CALLBACK_JSON_HEADER_TYPE : request_table[idx][0],
-                SIGFOX_CALLBACK_JSON_HEADER_TIME : request_table[idx][1],
-                SIGFOX_CALLBACK_JSON_HEADER_EP_ID : request_table[idx][2],
-                SIGFOX_CALLBACK_JSON_HEADER_MESSAGE_COUNTER : request_table[idx][3],
-                SIGFOX_CALLBACK_JSON_HEADER_UL_PAYLOAD : request_table[idx][4],
-                SIGFOX_CALLBACK_JSON_HEADER_BIDIRECTIONAL_FLAG : request_table[idx][5]
+                SIGFOX_CALLBACK_JSON_HEADER_TYPE: request_table[idx][0],
+                SIGFOX_CALLBACK_JSON_HEADER_TIME: request_table[idx][1],
+                SIGFOX_CALLBACK_JSON_HEADER_EP_ID: request_table[idx][2],
+                SIGFOX_CALLBACK_JSON_HEADER_MESSAGE_COUNTER: request_table[idx][3],
+                SIGFOX_CALLBACK_JSON_HEADER_UL_PAYLOAD: request_table[idx][4],
+                SIGFOX_CALLBACK_JSON_HEADER_BIDIRECTIONAL_FLAG: request_table[idx][5]
             }
-        elif (callback_type == SIGFOX_CALLBACK_TYPE_SERVICE_ACKNOWLEDGE) :
+        elif (callback_type == SIGFOX_CALLBACK_TYPE_SERVICE_ACKNOWLEDGE):
             # Create JSON body.
             json_from_backend = {
-                SIGFOX_CALLBACK_JSON_HEADER_TYPE : request_table[idx][0],
-                SIGFOX_CALLBACK_JSON_HEADER_TIME : request_table[idx][1],
-                SIGFOX_CALLBACK_JSON_HEADER_EP_ID : request_table[idx][2],
-                SIGFOX_CALLBACK_JSON_HEADER_DL_PAYLOAD : request_table[idx][3],
-                SIGFOX_CALLBACK_JSON_HEADER_DL_SUCCESS : request_table[idx][4],
-                SIGFOX_CALLBACK_JSON_HEADER_DL_STATUS : request_table[idx][5]
+                SIGFOX_CALLBACK_JSON_HEADER_TYPE: request_table[idx][0],
+                SIGFOX_CALLBACK_JSON_HEADER_TIME: request_table[idx][1],
+                SIGFOX_CALLBACK_JSON_HEADER_EP_ID: request_table[idx][2],
+                SIGFOX_CALLBACK_JSON_HEADER_DL_PAYLOAD: request_table[idx][3],
+                SIGFOX_CALLBACK_JSON_HEADER_DL_SUCCESS: request_table[idx][4],
+                SIGFOX_CALLBACK_JSON_HEADER_DL_STATUS: request_table[idx][5]
             }
-        elif (callback_type == SIGFOX_CALLBACK_TYPE_SERVICE_STATUS) :
+        elif (callback_type == SIGFOX_CALLBACK_TYPE_SERVICE_STATUS):
             # Create JSON body.
             json_from_backend = {
-                SIGFOX_CALLBACK_JSON_HEADER_TYPE : request_table[idx][0],
-                SIGFOX_CALLBACK_JSON_HEADER_TIME : request_table[idx][1],
-                SIGFOX_CALLBACK_JSON_HEADER_EP_ID : request_table[idx][2],
+                SIGFOX_CALLBACK_JSON_HEADER_TYPE: request_table[idx][0],
+                SIGFOX_CALLBACK_JSON_HEADER_TIME: request_table[idx][1],
+                SIGFOX_CALLBACK_JSON_HEADER_EP_ID: request_table[idx][2],
             }
-        response = requests.post(SIGFOX_EP_SERVER_ADDRESS, json=json_from_backend)
+        response = requests.post(SIGFOX_EP_SERVER_ADDRESS, json = json_from_backend)
         print("Sending request " + str(idx) + response.text)
         time.sleep(SIGFOX_EP_SERVER_REQUEST_DELAY_SECONDS)
-        
+
 ### MAIN PROGRAM ###
 
 TEST_make("METEOFOX requests test", METEOFOX_TEST_REQUEST)

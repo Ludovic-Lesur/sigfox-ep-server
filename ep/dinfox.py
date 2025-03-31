@@ -9,7 +9,7 @@ from datetime import date
 
 # DINFox tags.
 __DINFOX_SYSTEM = ["Test_bench", "Prat_Albis", "Solar_rack", "Mains_rack", "Linky_rack"]
-__DINFOX_NODE_NAME = ["LVRM", "BPSM", "DDRM", "UHFM", "GPSM", "SM", "DIM", "RRM", "DMM", "MPMCM", "R4S8CR"]
+__DINFOX_NODE_NAME = ["LVRM", "BPSM", "DDRM", "UHFM", "GPSM", "SM", "DIM", "RRM", "DMM", "MPMCM", "R4S8CR", "BCM"]
 __DINFOX_UNKNOWN_NAME = "Unknown"
 
 # Board ID definition.
@@ -24,7 +24,8 @@ __DINFOX_BOARD_ID_RRM = 7
 __DINFOX_BOARD_ID_DMM = 8
 __DINFOX_BOARD_ID_MPMCM = 9
 __DINFOX_BOARD_ID_R4S8CR = 10
-__DINFOX_BOARD_ID_LAST = 11
+__DINFOX_BOARD_ID_BCM = 11
+__DINFOX_BOARD_ID_LAST = 12
 
 # UL payloads structure.
 __DINFOX_UL_PAYLOAD_HEADER_SIZE = 2
@@ -56,6 +57,9 @@ __DINFOX_MPMCM_UL_PAYLOAD_SIZE_MAINS_VOLTAGE = 7
 __DINFOX_MPMCM_UL_PAYLOAD_SIZE_MAINS_POWER = 9
 
 __DINFOX_R4S8CR_UL_PAYLOAD_ELECTRICAL_SIZE = 2
+
+__DINFOX_BCM_UL_PAYLOAD_MONITORING_SIZE = 3
+__DINFOX_BCM_UL_PAYLOAD_ELECTRICAL_SIZE = 9
 
 __DINFOX_COMMON_UL_PAYLOAD_ERROR_STACK_SIZE = 10
 
@@ -916,6 +920,79 @@ def DINFOX_parse_ul_payload(timestamp, sigfox_ep_id, ul_payload) :
                           " relay_5=" + str(r5stst) + " relay_6=" + str(r6stst) + " relay_7=" + str(r7stst) + " relay_8=" + str(r8stst))
             else:
                 LOG_print("[DINFOX R4S8CR] * system=" + system_name + " node=" + node_name + " * Invalid UL payload")
+        # BCM.
+        elif (board_id == __DINFOX_BOARD_ID_BCM):
+            # Monitoring frame.
+            if (node_ul_payload_size == (2 * __DINFOX_BCM_UL_PAYLOAD_MONITORING_SIZE)) :
+                vmcu_mv = __DINFOX_get_mv(int(node_ul_payload[0:4], 16)) if (int(node_ul_payload[0:4], 16) != COMMON_ERROR_VALUE_VOLTAGE) else COMMON_ERROR_DATA
+                tmcu_degrees = __DINFOX_get_degrees(int(node_ul_payload[4:6], 16)) if (int(node_ul_payload[4:6], 16) != COMMON_ERROR_VALUE_TEMPERATURE) else COMMON_ERROR_DATA
+                # Create JSON object.
+                json_ul_data = [
+                {
+                    "measurement": INFLUX_DB_MEASUREMENT_MONITORING,
+                    "time": timestamp,
+                    "fields": {
+                        INFLUX_DB_FIELD_TIME_LAST_MONITORING_DATA : timestamp
+                    },
+                },
+                {
+                    "measurement": INFLUX_DB_MEASUREMENT_METADATA,
+                    "time": timestamp,
+                    "fields": {
+                        INFLUX_DB_FIELD_TIME_LAST_COMMUNICATION : timestamp
+                    },
+                }]
+                # Add valid fields to JSON.
+                if (vmcu_mv != COMMON_ERROR_DATA) :
+                    json_ul_data[0]["fields"][INFLUX_DB_FIELD_VMCU] = vmcu_mv
+                if (tmcu_degrees != COMMON_ERROR_DATA) :
+                    json_ul_data[0]["fields"][INFLUX_DB_FIELD_TMCU] = tmcu_degrees
+                LOG_print("[DINFOX BCM] * Monitoring payload * system=" + system_name + " node=" + node_name +
+                          " vmcu=" + str(vmcu_mv) + "mV tmcu=" + str(tmcu_degrees) + "dC ")
+            # Electrical frame.
+            elif (node_ul_payload_size == (2 * __DINFOX_BCM_UL_PAYLOAD_ELECTRICAL_SIZE)) :
+                vsrc_mv = __DINFOX_get_mv(int(node_ul_payload[0:4], 16))  if (int(node_ul_payload[0:4], 16)  != COMMON_ERROR_VALUE_VOLTAGE) else COMMON_ERROR_DATA
+                vstr_mv = __DINFOX_get_mv(int(node_ul_payload[4:8], 16))  if (int(node_ul_payload[4:8], 16)  != COMMON_ERROR_VALUE_VOLTAGE) else COMMON_ERROR_DATA
+                istr_ua = __DINFOX_get_ua(int(node_ul_payload[8:12], 16)) if (int(node_ul_payload[8:12], 16) != COMMON_ERROR_VALUE_CURRENT) else COMMON_ERROR_DATA
+                vbkp_mv = __DINFOX_get_mv(int(node_ul_payload[12:16], 16)) if (int(node_ul_payload[12:16], 16) != COMMON_ERROR_VALUE_VOLTAGE) else COMMON_ERROR_DATA
+                chrgst1 = (int(node_ul_payload[16:18], 16) >> 6) & 0x03
+                chrgst0 = (int(node_ul_payload[16:18], 16) >> 4) & 0x03
+                chenst = (int(node_ul_payload[16:18], 16) >> 2) & 0x03
+                bkenst = (int(node_ul_payload[16:18], 16) >> 0) & 0x03
+                # Create JSON object.
+                json_ul_data = [
+                {
+                    "measurement": INFLUX_DB_MEASUREMENT_ELECTRICAL,
+                    "time": timestamp,
+                    "fields": {
+                        INFLUX_DB_FIELD_TIME_LAST_ELECTRICAL_DATA : timestamp,
+                        INFLUX_DB_FIELD_CHARGE_STATUS_1 : chrgst1,
+                        INFLUX_DB_FIELD_CHARGE_STATUS_0 : chrgst0,
+                        INFLUX_DB_FIELD_CHARGE_ENABLE : chenst,
+                        INFLUX_DB_FIELD_BACKUP_ENABLE : bkenst
+                    },
+                },
+                {
+                    "measurement": INFLUX_DB_MEASUREMENT_METADATA,
+                    "time": timestamp,
+                    "fields": {
+                        INFLUX_DB_FIELD_TIME_LAST_COMMUNICATION : timestamp
+                    },
+                }]
+                # Add valid fields to JSON.
+                if (vsrc_mv != COMMON_ERROR_DATA) :
+                    json_ul_data[0]["fields"][INFLUX_DB_FIELD_VSRC] = vsrc_mv
+                if (vstr_mv != COMMON_ERROR_DATA) :
+                    json_ul_data[0]["fields"][INFLUX_DB_FIELD_VSTR] = vstr_mv
+                if (istr_ua != COMMON_ERROR_DATA) :
+                    json_ul_data[0]["fields"][INFLUX_DB_FIELD_ISTR] = istr_ua
+                if (vbkp_mv != COMMON_ERROR_DATA) :
+                    json_ul_data[0]["fields"][INFLUX_DB_FIELD_VBKP] = vbkp_mv
+                LOG_print("[DINFOX BCM] * Electrical payload * system=" + system_name + " node=" + node_name +
+                          " vsrc=" + str(vsrc_mv) + "mV vstr=" + str(vstr_mv) + "mV istr=" + str(istr_ua) + "uA vbkp=" + str(vbkp_mv) +
+                          "mV charge_status_1=" + str(chrgst1) + " charge_status_0=" + str(chrgst0) + " charge_enable=" + str(chenst) + " backup_enable=" + str(bkenst))
+            else:
+                LOG_print("[DINFOX BCM] * system=" + system_name + " node=" + node_name + " * Invalid UL payload")
         # Unknown board ID.
         else:
             LOG_print("[DINFOX] * system=" + system_name + " node=" + node_name + " * Unknown board ID")

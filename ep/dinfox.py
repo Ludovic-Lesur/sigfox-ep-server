@@ -63,6 +63,18 @@ __DINFOX_BCM_UL_PAYLOAD_ELECTRICAL_SIZE = 9
 
 __DINFOX_COMMON_UL_PAYLOAD_ERROR_STACK_SIZE = 10
 
+__DINFOX_UNA_BIT_0 = 0
+__DINFOX_UNA_BIT_1 = 1
+__DINFOX_UNA_BIT_HW = 2
+__DINFOX_UNA_BIT_ERROR = 3
+
+__DINFOX_BCM_CHRGST_NOT_CHARGING_TERMINATED = 0
+__DINFOX_BCM_CHRGST_CHARGING_CC = 1
+__DINFOX_BCM_CHRGST_CHARGING_CV = 2
+__DINFOX_BCM_CHRGST_FAULT = 3,
+__DINFOX_BCM_CHRGST_HW = 4,
+__DINFOX_BCM_CHRGST_ERROR = 5
+
 ### PUBLIC MACROS ###
 
 # TrackFox EP-IDs.
@@ -959,6 +971,23 @@ def DINFOX_parse_ul_payload(timestamp, sigfox_ep_id, ul_payload):
                 chrgst0 = (int(node_ul_payload[16:18], 16) >> 4) & 0x03
                 chenst = (int(node_ul_payload[16:18], 16) >> 2) & 0x03
                 bkenst = (int(node_ul_payload[16:18], 16) >> 0) & 0x03
+                # Create custom charge status field
+                chrgst = 0
+                if ((chrgst1 == __DINFOX_UNA_BIT_ERROR) or (chrgst0 == __DINFOX_UNA_BIT_ERROR)):
+                    chrgst = __DINFOX_BCM_CHRGST_ERROR
+                elif ((chrgst1 == __DINFOX_UNA_BIT_HW) or (chrgst0 == __DINFOX_UNA_BIT_HW)):
+                    chrgst = __DINFOX_BCM_CHRGST_HW
+                else:
+                    if (chrgst1 == __DINFOX_UNA_BIT_0):
+                        if (chrgst0 == __DINFOX_UNA_BIT_0):
+                            chrgst = __DINFOX_BCM_CHRGST_NOT_CHARGING_TERMINATED
+                        else:
+                            chrgst = __DINFOX_BCM_CHRGST_CHARGING_CC
+                    else:
+                        if (chrgst0 == __DINFOX_UNA_BIT_0):
+                            chrgst = __DINFOX_BCM_CHRGST_FAULT
+                        else:
+                            chrgst = __DINFOX_BCM_CHRGST_CHARGING_CV
                 # Create JSON object.
                 json_ul_data = [
                 {
@@ -968,6 +997,7 @@ def DINFOX_parse_ul_payload(timestamp, sigfox_ep_id, ul_payload):
                         INFLUX_DB_FIELD_TIME_LAST_ELECTRICAL_DATA: timestamp,
                         INFLUX_DB_FIELD_CHARGE_STATUS_1: chrgst1,
                         INFLUX_DB_FIELD_CHARGE_STATUS_0: chrgst0,
+                        INFLUX_DB_FIELD_CHARGE_STATUS: chrgst,
                         INFLUX_DB_FIELD_CHARGE_ENABLE: chenst,
                         INFLUX_DB_FIELD_BACKUP_ENABLE: bkenst
                     },
@@ -990,7 +1020,8 @@ def DINFOX_parse_ul_payload(timestamp, sigfox_ep_id, ul_payload):
                     json_ul_data[0]["fields"][INFLUX_DB_FIELD_VBKP] = vbkp_mv
                 LOG_print("[DINFOX BCM] * Electrical payload * system=" + system_name + " node=" + node_name +
                           " vsrc=" + str(vsrc_mv) + "mV vstr=" + str(vstr_mv) + "mV istr=" + str(istr_ua) + "uA vbkp=" + str(vbkp_mv) +
-                          "mV charge_status_1=" + str(chrgst1) + " charge_status_0=" + str(chrgst0) + " charge_enable=" + str(chenst) + " backup_enable=" + str(bkenst))
+                          "mV charge_status_1=" + str(chrgst1) + " charge_status_0=" + str(chrgst0) + " charge_status=" + str(chrgst) +
+                          " charge_enable=" + str(chenst) + " backup_enable=" + str(bkenst))
             else:
                 LOG_print("[DINFOX BCM] * system=" + system_name + " node=" + node_name + " * Invalid UL payload")
         # Unknown board ID.

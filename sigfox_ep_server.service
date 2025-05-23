@@ -6,6 +6,8 @@ After=multi-user.target
 Type=simple
 User=ludo
 ExecStart=/usr/bin/python3 /home/ludo/git/sigfox-ep-server/sigfox_ep_server.py
+Restart=always
+RuntimeMaxSec=3600
 
 [Install]
 WantedBy=multi-user.target

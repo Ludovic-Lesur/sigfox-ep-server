@@ -61,7 +61,7 @@ sudo grafana-cli plugins install fatcloud-windrose-panel
 ### Images
 
 ```bash
-sudo mv image.jpg /usr/share/grafana/public/img/
+sudo cp ./grafana/images/x.png /usr/share/grafana/public/img/
 ```
 
 ## Python libraries

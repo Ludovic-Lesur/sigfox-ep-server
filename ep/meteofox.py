@@ -277,4 +277,6 @@ def METEOFOX_parse_ul_payload(timestamp, sigfox_ep_id, ul_payload):
 def METEOFOX_get_default_dl_payload(sigfox_ep_id):
     # Local variables.
     dl_payload = []
+    if (sigfox_ep_id in METEOFOX_EP_ID_LIST):
+        dl_payload = "0000000000000000"
     return dl_payload

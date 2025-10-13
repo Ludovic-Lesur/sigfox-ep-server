@@ -7,7 +7,7 @@ from ep.common import *
 ### LOCAL MACROS ###
 
 # TrackFox tags.
-__TRACKFOX_ASSET = ["Car", "Bike", "Hiking", "Hiking_spare", "Proto_HW1.1"]
+__TRACKFOX_ASSET = ["Proto_HW1.1", "Bike", "Hiking", "Hiking_spare", "Car"]
 # Sigfox frames length.
 __TRACKFOX_UL_PAYLOAD_MONITORING_SIZE = 7
 __TRACKFOX_UL_PAYLOAD_ERROR_STACK_SIZE = 12

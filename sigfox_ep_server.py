@@ -7,6 +7,7 @@ from log import *
 from ep.atxfox import *
 from ep.common import *
 from ep.dinfox import *
+from ep.homefox import *
 from ep.meteofox import *
 from ep.sensit import *
 from ep.trackfox import *
@@ -105,6 +106,11 @@ def SIGFOX_EP_SERVER_set_database_pointers(sigfox_ep_id):
         SIGFOX_EP_SERVER_add_ep_tag = DINFOX_add_ep_tag
         SIGFOX_EP_SERVER_parse_ul_payload = DINFOX_parse_ul_payload
         SIGFOX_EP_SERVER_get_default_dl_payload = DINFOX_get_default_dl_payload
+    elif (sigfox_ep_id in HOMEFOX_EP_ID_LIST):
+        sigfox_ep_server_database_name = INFLUX_DB_DATABASE_HOMEFOX
+        SIGFOX_EP_SERVER_add_ep_tag = HOMEFOX_add_ep_tag
+        SIGFOX_EP_SERVER_parse_ul_payload = HOMEFOX_parse_ul_payload
+        SIGFOX_EP_SERVER_get_default_dl_payload = HOMEFOX_get_default_dl_payload
     # MeteoFox.
     elif (sigfox_ep_id in METEOFOX_EP_ID_LIST):
         sigfox_ep_server_database_name = INFLUX_DB_DATABASE_METEOFOX

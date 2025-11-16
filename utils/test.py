@@ -151,6 +151,19 @@ DINFOX_TEST_REQUEST = [
     [SIGFOX_CALLBACK_TYPE_DATA_BIDIR, "1666374429", "47ea", "429", "070b051232ba19b8137d0a", JSON_FALSE]
 ]
 
+HOMEFOX_TEST_REQUEST = [
+    # HomeFox startup data.
+    [SIGFOX_CALLBACK_TYPE_DATA_BIDIR, "1666374430", "1230", "500", "140008027f1dfa90", JSON_FALSE],
+    # HomeFox monitoring data.
+    [SIGFOX_CALLBACK_TYPE_DATA_BIDIR, "1666374431", "1230", "501", "0f9700cd407d", JSON_FALSE],
+    # HomeFox air quality data.
+    [SIGFOX_CALLBACK_TYPE_DATA_BIDIR, "1666374432", "1230", "502", "4c002101a41fff", JSON_FALSE],
+    # HomeFox motion data.
+    [SIGFOX_CALLBACK_TYPE_DATA_BIDIR, "1666374433", "1230", "503", "a0", JSON_FALSE],
+    # HomeFox error stack data.
+    [SIGFOX_CALLBACK_TYPE_DATA_BIDIR, "1666374434", "1230", "504", "371700000000000000000000", JSON_FALSE],
+]
+
 # Function to send a test requests list.
 def TEST_make(log_message, request_table):
     # Local variables.
@@ -197,3 +210,4 @@ TEST_make("SENSIT requests test", SENSIT_TEST_REQUEST)
 TEST_make("ATXFOX requests test", ATXFOX_TEST_REQUEST)
 TEST_make("TRACKFOX requests test", TRACKFOX_TEST_REQUEST)
 TEST_make("DINFOX requests test", DINFOX_TEST_REQUEST)
+TEST_make("HOMEFOX requests test", HOMEFOX_TEST_REQUEST)

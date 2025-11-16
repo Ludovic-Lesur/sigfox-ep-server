@@ -22,6 +22,7 @@ COMMON_ERROR_VALUE_ANALOG_23BITS = 0x7FFFFF
 COMMON_ERROR_VALUE_ANALOG_24BITS = 0xFFFFFF
 COMMON_ERROR_VALUE_LIGHT = 0xFF
 COMMON_ERROR_VALUE_TEMPERATURE = 0x7F
+COMMON_ERROR_VALUE_TEMPERATURE_TENTH = 0x7FF
 COMMON_ERROR_VALUE_HUMIDITY = 0xFF
 COMMON_ERROR_VALUE_UV_INDEX = 0xFF
 COMMON_ERROR_VALUE_PRESSURE = 0xFFFF
@@ -33,12 +34,17 @@ COMMON_ERROR_VALUE_ELECTRICAL_POWER = 0x7FFF
 COMMON_ERROR_VALUE_ELECTRICAL_ENERGY = 0x7FFF
 COMMON_ERROR_VALUE_POWER_FACTOR = 0x7F
 COMMON_ERROR_VALUE_FREQUENCY_16BITS = 0xFFFF
+COMMON_ERROR_VALUE_TVOC = 0xFFFF
+COMMON_ERROR_VALUE_ECO2 = 0xFFFF
+COMMON_ERROR_VALUE_AQI_UBA = 0xF
+COMMON_ERROR_VALUE_AQI_S = 0xFFF
 
 ### PUBLIC FUNCTIONS ###
 
 # Function which computes the real value of a one complement number.
 def COMMON_one_complement_to_value(one_complement_data, sign_bit_position):
-    value = (one_complement_data & 0x7F);
+    mask = ((1 << sign_bit_position) - 1)
+    value = (one_complement_data & mask);
     if ((one_complement_data & (1 << sign_bit_position)) != 0):
         value = (-1) * value
     return value

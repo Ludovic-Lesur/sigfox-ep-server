@@ -8,7 +8,8 @@ from ep.common import *
 ### LOCAL MACROS ###
 
 # HomeFox tags.
-__HOMEFOX_SITE = ["Proto_HW2.0"]
+__HOMEFOX_SITE = ["Proto_HW1.0", "Proto_HW2.0"]
+__HOMEFOX_LOCATION = ["Proto_HW1.0", "Proto_HW2.0"]
 # Sigfox frame lengths.
 __HOMEFOX_UL_PAYLOAD_SIZE_MONITORING = 6
 __HOMEFOX_UL_PAYLOAD_SIZE_ERROR_STACK = 12
@@ -18,7 +19,7 @@ __HOMEFOX_UL_PAYLOAD_SIZE_ACCELEROMETER = 1
 ### PUBLIC MACROS ###
 
 # HomeFox EP-IDs.
-HOMEFOX_EP_ID_LIST = ["1230"]
+HOMEFOX_EP_ID_LIST = ["1230", "1331"]
 
 ### LOCAL FUNCTIONS ###
 
@@ -30,6 +31,14 @@ def __HOMEFOX_get_site(sigfox_ep_id):
         site = __HOMEFOX_SITE[HOMEFOX_EP_ID_LIST.index(sigfox_ep_id)]
     return site
 
+# Function performing Sigfox ID to HomeFox location conversion.
+def __HOMEFOX_get_location(sigfox_ep_id):
+    # Default is unknown.
+    location = "unknown"
+    if (sigfox_ep_id in HOMEFOX_EP_ID_LIST):
+        location = __HOMEFOX_LOCATION[HOMEFOX_EP_ID_LIST.index(sigfox_ep_id)]
+    return location
+
 ### PUBLIC FUNCTIONS ###
 
 # Function adding the specific HomeFox tags.
@@ -38,10 +47,12 @@ def HOMEFOX_add_ep_tag(json_ul_data, sigfox_ep_id):
         if ("tags" in json_ul_data[idx]):
             json_ul_data[idx]["tags"][INFLUX_DB_TAG_SIGFOX_EP_ID] = sigfox_ep_id
             json_ul_data[idx]["tags"][INFLUX_DB_TAG_SITE] = __HOMEFOX_get_site(sigfox_ep_id)
+            json_ul_data[idx]["tags"][INFLUX_DB_TAG_LOCATION] = __HOMEFOX_get_location(sigfox_ep_id)
         else:
             json_ul_data[idx]["tags"] = {
                 INFLUX_DB_TAG_SIGFOX_EP_ID: sigfox_ep_id,
-                INFLUX_DB_TAG_SITE: __HOMEFOX_get_site(sigfox_ep_id)
+                INFLUX_DB_TAG_SITE: __HOMEFOX_get_site(sigfox_ep_id),
+                INFLUX_DB_TAG_LOCATION: __HOMEFOX_get_location(sigfox_ep_id)
             }
 
 # Function for parsing HomeFox device payload and fill database.

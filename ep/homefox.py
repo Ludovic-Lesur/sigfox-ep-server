@@ -8,8 +8,8 @@ from ep.common import *
 ### LOCAL MACROS ###
 
 # HomeFox tags.
-__HOMEFOX_SITE = ["Proto_HW1.0", "Proto_HW2.0"]
-__HOMEFOX_LOCATION = ["Proto_HW1.0", "Proto_HW2.0"]
+__HOMEFOX_SITE = ["Proto_HW2.0", "Escalquens", "Escalquens", "Escalquens", "Escalquens", "Escalquens"]
+__HOMEFOX_LOCATION = ["Proto_HW2.0", "Living_room", "Bed_room", "Store_room", "Bath_room", "Main_door"]
 # Sigfox frame lengths.
 __HOMEFOX_UL_PAYLOAD_SIZE_MONITORING = 6
 __HOMEFOX_UL_PAYLOAD_SIZE_ERROR_STACK = 12
@@ -19,7 +19,7 @@ __HOMEFOX_UL_PAYLOAD_SIZE_ACCELEROMETER = 1
 ### PUBLIC MACROS ###
 
 # HomeFox EP-IDs.
-HOMEFOX_EP_ID_LIST = ["1230", "1331"]
+HOMEFOX_EP_ID_LIST = ["1230", "1331", "133F", "1389", "13ED", "147D"]
 
 ### LOCAL FUNCTIONS ###
 

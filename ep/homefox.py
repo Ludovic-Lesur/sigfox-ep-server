@@ -109,12 +109,16 @@ def HOMEFOX_parse_ul_payload(timestamp, sigfox_ep_id, ul_payload):
     # Air quality data frame.
     elif (len(ul_payload) == (2 * __HOMEFOX_UL_PAYLOAD_SIZE_AIR_QUALITY)):
         # Parse fields.
-        acquisition_duration_seconds = (((int(ul_payload[0:2], 16) >> 2) & 0x3F) * 10)
-        acquisition_status = ((int(ul_payload[0:2], 16) >> 0) & 0x03)
-        tvoc_ppb = int(ul_payload[2:6], 16) if (int(ul_payload[2:6], 16) != COMMON_ERROR_VALUE_TVOC) else COMMON_ERROR_DATA
-        eco2_ppm = int(ul_payload[6:10], 16) if (int(ul_payload[6:10], 16) != COMMON_ERROR_VALUE_ECO2) else COMMON_ERROR_DATA
-        aqi_uba = int(ul_payload[10:11], 16) if (int(ul_payload[10:11], 16) != COMMON_ERROR_VALUE_AQI_UBA) else COMMON_ERROR_DATA
-        aqi_s = int(ul_payload[11:14], 16) if (int(ul_payload[11:14], 16) != COMMON_ERROR_VALUE_AQI_S) else COMMON_ERROR_DATA
+        tvoc_ppb = int(ul_payload[0:4], 16) if (int(ul_payload[0:4], 16) != COMMON_ERROR_VALUE_TVOC) else COMMON_ERROR_DATA
+        eco2_ppm = int(ul_payload[4:8], 16) if (int(ul_payload[4:8], 16) != COMMON_ERROR_VALUE_ECO2) else COMMON_ERROR_DATA
+        aqi_uba_raw = ((int(ul_payload[8:10], 16) >> 5) & 0x07)
+        aqi_uba = aqi_uba_raw if (aqi_uba_raw != COMMON_ERROR_VALUE_AQI_UBA) else COMMON_ERROR_DATA
+        aqi_s_raw = ((int(ul_payload[8:10], 16) & 0x1F) << 5) + ((int(ul_payload[10:12], 16) >> 3) & 0x1F)
+        aqi_s = aqi_s_raw if (aqi_s_raw != COMMON_ERROR_VALUE_AQI_S) else COMMON_ERROR_DATA
+        acquisition_mode_raw = (int(ul_payload[10:12], 16) & 0x07)
+        acquisition_mode = acquisition_mode_raw if (acquisition_mode_raw != COMMON_ERROR_VALUE_ACQUISITION_MODE) else COMMON_ERROR_DATA
+        acquisition_status = ((int(ul_payload[12:14], 16) >> 6) & 0x03)
+        acquisition_duration_seconds = ((int(ul_payload[12:14], 16) & 0x3F) * 10)
         # Create JSON object.
         json_ul_data = [
         {
@@ -142,9 +146,12 @@ def HOMEFOX_parse_ul_payload(timestamp, sigfox_ep_id, ul_payload):
             json_ul_data[0]["fields"][INFLUX_DB_FIELD_AQI_UBA] = aqi_uba
         if (aqi_s != COMMON_ERROR_DATA):
             json_ul_data[0]["fields"][INFLUX_DB_FIELD_AQI_S] = aqi_s
+        if (acquisition_mode != COMMON_ERROR_DATA):
+            json_ul_data[0]["fields"][INFLUX_DB_FIELD_ACQUISITION_MODE] = acquisition_mode
         LOG_print("[HOMEFOX] * Air quality data * site=" + __HOMEFOX_get_site(sigfox_ep_id) +
-                  " acquisition_duration=" + str(acquisition_duration_seconds) + "s acquisition_status=" + str(acquisition_status) +
-                  " tvoc=" + str(tvoc_ppb) + "ppb eco2=" + str(eco2_ppm) + "ppm aqi_uba=" + str(aqi_uba) + " aqi_s=" + str(aqi_s))
+                  " tvoc=" + str(tvoc_ppb) + "ppb eco2=" + str(eco2_ppm) + "ppm aqi_uba=" + str(aqi_uba) + " aqi_s=" + str(aqi_s) +
+                  " acquisition_mode=" + str(acquisition_mode) + " acquisition_duration=" + str(acquisition_duration_seconds) +
+                  "s acquisition_status=" + str(acquisition_status))
     # Accelerometer event frame.
     elif (len(ul_payload) == (2 * __HOMEFOX_UL_PAYLOAD_SIZE_ACCELEROMETER)):
         accelerometer_event_source = int(ul_payload[0:2], 16)

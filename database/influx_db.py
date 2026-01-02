@@ -90,6 +90,7 @@ INFLUX_DB_FIELD_TPCB = "tpcb"
 INFLUX_DB_FIELD_HAMB = "hamb"
 INFLUX_DB_FIELD_HPCB = "hpcb"
 # Air quality.
+INFLUX_DB_FIELD_ACQUISITION_MODE = "air_quality_acquisition_mode"
 INFLUX_DB_FIELD_AIR_QUALITY_ACQUISITION_STATUS = "air_quality_acquisition_status"
 INFLUX_DB_FIELD_AIR_QUALITY_ACQUISITION_DURATION = "air_quality_acquisition_duration"
 INFLUX_DB_FIELD_TVOC = "tvoc"

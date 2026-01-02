@@ -157,7 +157,7 @@ HOMEFOX_TEST_REQUEST = [
     # HomeFox monitoring data.
     [SIGFOX_CALLBACK_TYPE_DATA_BIDIR, "1666374431", "1230", "501", "0f9700cd407d", JSON_FALSE],
     # HomeFox air quality data.
-    [SIGFOX_CALLBACK_TYPE_DATA_BIDIR, "1666374432", "1230", "502", "4c002101a41fff", JSON_FALSE],
+    [SIGFOX_CALLBACK_TYPE_DATA_BIDIR, "1666374432", "1230", "502", "002101a44a6b2a", JSON_FALSE],
     # HomeFox motion data.
     [SIGFOX_CALLBACK_TYPE_DATA_BIDIR, "1666374433", "1230", "503", "a0", JSON_FALSE],
     # HomeFox error stack data.

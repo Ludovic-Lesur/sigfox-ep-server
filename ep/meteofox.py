@@ -8,7 +8,7 @@ from ep.common import *
 ### LOCAL MACROS ###
 
 # MeteoFox tags.
-__METEOFOX_SITE = ["Proto_HW1.0", "Proto_HW2.0", "Le_Vigan", "Prat_Albis", "Eaunes", "Escalquens", "Saint_Leon", "Kourou"]
+__METEOFOX_SITE = ["Proto_HW1.0", "Proto_HW2.0", "Lamothe_Capdeville", "Prat_Albis", "Eaunes", "Escalquens", "Saint_Leon", "Kourou"]
 # Sigfox frame lengths.
 __METEOFOX_UL_PAYLOAD_MONITORING_SIZE = 9
 __METEOFOX_UL_PAYLOAD_WEATHER_IM_SIZE = 6

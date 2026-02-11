@@ -214,7 +214,34 @@ def METEOFOX_parse_ul_payload(timestamp, sigfox_ep_id, ul_payload):
         wind_speed_average_kmh = int(ul_payload[12:14], 16) if (int(ul_payload[12:14], 16) != COMMON_ERROR_VALUE_WIND) else COMMON_ERROR_DATA
         wind_speed_peak_kmh = int(ul_payload[14:16], 16) if (int(ul_payload[14:16], 16) != COMMON_ERROR_VALUE_WIND) else COMMON_ERROR_DATA
         wind_direction_average_degrees = (int(ul_payload[16:18], 16) * 2) if (int(ul_payload[16:18], 16) != COMMON_ERROR_VALUE_WIND) else COMMON_ERROR_DATA
-        rain_mm = int(ul_payload[18:20], 16) if (int(ul_payload[18:20], 16) != COMMON_ERROR_VALUE_WIND) else COMMON_ERROR_DATA
+        rain_mm = COMMON_ERROR_DATA
+        rain_byte = int(ul_payload[18:20], 16)
+        # Compute rainfall.
+        if (rain_byte != COMMON_ERROR_VALUE_RAIN):
+            # Compute rainfall.
+            try:
+                query = "SELECT last(version_major) FROM metadata WHERE sigfox_ep_id='" + sigfox_ep_id + "'"
+                query_result = INFLUX_DB_read_data(INFLUX_DB_DATABASE_METEOFOX, query)
+                for point in query_result.get_points():
+                    version_major = int(point["last"])
+                query = "SELECT last(version_minor) FROM metadata WHERE sigfox_ep_id='" + sigfox_ep_id + "'"
+                query_result = INFLUX_DB_read_data(INFLUX_DB_DATABASE_METEOFOX, query)
+                for point in query_result.get_points():
+                    version_minor = int(point["last"])
+                # Check version.
+                if ((version_major > 6) or ((version_major >= 6) and (version_minor >= 5))):
+                    # Format with dynamic unit.
+                    unit = (rain_byte >> 7)
+                    if (unit == 0):
+                        rain_mm = ((rain_byte & 0x7F) / 10.0)
+                    else:
+                        rain_mm = (rain_byte & 0x7F)
+                else:
+                    # Format in mm.
+                    rain_mm = rain_byte
+            except:
+                # Software version not available.
+                rain_mm = COMMON_ERROR_DATA
         # Compute sea level pressure.
         patm_sea_hpa = COMMON_ERROR_DATA
         try:

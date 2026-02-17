@@ -1,3 +1,10 @@
+"""
+* defs.py
+*
+*  Created on: 08 sep. 2024
+*      Author: Ludo
+"""
+
 ### COMMON MACROS ###
 
 # HTTP server port.

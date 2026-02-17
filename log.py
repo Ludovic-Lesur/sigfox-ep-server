@@ -1,15 +1,23 @@
+"""
+* log.py
+*
+*  Created on: 17 nov. 2021
+*      Author: Ludo
+"""
+
 import datetime
 import time
 
-### LOCAL MACROS ###
+### LOG local macros ###
 
-# Enable or disable debug prints.
-__LOG = False
+LOG_ENABLE = False
 
-### PUBLIC FUNCTIONS ###
+### LOG classes ###
 
-# Function to print a log line with timestamp.
-def LOG_print(message):
-    log_timestamp = datetime.datetime.fromtimestamp(int(time.time())).strftime('%Y-%m-%d %H:%M:%S') + " *** "
-    if (__LOG == True):
-        print(log_timestamp + message)
+class Log:
+
+    @staticmethod
+    def debug_print(message):
+        if (LOG_ENABLE == True):
+            log_timestamp = datetime.datetime.fromtimestamp(int(time.time())).strftime('%Y-%m-%d %H:%M:%S') + " *** "
+            print(log_timestamp + message)

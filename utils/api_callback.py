@@ -1,9 +1,16 @@
+"""
+* api_callback.py
+*
+*  Created on: 26 nov. 2023
+*      Author: Ludo
+"""
+
 import requests
 import json
 import sys
 import time
 
-from defs import *
+from utils.defs import *
 
 ### MACROS ###
 

@@ -86,6 +86,5 @@ sudo systemctl daemon-reload
 cd git/sigfox_ep_server
 sudo service sigfox_ep_server stop
 git pull
-./git_version.sh
 sudo service sigfox_ep_server start
 ```

@@ -70,12 +70,14 @@ class MeteoFox:
         record.database = DATABASE_METEOFOX
         record.timestamp = timestamp
         record.tags = MeteoFox.get_tags(sigfox_ep_id)
+        record.limited_retention = True
         # Keep alive frame (only for embedded software version older than sw1.2.42).
         if (ul_payload == COMMON_UL_PAYLOAD_KEEP_ALIVE):
             record.measurement = DATABASE_MEASUREMENT_METADATA
             record.fields = {
                 DATABASE_FIELD_LAST_STARTUP_TIME: timestamp,
             }
+            record.limited_retention = False
             record_list.append(copy.copy(record))
         # Startup frame.
         elif (len(ul_payload) == (2 * COMMON_UL_PAYLOAD_SIZE_STARTUP)):
@@ -136,7 +138,7 @@ class MeteoFox:
             # Compute sea level pressure.
             if ((patm_abs_pa != METEOFOX_ERROR_VALUE_PRESSURE) and (tamb_degrees_one_complement != METEOFOX_ERROR_VALUE_TEMPERATURE)):
                 try:
-                    altitude_query = database.read_field(sigfox_ep_id, DATABASE_METEOFOX, DATABASE_MEASUREMENT_GEOLOCATION, DATABASE_FIELD_GEOLOCATION_ALTITUDE)
+                    altitude_query = database.read_field(sigfox_ep_id, DATABASE_METEOFOX, DATABASE_MEASUREMENT_GEOLOCATION, DATABASE_FIELD_GEOLOCATION_ALTITUDE, True)
                     if (altitude_query):
                         altitude = int(altitude_query)
                         Log.debug_print("[METEOFOX] * Computing sea-level pressure at altitude " + str(altitude) + "m")
@@ -148,8 +150,8 @@ class MeteoFox:
             # Compute rainfall.
             if (rain_byte != METEOFOX_ERROR_VALUE_RAIN):
                 try:
-                    sw_version_major_query = database.read_field(sigfox_ep_id, DATABASE_METEOFOX, DATABASE_MEASUREMENT_METADATA, DATABASE_FIELD_SW_VERSION_MAJOR)
-                    sw_version_minor_query = database.read_field(sigfox_ep_id, DATABASE_METEOFOX, DATABASE_MEASUREMENT_METADATA, DATABASE_FIELD_SW_VERSION_MINOR)
+                    sw_version_major_query = database.read_field(sigfox_ep_id, DATABASE_METEOFOX, DATABASE_MEASUREMENT_METADATA, DATABASE_FIELD_SW_VERSION_MAJOR, False)
+                    sw_version_minor_query = database.read_field(sigfox_ep_id, DATABASE_METEOFOX, DATABASE_MEASUREMENT_METADATA, DATABASE_FIELD_SW_VERSION_MINOR, False)
                     # Check results.
                     if (sw_version_major_query and sw_version_minor_query):
                         sw_version_major = int(sw_version_major_query)

@@ -73,6 +73,7 @@ class HomeFox:
         record.database = DATABASE_HOMEFOX
         record.timestamp = timestamp
         record.tags = HomeFox.get_tags(sigfox_ep_id)
+        record.limited_retention = True
         # Startup frame.
         if (len(ul_payload) == (2 * COMMON_UL_PAYLOAD_SIZE_STARTUP)):
             Common.get_record_startup(record, timestamp, ul_payload, record_list)
@@ -87,7 +88,7 @@ class HomeFox:
             hamb_percent = int(ul_payload[8:10], 16)
             status = int(ul_payload[10:12], 16)
             # Create sensor record.
-            record.measurement = DATABASE_MEASUREMENT_SENSOR
+            record.measurement = DATABASE_MEASUREMENT_HOME
             record.fields = {
                 DATABASE_FIELD_LAST_DATA_TIME: timestamp,
             }
@@ -113,7 +114,7 @@ class HomeFox:
             acquisition_status = ((int(ul_payload[12:14], 16) >> 6) & 0x03)
             acquisition_duration_seconds = ((int(ul_payload[12:14], 16) & 0x3F) * 10)
             # Create air quality record.
-            record.measurement = DATABASE_MEASUREMENT_SENSOR
+            record.measurement = DATABASE_MEASUREMENT_HOME
             record.fields = {
                 DATABASE_FIELD_LAST_DATA_TIME: timestamp,
                 DATABASE_FIELD_AIR_QUALITY_ACQUISITION_STATUS : acquisition_status,
@@ -130,7 +131,7 @@ class HomeFox:
             # Parse fields.
             accelerometer_event_source = int(ul_payload[0:2], 16)
             # Create motion record.
-            record.measurement = DATABASE_MEASUREMENT_SENSOR
+            record.measurement = DATABASE_MEASUREMENT_HOME
             record.fields = {
                 DATABASE_FIELD_LAST_DATA_TIME: timestamp,
                 DATABASE_FIELD_ACCELEROMETER_EVENT_SOURCE: accelerometer_event_source

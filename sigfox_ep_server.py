@@ -82,6 +82,7 @@ class SigfoxEpServer:
                 DATABASE_FIELD_SW_VERSION_COMMIT_ID: commit_id,
                 DATABASE_FIELD_SW_VERSION_DIRTY_FLAG: dirty_flag,
             }
+            record.limited_retention = False
             self._database.write_record(record)
         except:
             return
@@ -219,6 +220,7 @@ class SigfoxEpServer:
                         DATABASE_FIELD_SIGFOX_DOWNLINK_PAYLOAD: dl_payload.upper(),
                     }
                     record.tags = self._get_tags_pfn(sigfox_ep_id)
+                    record.limited_retention = True
                     self._database.write_record(record)
             return dl_payload
         return dl_payload
@@ -281,6 +283,7 @@ class SigfoxEpServer:
                     record.fields = {
                         DATABASE_FIELD_LAST_DATA_TIME: timestamp,
                     }
+                    record.limited_retention = False
                     record_list.append(copy.copy(record))
                     # Write data base.
                     self._database.write_records(record_list)
@@ -325,6 +328,7 @@ class SigfoxEpServer:
                     DATABASE_FIELD_SIGFOX_DOWNLINK_SUCCESS: dl_success,
                     DATABASE_FIELD_SIGFOX_DOWNLINK_STATUS: dl_status
                 }
+                record.limited_retention = True
                 self._database.write_record(record)
             # Invalid callback type.
             else:

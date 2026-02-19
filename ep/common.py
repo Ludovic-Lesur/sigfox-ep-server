@@ -58,6 +58,7 @@ class Common:
             DATABASE_FIELD_SW_VERSION_COMMIT_ID: sw_version_commit_id,
             DATABASE_FIELD_SW_VERSION_DIRTY_FLAG: sw_version_dirty_flag
         }
+        record.limited_retention = False
         record_list.append(copy.copy(record))
     
     @staticmethod
@@ -93,6 +94,7 @@ class Common:
             DATABASE_FIELD_GPS_ACQUISITION_STATUS: gps_acquisition_status,
             DATABASE_FIELD_GPS_ACQUISITION_TIME: float(gps_acquisition_time_seconds)
         }
+        record.limited_retention = True
         record_list.append(copy.copy(record))
     
     @staticmethod
@@ -110,6 +112,7 @@ class Common:
              DATABASE_FIELD_GPS_ACQUISITION_STATUS: gps_acquisition_status,
              DATABASE_FIELD_GPS_ACQUISITION_TIMEOUT_TIME: float(gps_acquisition_time_seconds)
         }
+        record.limited_retention = True
         record_list.append(copy.copy(record))
     
     @staticmethod
@@ -117,6 +120,7 @@ class Common:
         # Local variables.
         record = template
         record.measurement = DATABASE_MEASUREMENT_METADATA
+        record.limited_retention = True
         # Parse fields.
         for idx in range(0, number_of_errors):
             # Get error.

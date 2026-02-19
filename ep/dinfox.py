@@ -248,6 +248,7 @@ class DINFox:
         record.database = DATABASE_DINFOX
         record.timestamp = timestamp
         record.tags = DINFox._get_tags(sigfox_ep_id, node_address, board_id)
+        record.limited_retention = True
         # Extract node payload.
         node_ul_payload = ul_payload[(2 * DINFOX_UL_PAYLOAD_HEADER_SIZE):]
         node_ul_payload_size = len(ul_payload) - (2 * DINFOX_UL_PAYLOAD_HEADER_SIZE)

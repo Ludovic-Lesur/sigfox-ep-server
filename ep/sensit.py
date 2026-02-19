@@ -68,6 +68,7 @@ class Sensit:
         record.database = DATABASE_SENSIT
         record.timestamp = timestamp
         record.tags = Sensit.get_tags(sigfox_ep_id)
+        record.limited_retention = True
         # Monitoring or configuration frame.
         if (len(ul_payload) == (2 * SENSIT_UL_PAYLOAD_SIZE_MONITORING)) or (len(ul_payload) == (2 * SENSIT_UL_PAYLOAD_SIZE_CONFIGURATION)):
             # Parse fields.

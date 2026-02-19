@@ -30,6 +30,7 @@ DATABASE_MEASUREMENT_WEATHER = "weather"
 DATABASE_MEASUREMENT_GEOLOCATION = "geolocation"
 DATABASE_MEASUREMENT_ELECTRICAL = "electrical"
 DATABASE_MEASUREMENT_SENSOR = "sensor"
+DATABASE_MEASUREMENT_HOME = "home"
 
 # Fields name.
 # Generic.
@@ -191,21 +192,24 @@ DATABASE_TAG_CHANNEL = "channel"
 
 ### DATABASE local macros ###
 
-DATABASE_LIST = [
-    DATABASE_SIGFOX_EP_SERVER,
-    DATABASE_METEOFOX,
-    DATABASE_SENSIT,
-    DATABASE_ATXFOX,
-    DATABASE_TRACKFOX,
-    DATABASE_DINFOX,
-    DATABASE_HOMEFOX
-]
+DATABASE_LIST = {
+    DATABASE_SIGFOX_EP_SERVER: "365d",
+    DATABASE_METEOFOX: "365d",
+    DATABASE_SENSIT: "365d",
+    DATABASE_ATXFOX: "30d",
+    DATABASE_TRACKFOX: "365d",
+    DATABASE_DINFOX: "60d",
+    DATABASE_HOMEFOX: "60d"
+}
+
+DATABASE_RETENTION_POLICY_10_YEARS_NAME = "rp_10y"
 
 DATABASE_JSON_KEY_TIME = "time"
 DATABASE_JSON_KEY_MEASUREMENT = "measurement"
 DATABASE_JSON_KEY_FIELDS = "fields"
 DATABASE_JSON_KEY_TAGS = "tags"
 
+DATABASE_FIELD_NAME = "name"
 DATABASE_FIELD_LAST = "last"
 
 ### DATABASE classes ###
@@ -218,6 +222,7 @@ class Record:
         self.timestamp = None
         self.fields = None
         self.tags = None
+        self.limited_retention = True
         
     def add_field(self, field_raw: Any, field_raw_error: Any, field_name: str, field_value: Any):
         # Check error value.
@@ -228,11 +233,11 @@ class Record:
         # Local variables.
         log_string = "[RECORD] * "
         if (self.database):
-            log_string += "database=" + str(self.database) + " "
+            log_string += ("database=" + str(self.database) + " ")
         if (self.measurement):
-            log_string += "measurement=" + str(self.measurement) + " "
+            log_string += ("measurement=" + str(self.measurement) + " ")
         if (self.timestamp):
-            log_string += "timestamp=" + str(self.timestamp) + " "
+            log_string += ("timestamp=" + str(self.timestamp) + " ")
         if (self.fields):
             log_string += "fields={"
             for field_name, field_value in self.fields.items():
@@ -243,6 +248,7 @@ class Record:
             for tag_name, tag_value in self.tags.items():
                 log_string += (" " + str(tag_name) + "=" + str(tag_value))
             log_string += " } "
+        log_string += ("(limited_retention=" + str(self.limited_retention) + ")")
         Log.debug_print(log_string)
 
 class Database:
@@ -251,6 +257,9 @@ class Database:
         # Local variables.
         influxdb_version = 0
         influxdb_found = False
+        database_found = False
+        retention_policy_found = False
+        retention_policy_infinite_found = False
         # Init context.
         self._influxdb_client = None
         # Wait for InfluxDB to be available.
@@ -269,18 +278,40 @@ class Database:
         # Get list of existing databases.
         influxdb_database_list = self._influxdb_client.get_list_database()
         # Check databases.
-        for idx in range(len(DATABASE_LIST)):
-            db_name = DATABASE_LIST[idx]
-            influxdb_db_found = False
+        for database, retention_policy_duration in DATABASE_LIST.items():
+            # Reset flags.
+            database_found = False
+            retention_policy_found = False
+            retention_policy_infinite_found = False
+            # Check if database exists.
             for influxdb_database in influxdb_database_list :
-                if (influxdb_database['name'].find(db_name) >= 0) :
-                    Log.debug_print("[DATABASE] * "+ db_name + " database found")
-                    influxdb_db_found = True
+                if (influxdb_database[DATABASE_FIELD_NAME].find(database) >= 0) :
+                    Log.debug_print("[DATABASE] * " + database + " database found")
+                    database_found = True
                     break
-            # Create database if it does not exist.
-            if (influxdb_db_found == False) :
-                Log.debug_print("[DATABASE] * Creating database " + db_name)
-                self._influxdb_client.create_database(db_name)
+            # Create database if not found.
+            if (database_found == False) :
+                Log.debug_print("[DATABASE] * Creating database " + database)
+                self._influxdb_client.create_database(database)
+            # Check retention policy.
+            retention_policy_name = ("rp_" + database)
+            retention_policy_list = list(self._influxdb_client.query(f'SHOW RETENTION POLICIES ON "{database}"').get_points())
+            # Check if retention policy exists.
+            for rp in retention_policy_list:
+                if (rp.get(DATABASE_FIELD_NAME) == retention_policy_name):
+                    Log.debug_print("[DATABASE] * " + retention_policy_name + " retention policy found")
+                    retention_policy_found = True
+                if (rp.get(DATABASE_FIELD_NAME) == DATABASE_RETENTION_POLICY_10_YEARS_NAME):
+                    Log.debug_print("[DATABASE] * " + DATABASE_RETENTION_POLICY_10_YEARS_NAME + " retention policy found")
+                    retention_policy_infinite_found = True
+            # Create or modify database retention policy.
+            query_action = "CREATE" if (retention_policy_found == False) else "ALTER"
+            Log.debug_print("[DATABASE] * " + query_action + " retention policy " + retention_policy_name)
+            self._influxdb_client.query(f'{query_action} RETENTION POLICY "{retention_policy_name}" ON "{database}" DURATION {retention_policy_duration} REPLICATION 1 DEFAULT')
+            # Create or modify infinite retention policy.
+            query_action = "CREATE" if (retention_policy_infinite_found == False) else "ALTER"
+            Log.debug_print("[DATABASE] * " + query_action + " retention policy " + DATABASE_RETENTION_POLICY_10_YEARS_NAME)
+            self._influxdb_client.query(f'{query_action} RETENTION POLICY "{DATABASE_RETENTION_POLICY_10_YEARS_NAME}" ON "{database}" DURATION 520w REPLICATION 1')
 
     @staticmethod      
     def _convert_integers_to_floats(dictionary: Dict[str, Any]) -> Dict[str, Any]:
@@ -326,7 +357,13 @@ class Database:
         # Write data.
         try:
             Log.debug_print("[DATABASE] * Writing point " + json.dumps(point))
-            self._influxdb_client.write_points(point, time_precision='s')
+            # Check retention policy.
+            if (record.limited_retention == False):
+                Log.debug_print("[DATABASE] * Applying " + DATABASE_RETENTION_POLICY_10_YEARS_NAME + " retention policy")
+                self._influxdb_client.write_points(point, time_precision='s', retention_policy=DATABASE_RETENTION_POLICY_10_YEARS_NAME)
+            else:
+                Log.debug_print("[DATABASE] * Applying default retention policy")
+                self._influxdb_client.write_points(point, time_precision='s')
         except:
             return
 
@@ -335,11 +372,12 @@ class Database:
         for record in record_list:
             self.write_record(record)
         
-    def read_field(self, sigfox_ep_id: str, database: str, measurement: str, field: str) -> Any:
+    def read_field(self, sigfox_ep_id: str, database: str, measurement: str, field: str, limited_retention: bool) -> Any:
         # Local variables.
         result = None
+        rp = "" if (limited_retention == True) else (DATABASE_RETENTION_POLICY_10_YEARS_NAME + ".")
         # Build query.
-        query = "SELECT last(" + field + ") FROM " + measurement + " WHERE sigfox_ep_id='" + sigfox_ep_id + "'"
+        query = "SELECT last(" + field + ") FROM " + rp + measurement + " WHERE sigfox_ep_id='" + sigfox_ep_id + "'"
         # Switch database.
         Log.debug_print("[DATABASE] * Switching and reading database " + database)
         self._influxdb_client.switch_database(database)

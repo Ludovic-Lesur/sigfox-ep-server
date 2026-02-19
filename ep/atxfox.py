@@ -67,6 +67,7 @@ class ATXFox:
         record.database = DATABASE_ATXFOX
         record.timestamp = timestamp
         record.tags = ATXFox.get_tags(sigfox_ep_id)
+        record.limited_retention = True
         # Startup frame.
         if (len(ul_payload) == (2 * COMMON_UL_PAYLOAD_SIZE_STARTUP)):
             Common.get_record_startup(record, timestamp, ul_payload, record_list)

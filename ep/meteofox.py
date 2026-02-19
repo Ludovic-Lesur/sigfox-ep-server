@@ -83,11 +83,11 @@ class MeteoFox:
         elif (len(ul_payload) == (2 * COMMON_UL_PAYLOAD_SIZE_STARTUP)):
             Common.get_record_startup(record, timestamp, ul_payload, record_list)
         # Geolocation frame.
-        elif (len(ul_payload) == (2 * COMMON_UL_PAYLOAD_SIZE_GEOLOC)):
-            Common.get_record_geolocation(record, timestamp, ul_payload, record_list)
+        elif (len(ul_payload) == (2 * COMMON_UL_PAYLOAD_SIZE_GPS)):
+            Common.get_record_gps(record, timestamp, ul_payload, record_list)
         # Geolocation timeout frame.
-        elif (len(ul_payload) == (2 * COMMON_UL_PAYLOAD_SIZE_GEOLOC_TIMEOUT)):
-            Common.get_record_geolocation_timeout(record, timestamp, ul_payload, record_list)
+        elif (len(ul_payload) == (2 * COMMON_UL_PAYLOAD_SIZE_GPS_TIMEOUT)):
+            Common.get_record_gps_timeout(record, timestamp, ul_payload, record_list)
         # Error stack frame.
         elif (len(ul_payload) == (2 * METEOFOX_UL_PAYLOAD_SIZE_ERROR_STACK)):
             Common.get_record_error_stack(record, timestamp, ul_payload, (METEOFOX_UL_PAYLOAD_SIZE_ERROR_STACK // 2), record_list)

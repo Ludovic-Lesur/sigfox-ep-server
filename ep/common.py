@@ -17,8 +17,8 @@ COMMON_UNKNOWN = "unknown"
 COMMON_UL_PAYLOAD_KEEP_ALIVE = "control_keep_alive_payload"
 
 COMMON_UL_PAYLOAD_SIZE_STARTUP = 8
-COMMON_UL_PAYLOAD_SIZE_GEOLOC = 11
-COMMON_UL_PAYLOAD_SIZE_GEOLOC_TIMEOUT = 2
+COMMON_UL_PAYLOAD_SIZE_GPS = 11
+COMMON_UL_PAYLOAD_SIZE_GPS_TIMEOUT = 2
 
 ### COMMON classes ###
 
@@ -62,7 +62,7 @@ class Common:
         record_list.append(copy.copy(record))
     
     @staticmethod
-    def get_record_geolocation(template: Record, timestamp: int, ul_payload: str, record_list: List[Record]) -> None:
+    def get_record_gps(template: Record, timestamp: int, ul_payload: str, record_list: List[Record]) -> None:
         # Local variables.
         record = template
         # Parse fields.
@@ -91,6 +91,8 @@ class Common:
             DATABASE_FIELD_GEOLOCATION_LATITUDE: float(latitude),
             DATABASE_FIELD_GEOLOCATION_LONGITUDE: float(longitude),
             DATABASE_FIELD_GEOLOCATION_ALTITUDE: float(altitude_m),
+            DATABASE_FIELD_GEOLOCATION_SOURCE: DATABASE_FIELD_GEOLOCATION_SOURCE_GPS,
+            DATABASE_FIELD_GEOLOCATION_RADIUS: float(DATABASE_FIELD_GEOLOCATION_RADIUS_GPS),
             DATABASE_FIELD_GPS_ACQUISITION_STATUS: gps_acquisition_status,
             DATABASE_FIELD_GPS_ACQUISITION_TIME: float(gps_acquisition_time_seconds)
         }
@@ -98,7 +100,7 @@ class Common:
         record_list.append(copy.copy(record))
     
     @staticmethod
-    def get_record_geolocation_timeout(template: Record, timestamp: int, ul_payload: str, record_list: List[Record]) -> None:
+    def get_record_gps_timeout(template: Record, timestamp: int, ul_payload: str, record_list: List[Record]) -> None:
         # Local variables.
         record = template
         # Unused parameter.

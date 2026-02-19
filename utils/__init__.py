@@ -1,5 +1,6 @@
 __all__ = [
     "api_callback",
-    "defs",
+    "configuration",
+    "sigfox",
     "test"
 ]

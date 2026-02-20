@@ -55,14 +55,14 @@ class SigfoxEpServer:
         dirty_flag = 0
         try:
             # Read last tag.
-            tag = subprocess.check_output(["git", "describe", "--tags", "--match", "sw*", "--abbrev=0"], stderr=subprocess.DEVNULL, text=True).strip()
+            tag = subprocess.check_output(["git", "describe", "--tags", "--match", "sw*", "--abbrev=0"], stderr=subprocess.DEVNULL, universal_newlines=True).strip()
             major, minor = map(int, tag.replace("sw", "").split("."))
             # Read number of commits since last tag.
-            commit_index = int(subprocess.check_output(["git", "rev-list", "--count", f"{tag}..HEAD"], stderr=subprocess.DEVNULL, text=True).strip())
+            commit_index = int(subprocess.check_output(["git", "rev-list", "--count", f"{tag}..HEAD"], stderr=subprocess.DEVNULL, universal_newlines=True).strip())
             # Read commit hash.
-            commit_id = subprocess.check_output(["git", "rev-parse", "--short", "HEAD"], stderr=subprocess.DEVNULL, text=True).strip().lower()
+            commit_id = subprocess.check_output(["git", "rev-parse", "--short", "HEAD"], stderr=subprocess.DEVNULL, universal_newlines=True).strip().lower()
             # Check dirty state.
-            result = subprocess.run(["git", "status", "--porcelain"], capture_output=True, text=True)
+            result = subprocess.run(["git", "status", "--porcelain"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
             is_dirty = bool(result.stdout.strip())
             # Build version
             version = f"{tag}.{commit_index}"

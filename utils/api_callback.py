@@ -16,7 +16,7 @@ from utils.sigfox import *
 ### MACROS ###
 
 # Credential file.
-CREDENTIALS_FILE_NAME = "credentials.json"
+CREDENTIALS_FILE_NAME = "utils/credentials.json"
 CREDENTIALS_JSON_KEY_SIGFOX_EP_SERVER_ADDRESS = "sigfox_ep_server_address"
 CREDENTIALS_JSON_KEY_SIGFOX_CLOUD_USER = "sigfox_cloud_user"
 CREDENTIALS_JSON_KEY_SIGFOX_CLOUD_PASSWORD = "sigfox_cloud_password"
@@ -163,13 +163,17 @@ def API_CALLBACK_send_sigfox_ep_server_callback(ep_id, messages_list):
     # Message loop.
     for message in messages_list:
         # Check OOB flag.
-        if ((message.get(SIGFOX_CLOUD_API_JSON_KEY_OOB) == True) and (len(message.get(SIGFOX_CLOUD_API_JSON_KEY_UL_PAYLOAD)) == (2 * SIGFOX_CONTROL_KEEP_ALIVE_MESSAGE_SIZE))):
-            # Create JSON for service status.
-            json_callback = {
-                SIGFOX_CALLBACK_JSON_KEY_TYPE: SIGFOX_CALLBACK_TYPE_SERVICE_STATUS,
-                SIGFOX_CALLBACK_JSON_KEY_TIME: str(int(message.get(SIGFOX_CLOUD_API_JSON_KEY_TIME)) // 1000),
-                SIGFOX_CALLBACK_JSON_KEY_EP_ID: ep_id,
-            }
+        if (message.get(SIGFOX_CLOUD_API_JSON_KEY_OOB) == True):
+            # Check length.
+            if (len(message.get(SIGFOX_CLOUD_API_JSON_KEY_UL_PAYLOAD)) == (2 * SIGFOX_CONTROL_KEEP_ALIVE_MESSAGE_SIZE)):
+                # Create JSON for service status.
+                json_callback = {
+                    SIGFOX_CALLBACK_JSON_KEY_TYPE: SIGFOX_CALLBACK_TYPE_SERVICE_STATUS,
+                    SIGFOX_CALLBACK_JSON_KEY_TIME: str(int(message.get(SIGFOX_CLOUD_API_JSON_KEY_TIME)) // 1000),
+                    SIGFOX_CALLBACK_JSON_KEY_EP_ID: ep_id,
+                }
+            else:
+                continue
         else:
             # Create JSON for data bidir.
             json_callback = {

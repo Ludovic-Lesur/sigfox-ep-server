@@ -302,6 +302,7 @@ class SigfoxEpServer:
                                 http_return_code = 200
                                 json_out = {sigfox_ep_id: {"downlinkData": dl_payload}}
                                 Log.debug_print("[SIGFOX EP SERVER] * Bidirectional request response: dl_payload=" + dl_payload)
+            # Data advanced callback.
             elif (callback_type == SIGFOX_CALLBACK_TYPE_DATA_ADVANCED):
                 # Check mandatory JSON fields.
                 if (SIGFOX_CALLBACK_JSON_KEY_GEOLOCATION not in json_in):

@@ -330,7 +330,7 @@ class SigfoxEpServer:
                     # Create geolocation record.
                     record.database = self._database_name
                     record.measurement = DATABASE_MEASUREMENT_GEOLOCATION
-                    record.timestamp = timestamp
+                    record.timestamp = (timestamp + 1)
                     record.fields = {
                         DATABASE_FIELD_LAST_DATA_TIME: timestamp,
                         DATABASE_FIELD_GEOLOCATION_LATITUDE: float(latitude),

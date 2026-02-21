@@ -548,7 +548,7 @@ class DINFox:
                     # Parse fields.
                     f_min_chz = int(node_ul_payload[0:4], 16)
                     f_mean_chz = int(node_ul_payload[4:8], 16)
-                    f_max_chz = int(node_ul_payload[8:12])
+                    f_max_chz = int(node_ul_payload[8:12], 16)
                     # Create electrical record.
                     record.measurement = DATABASE_MEASUREMENT_ELECTRICAL
                     record.fields = {

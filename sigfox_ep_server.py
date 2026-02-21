@@ -293,7 +293,7 @@ class SigfoxEpServer:
                         # Use uplink message counter as downlink message hash.
                         self._downlink_hash = message_counter
                         # Compute DL payload.
-                        dl_payload = self._get_default_dl_payload_pfn(sigfox_ep_id)
+                        dl_payload = self._compute_dl_payload(sigfox_ep_id)
                         # Check result.
                         if (dl_payload is not None):
                             # Check size.

@@ -529,7 +529,6 @@ class DINFox:
                 # Mains voltage frame.
                 elif (node_ul_payload_size == (2 * DINFOX_MPMCM_UL_PAYLOAD_SIZE_MAINS_VOLTAGE)):
                     # Parse fields.
-                    mpmcm_channel_index = ((int(node_ul_payload[0:2], 16) >> 0) & 0x07)
                     vrms_min_dinfox = int(node_ul_payload[2:6], 16)
                     vrms_mean_dinfox = int(node_ul_payload[6:10], 16)
                     vrms_max_dinfox = int(node_ul_payload[10:14], 16)
@@ -541,7 +540,6 @@ class DINFox:
                     record.add_field(vrms_min_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_MAINS_VOLTAGE_RMS_MIN, DINFox._get_voltage(vrms_min_dinfox))
                     record.add_field(vrms_mean_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_MAINS_VOLTAGE_RMS_MEAN, DINFox._get_voltage(vrms_mean_dinfox))
                     record.add_field(vrms_max_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_MAINS_VOLTAGE_RMS_MAX, DINFox._get_voltage(vrms_max_dinfox))
-                    record.tags[DATABASE_TAG_CHANNEL] = mpmcm_channel_index
                     record_list.append(copy.copy(record))
                 # Mains frequency frame.
                 elif (node_ul_payload_size == (2 * DINFOX_MPMCM_UL_PAYLOAD_SIZE_MAINS_FREQUENCY)):

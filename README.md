@@ -28,11 +28,11 @@ Edit the `/etc/influxdb/influxdb.conf` configuration file: in the **HTTP** secti
 ```bash
 influx
 USE meteofox_db
-SELECT rain FROM weather WHERE sigfox_ep_id='5477'
-INSERT weather,sigfox_ep_id=549D,site=Labege rain=0i 1597831208000000000
+SELECT rainfall FROM weather WHERE sigfox_ep_id='5477'
+INSERT weather,sigfox_ep_id=549D,site=Labege rainfall=0.0 1597831208000000000
 INSERT electrical,sigfox_ep_id=4761,system=Test_bench,node_address=33,\
-       node=LVRM_1,board_id=0 iout=0i 1701853317000000000
-INSERT monitoring,sigfox_ep_id=53B5,site=Proto_HW1.0 vcap=2620i 1597831208000000000
+       node=LVRM_1,board_id=0 output_current=0.0 1701853317000000000
+INSERT monitoring,sigfox_ep_id=53B5,site=Proto_HW1.0 storage_voltage=2620.0 1597831208000000000
 ```
 
 ## Grafana

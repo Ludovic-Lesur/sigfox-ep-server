@@ -22,7 +22,7 @@ SENSIT_VERSION = [ "V2" ]
 SENSIT_UL_PAYLOAD_SIZE_MONITORING = 4
 SENSIT_UL_PAYLOAD_SIZE_CONFIGURATION = 12
 
-SENSIT_ERROR_VALUE_VBAT = 0xFF
+SENSIT_ERROR_VALUE_BATTERY_VOLTAGE = 0xFF
 SENSIT_ERROR_VALUE_MODE = 0xFF
 SENSIT_ERROR_VALUE_TEMPERATURE = 0xFF
 SENSIT_ERROR_VALUE_HUMIDITY = 0xFF
@@ -72,33 +72,33 @@ class Sensit:
         # Monitoring or configuration frame.
         if (len(ul_payload) == (2 * SENSIT_UL_PAYLOAD_SIZE_MONITORING)) or (len(ul_payload) == (2 * SENSIT_UL_PAYLOAD_SIZE_CONFIGURATION)):
             # Parse fields.
-            vbat_mv = SENSIT_ERROR_VALUE_VBAT
+            storage_voltage_mv = SENSIT_ERROR_VALUE_BATTERY_VOLTAGE
             mode = SENSIT_ERROR_VALUE_MODE
-            tamb_degrees = SENSIT_ERROR_VALUE_TEMPERATURE
-            hamb_percent = SENSIT_ERROR_VALUE_HUMIDITY
+            temperature_degrees = SENSIT_ERROR_VALUE_TEMPERATURE
+            humidity_percent = SENSIT_ERROR_VALUE_HUMIDITY
             # Check version.
             if (sensit_version.find("V3") >= 0):
-                vbat_mv = (((int(ul_payload[0:2], 16) >> 3) & 0x1F) * 50) + 2700
+                storage_voltage_mv = (((int(ul_payload[0:2], 16) >> 3) & 0x1F) * 50) + 2700
                 mode = ((int(ul_payload[2:4], 16) >> 3) & 0x0F)
             else:
-                vbat_mv = ((((int(ul_payload[0:2], 16) >> 3) & 0x10) + (int(ul_payload[2:4], 16) & 0x0F)) * 50) + 2700
+                storage_voltage_mv = ((((int(ul_payload[0:2], 16) >> 3) & 0x10) + (int(ul_payload[2:4], 16) & 0x0F)) * 50) + 2700
                 mode = (int(ul_payload[0:2], 16) & 0x07)
             # Check mode.
             if (mode == 0x01):
                 if (sensit_version.find("V3") >= 0):
-                    tamb_degrees = ((((int(ul_payload[2:4], 16) << 8) & 0x300) + (int(ul_payload[4:6], 16))) - 200.0) / (8.0)
+                    temperature_degrees = ((((int(ul_payload[2:4], 16) << 8) & 0x300) + (int(ul_payload[4:6], 16))) - 200.0) / (8.0)
                 else:
-                    tamb_degrees = ((((int(ul_payload[2:4], 16) << 2) & 0x3C0) + (int(ul_payload[4:6], 16) & 0x3F)) - 200.0) / (8.0)
-                hamb_percent = (int(ul_payload[6:8], 16)) / (2.0)
+                    temperature_degrees = ((((int(ul_payload[2:4], 16) << 2) & 0x3C0) + (int(ul_payload[4:6], 16) & 0x3F)) - 200.0) / (8.0)
+                humidity_percent = (int(ul_payload[6:8], 16)) / (2.0)
             # Create monitoring record.
             record.measurement = DATABASE_MEASUREMENT_MONITORING
             record.fields = {
                 DATABASE_FIELD_LAST_DATA_TIME: timestamp
             }
-            record.add_field(vbat_mv, SENSIT_ERROR_VALUE_VBAT, DATABASE_FIELD_STORAGE_VOLTAGE, float(vbat_mv / 1000.0))
+            record.add_field(storage_voltage_mv, SENSIT_ERROR_VALUE_BATTERY_VOLTAGE, DATABASE_FIELD_STORAGE_VOLTAGE, float(storage_voltage_mv / 1000.0))
             record.add_field(mode, SENSIT_ERROR_VALUE_MODE, DATABASE_FIELD_MODE, mode)
-            record.add_field(tamb_degrees, SENSIT_ERROR_VALUE_TEMPERATURE, DATABASE_FIELD_TEMPERATURE, float(tamb_degrees))
-            record.add_field(hamb_percent, SENSIT_ERROR_VALUE_HUMIDITY, DATABASE_FIELD_HUMIDITY, float(hamb_percent))
+            record.add_field(temperature_degrees, SENSIT_ERROR_VALUE_TEMPERATURE, DATABASE_FIELD_TEMPERATURE, float(temperature_degrees))
+            record.add_field(humidity_percent, SENSIT_ERROR_VALUE_HUMIDITY, DATABASE_FIELD_HUMIDITY, float(humidity_percent))
             record_list.append(copy.copy(record))
         else:
             Log.debug_print("[SENSIT] * Invalid UL payload")

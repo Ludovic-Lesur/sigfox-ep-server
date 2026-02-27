@@ -284,32 +284,32 @@ class DINFox:
                 # Monitoring frame.
                 if (node_ul_payload_size == (2 * DINFOX_LVRM_UL_PAYLOAD_SIZE_MONITORING)):
                     # Parse fields.
-                    vmcu_dinfox = int(node_ul_payload[0:4], 16)
-                    tmcu_dinfox = int(node_ul_payload[4:8], 16)
+                    mcu_voltage_dinfox = int(node_ul_payload[0:4], 16)
+                    mcu_temperature_dinfox = int(node_ul_payload[4:8], 16)
                     # Create monitoring record.
                     record.measurement = DATABASE_MEASUREMENT_MONITORING
                     record.fields = {
                         DATABASE_FIELD_LAST_DATA_TIME: timestamp
                     }
-                    record.add_field(vmcu_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_MCU_VOLTAGE, DINFox._get_voltage(vmcu_dinfox))
-                    record.add_field(tmcu_dinfox, DINFOX_ERROR_VALUE_TEMPERATURE, DATABASE_FIELD_MCU_TEMPERATURE, DINFox._get_temperature(tmcu_dinfox))
+                    record.add_field(mcu_voltage_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_MCU_VOLTAGE, DINFox._get_voltage(mcu_voltage_dinfox))
+                    record.add_field(mcu_temperature_dinfox, DINFOX_ERROR_VALUE_TEMPERATURE, DATABASE_FIELD_MCU_TEMPERATURE, DINFox._get_temperature(mcu_temperature_dinfox))
                     record_list.append(copy.copy(record))
                 # Electrical frame.
                 elif (node_ul_payload_size == (2 * DINFOX_LVRM_UL_PAYLOAD_SIZE_ELECTRICAL)):
                     # Parse field.
-                    vcom_dinfox = int(node_ul_payload[0:4], 16)
-                    vout_dinfox = int(node_ul_payload[4:8], 16)
-                    iout_dinfox = int(node_ul_payload[8:12], 16)
-                    rlstst = ((int(node_ul_payload[12:14], 16) >> 0) & 0x03)
+                    input_voltage_dinfox = int(node_ul_payload[0:4], 16)
+                    output_voltage_dinfox = int(node_ul_payload[4:8], 16)
+                    output_current_dinfox = int(node_ul_payload[8:12], 16)
+                    relay_state = ((int(node_ul_payload[12:14], 16) >> 0) & 0x03)
                     # Create electrical record.
                     record.measurement = DATABASE_MEASUREMENT_ELECTRICAL
                     record.fields = {
                         DATABASE_FIELD_LAST_DATA_TIME: timestamp,
-                        DATABASE_FIELD_RELAY_STATE: rlstst
+                        DATABASE_FIELD_RELAY_STATE: relay_state
                     }
-                    record.add_field(vcom_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_INPUT_VOLTAGE, DINFox._get_voltage(vcom_dinfox))
-                    record.add_field(vout_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_OUTPUT_VOLTAGE, DINFox._get_voltage(vout_dinfox))
-                    record.add_field(iout_dinfox, DINFOX_ERROR_VALUE_CURRENT, DATABASE_FIELD_OUTPUT_CURRENT, DINFox._get_current(iout_dinfox))
+                    record.add_field(input_voltage_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_INPUT_VOLTAGE, DINFox._get_voltage(input_voltage_dinfox))
+                    record.add_field(output_voltage_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_OUTPUT_VOLTAGE, DINFox._get_voltage(output_voltage_dinfox))
+                    record.add_field(output_current_dinfox, DINFOX_ERROR_VALUE_CURRENT, DATABASE_FIELD_OUTPUT_CURRENT, DINFox._get_current(output_current_dinfox))
                     record_list.append(copy.copy(record))
                 else:
                     Log.debug_print("[DINFOX LVRM] * Invalid UL payload")
@@ -318,36 +318,36 @@ class DINFox:
                 # Monitoring frame.
                 if (node_ul_payload_size == (2 * DINFOX_BPSM_UL_PAYLOAD_SIZE_MONITORING)):
                     # Parse fields.
-                    vmcu_dinfox = int(node_ul_payload[0:4], 16)
-                    tmcu_dinfox = int(node_ul_payload[4:8], 16)
+                    mcu_voltage_dinfox = int(node_ul_payload[0:4], 16)
+                    mcu_temperature_dinfox = int(node_ul_payload[4:8], 16)
                     # Create monitoring record.
                     record.measurement = DATABASE_MEASUREMENT_MONITORING
                     record.fields = {
                         DATABASE_FIELD_LAST_DATA_TIME: timestamp
                     }
-                    record.add_field(vmcu_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_MCU_VOLTAGE, DINFox._get_voltage(vmcu_dinfox))
-                    record.add_field(tmcu_dinfox, DINFOX_ERROR_VALUE_TEMPERATURE, DATABASE_FIELD_MCU_TEMPERATURE, DINFox._get_temperature(tmcu_dinfox))
+                    record.add_field(mcu_voltage_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_MCU_VOLTAGE, DINFox._get_voltage(mcu_voltage_dinfox))
+                    record.add_field(mcu_temperature_dinfox, DINFOX_ERROR_VALUE_TEMPERATURE, DATABASE_FIELD_MCU_TEMPERATURE, DINFox._get_temperature(mcu_temperature_dinfox))
                     record_list.append(copy.copy(record))
                 # Electrical frame.
                 elif (node_ul_payload_size == (2 * DINFOX_BPSM_UL_PAYLOAD_SIZE_ELECTRICAL)):
                     # Parse fields.
-                    vsrc_dinfox = int(node_ul_payload[0:4], 16)
-                    vstr_dinfox = int(node_ul_payload[4:8], 16)
-                    vbkp_dinfox = int(node_ul_payload[8:12], 16)
-                    chrgst = ((int(node_ul_payload[12:14], 16) >> 4) & 0x03)
-                    chenst = ((int(node_ul_payload[12:14], 16) >> 2) & 0x03)
-                    bkenst = ((int(node_ul_payload[12:14], 16) >> 0) & 0x03)
+                    source_voltage_dinfox = int(node_ul_payload[0:4], 16)
+                    storage_voltage_dinfox = int(node_ul_payload[4:8], 16)
+                    backup_voltage_dinfox = int(node_ul_payload[8:12], 16)
+                    charge_status = ((int(node_ul_payload[12:14], 16) >> 4) & 0x03)
+                    charge_control_state = ((int(node_ul_payload[12:14], 16) >> 2) & 0x03)
+                    backup_control_state = ((int(node_ul_payload[12:14], 16) >> 0) & 0x03)
                     # Create electrical record.
                     record.measurement = DATABASE_MEASUREMENT_ELECTRICAL
                     record.fields = {
                         DATABASE_FIELD_LAST_DATA_TIME: timestamp,
-                        DATABASE_FIELD_CHARGE_STATUS: chrgst,
-                        DATABASE_FIELD_CHARGE_CONTROL_STATE: chenst,
-                        DATABASE_FIELD_BACKUP_CONTROL_STATE: bkenst
+                        DATABASE_FIELD_CHARGE_STATUS: charge_status,
+                        DATABASE_FIELD_CHARGE_CONTROL_STATE: charge_control_state,
+                        DATABASE_FIELD_BACKUP_CONTROL_STATE: backup_control_state
                     }
-                    record.add_field(vsrc_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_SOURCE_VOLTAGE, DINFox._get_voltage(vsrc_dinfox))
-                    record.add_field(vstr_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_STORAGE_VOLTAGE, DINFox._get_voltage(vstr_dinfox))
-                    record.add_field(vbkp_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_BACKUP_VOLTAGE, DINFox._get_voltage(vbkp_dinfox))
+                    record.add_field(source_voltage_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_SOURCE_VOLTAGE, DINFox._get_voltage(source_voltage_dinfox))
+                    record.add_field(storage_voltage_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_STORAGE_VOLTAGE, DINFox._get_voltage(storage_voltage_dinfox))
+                    record.add_field(backup_voltage_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_BACKUP_VOLTAGE, DINFox._get_voltage(backup_voltage_dinfox))
                     record_list.append(copy.copy(record))
                 else:
                     Log.debug_print("[DINFOX BPSM] * Invalid UL payload")
@@ -356,32 +356,32 @@ class DINFox:
                 # Monitoring frame.
                 if (node_ul_payload_size == (2 * DINFOX_DDRM_UL_PAYLOAD_SIZE_MONITORING)):
                     # Parse fields.
-                    vmcu_dinfox = int(node_ul_payload[0:4], 16)
-                    tmcu_dinfox = int(node_ul_payload[4:8], 16)
+                    mcu_voltage_dinfox = int(node_ul_payload[0:4], 16)
+                    mcu_temperature_dinfox = int(node_ul_payload[4:8], 16)
                     # Create monitoring record.
                     record.measurement = DATABASE_MEASUREMENT_MONITORING
                     record.fields = {
                         DATABASE_FIELD_LAST_DATA_TIME: timestamp
                     }
-                    record.add_field(vmcu_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_MCU_VOLTAGE, DINFox._get_voltage(vmcu_dinfox))
-                    record.add_field(tmcu_dinfox, DINFOX_ERROR_VALUE_TEMPERATURE, DATABASE_FIELD_MCU_TEMPERATURE, DINFox._get_temperature(tmcu_dinfox))
+                    record.add_field(mcu_voltage_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_MCU_VOLTAGE, DINFox._get_voltage(mcu_voltage_dinfox))
+                    record.add_field(mcu_temperature_dinfox, DINFOX_ERROR_VALUE_TEMPERATURE, DATABASE_FIELD_MCU_TEMPERATURE, DINFox._get_temperature(mcu_temperature_dinfox))
                     record_list.append(copy.copy(record))
                 # Electrical frame.
                 elif (node_ul_payload_size == (2 * DINFOX_DDRM_UL_PAYLOAD_SIZE_ELECTRICAL)):
                     # Parse field.
-                    vin_dinfox = int(node_ul_payload[0:4], 16)
-                    vout_dinfox = int(node_ul_payload[4:8], 16)
-                    iout_dinfox = int(node_ul_payload[8:12], 16)
-                    ddenst = ((int(node_ul_payload[12:14], 16) >> 0) & 0x03)
+                    input_voltage_dinfox = int(node_ul_payload[0:4], 16)
+                    output_voltage_dinfox = int(node_ul_payload[4:8], 16)
+                    output_current_dinfox = int(node_ul_payload[8:12], 16)
+                    regulator_state = ((int(node_ul_payload[12:14], 16) >> 0) & 0x03)
                     # Create electrical record.
                     record.measurement = DATABASE_MEASUREMENT_ELECTRICAL
                     record.fields = {
                         DATABASE_FIELD_LAST_DATA_TIME: timestamp,
-                        DATABASE_FIELD_REGULATOR_STATE: ddenst
+                        DATABASE_FIELD_REGULATOR_STATE: regulator_state
                     }
-                    record.add_field(vin_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_INPUT_VOLTAGE, DINFox._get_voltage(vin_dinfox))
-                    record.add_field(vout_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_OUTPUT_VOLTAGE, DINFox._get_voltage(vout_dinfox))
-                    record.add_field(iout_dinfox, DINFOX_ERROR_VALUE_CURRENT, DATABASE_FIELD_OUTPUT_CURRENT, DINFox._get_current(iout_dinfox))
+                    record.add_field(input_voltage_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_INPUT_VOLTAGE, DINFox._get_voltage(input_voltage_dinfox))
+                    record.add_field(output_voltage_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_OUTPUT_VOLTAGE, DINFox._get_voltage(output_voltage_dinfox))
+                    record.add_field(output_current_dinfox, DINFOX_ERROR_VALUE_CURRENT, DATABASE_FIELD_OUTPUT_CURRENT, DINFox._get_current(output_current_dinfox))
                     record_list.append(copy.copy(record))
                 else:
                     Log.debug_print("[DINFOX DDRM] * Invalid UL payload")
@@ -390,19 +390,19 @@ class DINFox:
                 # Monitoring frame.
                 if (node_ul_payload_size == (2 * DINFOX_UHFM_UL_PAYLOAD_SIZE_MONITORING)):
                     # Parse fields.
-                    vmcu_dinfox = int(node_ul_payload[0:4], 16)
-                    tmcu_dinfox = int(node_ul_payload[4:8], 16)
-                    vrf_tx_dinfox = int(node_ul_payload[8:12], 16)
-                    vrf_rx_dinfox = int(node_ul_payload[12:16], 16)
+                    mcu_voltage_dinfox = int(node_ul_payload[0:4], 16)
+                    mcu_temperature_dinfox = int(node_ul_payload[4:8], 16)
+                    radio_tx_voltage_dinfox = int(node_ul_payload[8:12], 16)
+                    radio_rx_voltage_dinfox = int(node_ul_payload[12:16], 16)
                     # Create monitoring record.
                     record.measurement = DATABASE_MEASUREMENT_MONITORING
                     record.fields = {
                         DATABASE_FIELD_LAST_DATA_TIME: timestamp
                     }
-                    record.add_field(vmcu_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_MCU_VOLTAGE, DINFox._get_voltage(vmcu_dinfox))
-                    record.add_field(tmcu_dinfox, DINFOX_ERROR_VALUE_TEMPERATURE, DATABASE_FIELD_MCU_TEMPERATURE, DINFox._get_temperature(tmcu_dinfox))
-                    record.add_field(vrf_tx_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_RADIO_TX_VOLTAGE, DINFox._get_voltage(vrf_tx_dinfox))
-                    record.add_field(vrf_rx_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_RADIO_RX_VOLTAGE, DINFox._get_voltage(vrf_rx_dinfox))
+                    record.add_field(mcu_voltage_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_MCU_VOLTAGE, DINFox._get_voltage(mcu_voltage_dinfox))
+                    record.add_field(mcu_temperature_dinfox, DINFOX_ERROR_VALUE_TEMPERATURE, DATABASE_FIELD_MCU_TEMPERATURE, DINFox._get_temperature(mcu_temperature_dinfox))
+                    record.add_field(radio_tx_voltage_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_RADIO_TX_VOLTAGE, DINFox._get_voltage(radio_tx_voltage_dinfox))
+                    record.add_field(radio_rx_voltage_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_RADIO_RX_VOLTAGE, DINFox._get_voltage(radio_rx_voltage_dinfox))
                     record_list.append(copy.copy(record))
                 else:
                     Log.debug_print("[DINFOX UHFM] * Invalid UL payload")
@@ -411,19 +411,19 @@ class DINFox:
                 # Monitoring frame.
                 if (node_ul_payload_size == (2 * DINFOX_GPSM_UL_PAYLOAD_SIZE_MONITORING)):
                     # Parse fields.
-                    vmcu_dinfox = int(node_ul_payload[0:4], 16)
-                    tmcu_dinfox = int(node_ul_payload[4:8], 16)
-                    vgps_dinfox = int(node_ul_payload[8:12], 16)
-                    vant_dinfox = int(node_ul_payload[12:16], 16)
+                    mcu_voltage_dinfox = int(node_ul_payload[0:4], 16)
+                    mcu_temperature_dinfox = int(node_ul_payload[4:8], 16)
+                    gps_voltage_dinfox = int(node_ul_payload[8:12], 16)
+                    antenna_voltage_dinfox = int(node_ul_payload[12:16], 16)
                     # Create monitoring record.
                     record.measurement = DATABASE_MEASUREMENT_MONITORING
                     record.fields = {
                         DATABASE_FIELD_LAST_DATA_TIME: timestamp
                     }
-                    record.add_field(vmcu_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_MCU_VOLTAGE, DINFox._get_voltage(vmcu_dinfox))
-                    record.add_field(tmcu_dinfox, DINFOX_ERROR_VALUE_TEMPERATURE, DATABASE_FIELD_MCU_TEMPERATURE, DINFox._get_temperature(tmcu_dinfox))
-                    record.add_field(vgps_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_GPS_VOLTAGE, DINFox._get_voltage(vgps_dinfox))
-                    record.add_field(vant_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_GPS_ANTENNA_VOLTAGE, DINFox._get_voltage(vant_dinfox))
+                    record.add_field(mcu_voltage_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_MCU_VOLTAGE, DINFox._get_voltage(mcu_voltage_dinfox))
+                    record.add_field(mcu_temperature_dinfox, DINFOX_ERROR_VALUE_TEMPERATURE, DATABASE_FIELD_MCU_TEMPERATURE, DINFox._get_temperature(mcu_temperature_dinfox))
+                    record.add_field(gps_voltage_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_GPS_VOLTAGE, DINFox._get_voltage(gps_voltage_dinfox))
+                    record.add_field(antenna_voltage_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_GPS_ANTENNA_VOLTAGE, DINFox._get_voltage(antenna_voltage_dinfox))
                     record_list.append(copy.copy(record))
                 else:
                     Log.debug_print("[DINFOX GPSM] * Invalid UL payload")
@@ -432,15 +432,15 @@ class DINFox:
                 # Monitoring frame.
                 if (node_ul_payload_size == (2 * DINFOX_SM_UL_PAYLOAD_SIZE_MONITORING)):
                     # Parse fields.
-                    vmcu_dinfox = int(node_ul_payload[0:4], 16)
-                    tmcu_dinfox = int(node_ul_payload[4:8], 16)
+                    mcu_voltage_dinfox = int(node_ul_payload[0:4], 16)
+                    mcu_temperature_dinfox = int(node_ul_payload[4:8], 16)
                     # Create monitoring record.
                     record.measurement = DATABASE_MEASUREMENT_MONITORING
                     record.fields = {
                         DATABASE_FIELD_LAST_DATA_TIME: timestamp
                     }
-                    record.add_field(vmcu_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_MCU_VOLTAGE, DINFox._get_voltage(vmcu_dinfox))
-                    record.add_field(tmcu_dinfox, DINFOX_ERROR_VALUE_TEMPERATURE, DATABASE_FIELD_MCU_TEMPERATURE, DINFox._get_temperature(tmcu_dinfox))
+                    record.add_field(mcu_voltage_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_MCU_VOLTAGE, DINFox._get_voltage(mcu_voltage_dinfox))
+                    record.add_field(mcu_temperature_dinfox, DINFOX_ERROR_VALUE_TEMPERATURE, DATABASE_FIELD_MCU_TEMPERATURE, DINFox._get_temperature(mcu_temperature_dinfox))
                     record_list.append(copy.copy(record))
                 # Electrical frame.
                 if (node_ul_payload_size == (2 * DINFOX_SM_UL_PAYLOAD_SIZE_ELECTRICAL)):
@@ -470,15 +470,15 @@ class DINFox:
                 # Digital sensors frame.
                 elif (node_ul_payload_size == (2 * DINFOX_SM_UL_PAYLOAD_SIZE_SENSOR)):
                     # Parse fields.
-                    tamb_dinfox = int(node_ul_payload[0:4], 16)
-                    hamb_percent = int(node_ul_payload[4:6], 16)
+                    temperature_dinfox = int(node_ul_payload[0:4], 16)
+                    humidity_percent = int(node_ul_payload[4:6], 16)
                     # Create sensor record.
                     record.measurement = DATABASE_MEASUREMENT_SENSOR
                     record.fields = {
                         DATABASE_FIELD_LAST_DATA_TIME: timestamp,
                     }
-                    record.add_field(tamb_dinfox, DINFOX_ERROR_VALUE_TEMPERATURE, DATABASE_FIELD_TEMPERATURE, DINFox._get_temperature(tamb_dinfox))
-                    record.add_field(hamb_percent, DINFOX_ERROR_VALUE_HUMIDITY, DATABASE_FIELD_HUMIDITY, float(hamb_percent))
+                    record.add_field(temperature_dinfox, DINFOX_ERROR_VALUE_TEMPERATURE, DATABASE_FIELD_TEMPERATURE, DINFox._get_temperature(temperature_dinfox))
+                    record.add_field(humidity_percent, DINFOX_ERROR_VALUE_HUMIDITY, DATABASE_FIELD_HUMIDITY, float(humidity_percent))
                     record_list.append(copy.copy(record))
                 else:
                     Log.debug_print("[DINFOX SM] * Invalid UL payload")
@@ -487,9 +487,9 @@ class DINFox:
                 # Monitoring frame.
                 if (node_ul_payload_size == (2 * DINFOX_DMM_UL_PAYLOAD_SIZE_MONITORING)):
                     # Parse fields.
-                    vrs_dinfox = int(node_ul_payload[0:4], 16)
-                    vhmi_dinfox = int(node_ul_payload[4:8], 16)
-                    vusb_dinfox = int(node_ul_payload[8:12], 16)
+                    rs485_bus_voltage_dinfox = int(node_ul_payload[0:4], 16)
+                    hmi_voltage_dinfox = int(node_ul_payload[4:8], 16)
+                    usb_voltage_dinfox = int(node_ul_payload[8:12], 16)
                     node_count = int(node_ul_payload[12:14], 16)
                     # Create monitoring record.
                     record.measurement = DATABASE_MEASUREMENT_MONITORING
@@ -497,9 +497,9 @@ class DINFox:
                         DATABASE_FIELD_LAST_DATA_TIME: timestamp,
                         DATABASE_FIELD_NODE_COUNT: node_count
                     }
-                    record.add_field(vrs_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_RS485_BUS_VOLTAGE, DINFox._get_voltage(vrs_dinfox))
-                    record.add_field(vhmi_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_HMI_VOLTAGE, DINFox._get_voltage(vhmi_dinfox))
-                    record.add_field(vusb_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_USB_VOLTAGE, DINFox._get_voltage(vusb_dinfox))
+                    record.add_field(rs485_bus_voltage_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_RS485_BUS_VOLTAGE, DINFox._get_voltage(rs485_bus_voltage_dinfox))
+                    record.add_field(hmi_voltage_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_HMI_VOLTAGE, DINFox._get_voltage(hmi_voltage_dinfox))
+                    record.add_field(usb_voltage_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_USB_VOLTAGE, DINFox._get_voltage(usb_voltage_dinfox))
                     record_list.append(copy.copy(record))
                 else:
                     Log.debug_print("[DINFOX DMM] * Invalid UL payload")
@@ -529,82 +529,82 @@ class DINFox:
                 # Mains voltage frame.
                 elif (node_ul_payload_size == (2 * DINFOX_MPMCM_UL_PAYLOAD_SIZE_MAINS_VOLTAGE)):
                     # Parse fields.
-                    vrms_min_dinfox = int(node_ul_payload[2:6], 16)
-                    vrms_mean_dinfox = int(node_ul_payload[6:10], 16)
-                    vrms_max_dinfox = int(node_ul_payload[10:14], 16)
+                    mains_voltage_rms_min_dinfox = int(node_ul_payload[2:6], 16)
+                    mains_voltage_rms_mean_dinfox = int(node_ul_payload[6:10], 16)
+                    mains_voltage_rms_max_dinfox = int(node_ul_payload[10:14], 16)
                     # Create electrical record.
                     record.measurement = DATABASE_MEASUREMENT_ELECTRICAL
                     record.fields = {
                         DATABASE_FIELD_LAST_DATA_TIME: timestamp,
                     }
-                    record.add_field(vrms_min_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_MAINS_VOLTAGE_RMS_MIN, DINFox._get_voltage(vrms_min_dinfox))
-                    record.add_field(vrms_mean_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_MAINS_VOLTAGE_RMS_MEAN, DINFox._get_voltage(vrms_mean_dinfox))
-                    record.add_field(vrms_max_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_MAINS_VOLTAGE_RMS_MAX, DINFox._get_voltage(vrms_max_dinfox))
+                    record.add_field(mains_voltage_rms_min_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_MAINS_VOLTAGE_RMS_MIN, DINFox._get_voltage(mains_voltage_rms_min_dinfox))
+                    record.add_field(mains_voltage_rms_mean_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_MAINS_VOLTAGE_RMS_MEAN, DINFox._get_voltage(mains_voltage_rms_mean_dinfox))
+                    record.add_field(mains_voltage_rms_max_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_MAINS_VOLTAGE_RMS_MAX, DINFox._get_voltage(mains_voltage_rms_max_dinfox))
                     record_list.append(copy.copy(record))
                 # Mains frequency frame.
                 elif (node_ul_payload_size == (2 * DINFOX_MPMCM_UL_PAYLOAD_SIZE_MAINS_FREQUENCY)):
                     # Parse fields.
-                    f_min_chz = int(node_ul_payload[0:4], 16)
-                    f_mean_chz = int(node_ul_payload[4:8], 16)
-                    f_max_chz = int(node_ul_payload[8:12], 16)
+                    mains_frequency_min_chz = int(node_ul_payload[0:4], 16)
+                    mains_frequency_mean_chz = int(node_ul_payload[4:8], 16)
+                    mains_frequency_max_chz = int(node_ul_payload[8:12], 16)
                     # Create electrical record.
                     record.measurement = DATABASE_MEASUREMENT_ELECTRICAL
                     record.fields = {
                         DATABASE_FIELD_LAST_DATA_TIME: timestamp,
                     }
-                    record.add_field(f_min_chz, DINFOX_ERROR_VALUE_FREQUENCY, DATABASE_FIELD_MAINS_FREQUENCY_MIN, float(f_min_chz / 100.0))
-                    record.add_field(f_mean_chz, DINFOX_ERROR_VALUE_FREQUENCY, DATABASE_FIELD_MAINS_FREQUENCY_MEAN, float(f_mean_chz / 100.0))
-                    record.add_field(f_max_chz, DINFOX_ERROR_VALUE_FREQUENCY, DATABASE_FIELD_MAINS_FREQUENCY_MAX, float(f_max_chz / 100.0))
+                    record.add_field(mains_frequency_min_chz, DINFOX_ERROR_VALUE_FREQUENCY, DATABASE_FIELD_MAINS_FREQUENCY_MIN, float(mains_frequency_min_chz / 100.0))
+                    record.add_field(mains_frequency_mean_chz, DINFOX_ERROR_VALUE_FREQUENCY, DATABASE_FIELD_MAINS_FREQUENCY_MEAN, float(mains_frequency_mean_chz / 100.0))
+                    record.add_field(mains_frequency_max_chz, DINFOX_ERROR_VALUE_FREQUENCY, DATABASE_FIELD_MAINS_FREQUENCY_MAX, float(mains_frequency_max_chz / 100.0))
                     record_list.append(copy.copy(record))
                 # Mains power frame.
                 elif (node_ul_payload_size == (2 * DINFOX_MPMCM_UL_PAYLOAD_SIZE_MAINS_POWER)):
                     # Parse fields.
                     mpmcm_channel_index = ((int(node_ul_payload[0:2], 16) >> 0) & 0x07)
-                    pact_mean_dinfox = int(node_ul_payload[2:6], 16)
-                    pact_max_dinfox = int(node_ul_payload[6:10], 16)
-                    papp_mean_dinfox = int(node_ul_payload[10:14], 16)
-                    papp_max_dinfox = int(node_ul_payload[14:18], 16)
+                    mains_active_power_mean_dinfox = int(node_ul_payload[2:6], 16)
+                    mains_active_power_max_dinfox = int(node_ul_payload[6:10], 16)
+                    mains_apparent_power_mean_dinfox = int(node_ul_payload[10:14], 16)
+                    mains_apparent_power_max_dinfox = int(node_ul_payload[14:18], 16)
                     # Create electrical record.
                     record.measurement = DATABASE_MEASUREMENT_ELECTRICAL
                     record.fields = {
                         DATABASE_FIELD_LAST_DATA_TIME: timestamp,
                     }
-                    record.add_field(pact_mean_dinfox, DINFOX_ERROR_VALUE_ELECTRICAL_POWER, DATABASE_FIELD_MAINS_ACTIVE_POWER_MEAN, DINFox._get_electrical_power(pact_mean_dinfox))
-                    record.add_field(pact_max_dinfox, DINFOX_ERROR_VALUE_ELECTRICAL_POWER, DATABASE_FIELD_MAINS_ACTIVE_POWER_MAX, DINFox._get_electrical_power(pact_max_dinfox))
-                    record.add_field(papp_mean_dinfox, DINFOX_ERROR_VALUE_ELECTRICAL_POWER, DATABASE_FIELD_MAINS_APPARENT_POWER_MEAN, DINFox._get_electrical_power(papp_mean_dinfox))
-                    record.add_field(papp_max_dinfox, DINFOX_ERROR_VALUE_ELECTRICAL_POWER, DATABASE_FIELD_MAINS_APPARENT_POWER_MAX, DINFox._get_electrical_power(papp_max_dinfox))
+                    record.add_field(mains_active_power_mean_dinfox, DINFOX_ERROR_VALUE_ELECTRICAL_POWER, DATABASE_FIELD_MAINS_ACTIVE_POWER_MEAN, DINFox._get_electrical_power(mains_active_power_mean_dinfox))
+                    record.add_field(mains_active_power_max_dinfox, DINFOX_ERROR_VALUE_ELECTRICAL_POWER, DATABASE_FIELD_MAINS_ACTIVE_POWER_MAX, DINFox._get_electrical_power(mains_active_power_max_dinfox))
+                    record.add_field(mains_apparent_power_mean_dinfox, DINFOX_ERROR_VALUE_ELECTRICAL_POWER, DATABASE_FIELD_MAINS_APPARENT_POWER_MEAN, DINFox._get_electrical_power(mains_apparent_power_mean_dinfox))
+                    record.add_field(mains_apparent_power_max_dinfox, DINFOX_ERROR_VALUE_ELECTRICAL_POWER, DATABASE_FIELD_MAINS_APPARENT_POWER_MAX, DINFox._get_electrical_power(mains_apparent_power_max_dinfox))
                     record.tags[DATABASE_TAG_CHANNEL] = mpmcm_channel_index
                     record_list.append(copy.copy(record))
                 # Mains power factor frame.
                 elif (node_ul_payload_size == (2 * DINFOX_MPMCM_UL_PAYLOAD_SIZE_MAINS_POWER_FACTOR)):
                     # Parse fields.
                     mpmcm_channel_index = ((int(node_ul_payload[0:2], 16) >> 0) & 0x07)
-                    pf_min_dinfox = int(node_ul_payload[2:4], 16)
-                    pf_mean_dinfox = int(node_ul_payload[4:6], 16)
-                    pf_max_dinfox = int(node_ul_payload[6:8], 16)
+                    mains_power_factor_min_dinfox = int(node_ul_payload[2:4], 16)
+                    mains_power_factor_mean_dinfox = int(node_ul_payload[4:6], 16)
+                    mains_power_factor_max_dinfox = int(node_ul_payload[6:8], 16)
                     # Create electrical record.
                     record.measurement = DATABASE_MEASUREMENT_ELECTRICAL
                     record.fields = {
                         DATABASE_FIELD_LAST_DATA_TIME: timestamp,
                     }
-                    record.add_field(pf_min_dinfox, DINFOX_ERROR_VALUE_POWER_FACTOR, DATABASE_FIELD_MAINS_POWER_FACTOR_MIN, DINFox._get_power_factor(pf_min_dinfox))
-                    record.add_field(pf_mean_dinfox, DINFOX_ERROR_VALUE_POWER_FACTOR, DATABASE_FIELD_MAINS_POWER_FACTOR_MEAN, DINFox._get_power_factor(pf_mean_dinfox))
-                    record.add_field(pf_max_dinfox, DINFOX_ERROR_VALUE_POWER_FACTOR, DATABASE_FIELD_MAINS_POWER_FACTOR_MAX, DINFox._get_power_factor(pf_max_dinfox))
+                    record.add_field(mains_power_factor_min_dinfox, DINFOX_ERROR_VALUE_POWER_FACTOR, DATABASE_FIELD_MAINS_POWER_FACTOR_MIN, DINFox._get_power_factor(mains_power_factor_min_dinfox))
+                    record.add_field(mains_power_factor_mean_dinfox, DINFOX_ERROR_VALUE_POWER_FACTOR, DATABASE_FIELD_MAINS_POWER_FACTOR_MEAN, DINFox._get_power_factor(mains_power_factor_mean_dinfox))
+                    record.add_field(mains_power_factor_max_dinfox, DINFOX_ERROR_VALUE_POWER_FACTOR, DATABASE_FIELD_MAINS_POWER_FACTOR_MAX, DINFox._get_power_factor(mains_power_factor_max_dinfox))
                     record.tags[DATABASE_TAG_CHANNEL] = mpmcm_channel_index
                     record_list.append(copy.copy(record))
                 # Mains energy frame.
                 elif (node_ul_payload_size == (2 * DINFOX_MPMCM_UL_PAYLOAD_SIZE_MAINS_ENERGY)):
                     # Parse fields.
                     mpmcm_channel_index = ((int(node_ul_payload[0:2], 16) >> 0) & 0x07)
-                    eact_dinfox = int(node_ul_payload[2:6], 16)
-                    eapp_dinfox = int(node_ul_payload[6:10], 16)
+                    mains_active_energy_dinfox = int(node_ul_payload[2:6], 16)
+                    mains_apparent_energy_dinfox = int(node_ul_payload[6:10], 16)
                     # Create electrical record.
                     record.measurement = DATABASE_MEASUREMENT_ELECTRICAL
                     record.fields = {
                         DATABASE_FIELD_LAST_DATA_TIME: timestamp,
                     }
-                    record.add_field(eact_dinfox, DINFOX_ERROR_VALUE_ELECTRICAL_ENERGY, DATABASE_FIELD_MAINS_ACTIVE_ENERGY, DINFox._get_electrical_energy(eact_dinfox))
-                    record.add_field(eapp_dinfox, DINFOX_ERROR_VALUE_ELECTRICAL_ENERGY, DATABASE_FIELD_MAINS_APPARENT_ENERGY, DINFox._get_electrical_energy(eapp_dinfox))
+                    record.add_field(mains_active_energy_dinfox, DINFOX_ERROR_VALUE_ELECTRICAL_ENERGY, DATABASE_FIELD_MAINS_ACTIVE_ENERGY, DINFox._get_electrical_energy(mains_active_energy_dinfox))
+                    record.add_field(mains_apparent_energy_dinfox, DINFOX_ERROR_VALUE_ELECTRICAL_ENERGY, DATABASE_FIELD_MAINS_APPARENT_ENERGY, DINFox._get_electrical_energy(mains_apparent_energy_dinfox))
                     record.tags[DATABASE_TAG_CHANNEL] = mpmcm_channel_index
                     record_list.append(copy.copy(record))
                 else:
@@ -614,26 +614,26 @@ class DINFox:
                 # Electrical frame.
                 if (node_ul_payload_size == (2 * DINFOX_R4S8CR_UL_PAYLOAD_SIZE_ELECTRICAL)):
                     # Parse fields.
-                    r8stst = ((int(node_ul_payload[0:2], 16) >> 6) & 0x03)
-                    r7stst = ((int(node_ul_payload[0:2], 16) >> 4) & 0x03)
-                    r6stst = ((int(node_ul_payload[0:2], 16) >> 2) & 0x03)
-                    r5stst = ((int(node_ul_payload[0:2], 16) >> 0) & 0x03)
-                    r4stst = ((int(node_ul_payload[2:4], 16) >> 6) & 0x03)
-                    r3stst = ((int(node_ul_payload[2:4], 16) >> 4) & 0x03)
-                    r2stst = ((int(node_ul_payload[2:4], 16) >> 2) & 0x03)
-                    r1stst = ((int(node_ul_payload[2:4], 16) >> 0) & 0x03)
+                    relay8_state = ((int(node_ul_payload[0:2], 16) >> 6) & 0x03)
+                    relay7_state = ((int(node_ul_payload[0:2], 16) >> 4) & 0x03)
+                    relay6_state = ((int(node_ul_payload[0:2], 16) >> 2) & 0x03)
+                    relay5_state = ((int(node_ul_payload[0:2], 16) >> 0) & 0x03)
+                    relay4_state = ((int(node_ul_payload[2:4], 16) >> 6) & 0x03)
+                    relay3_state = ((int(node_ul_payload[2:4], 16) >> 4) & 0x03)
+                    relay2_state = ((int(node_ul_payload[2:4], 16) >> 2) & 0x03)
+                    relay1_state = ((int(node_ul_payload[2:4], 16) >> 0) & 0x03)
                     # Create electrical record.
                     record.measurement = DATABASE_MEASUREMENT_ELECTRICAL
                     record.fields = {
                         DATABASE_FIELD_LAST_DATA_TIME: timestamp,
-                        DATABASE_FIELD_RELAY1_STATE: r1stst,
-                        DATABASE_FIELD_RELAY2_STATE: r2stst,
-                        DATABASE_FIELD_RELAY3_STATE: r3stst,
-                        DATABASE_FIELD_RELAY4_STATE: r4stst,
-                        DATABASE_FIELD_RELAY5_STATE: r5stst,
-                        DATABASE_FIELD_RELAY6_STATE: r6stst,
-                        DATABASE_FIELD_RELAY7_STATE: r7stst,
-                        DATABASE_FIELD_RELAY8_STATE: r8stst
+                        DATABASE_FIELD_RELAY1_STATE: relay1_state,
+                        DATABASE_FIELD_RELAY2_STATE: relay2_state,
+                        DATABASE_FIELD_RELAY3_STATE: relay3_state,
+                        DATABASE_FIELD_RELAY4_STATE: relay4_state,
+                        DATABASE_FIELD_RELAY5_STATE: relay5_state,
+                        DATABASE_FIELD_RELAY6_STATE: relay6_state,
+                        DATABASE_FIELD_RELAY7_STATE: relay7_state,
+                        DATABASE_FIELD_RELAY8_STATE: relay8_state
                     }
                     record_list.append(copy.copy(record))
                 else:
@@ -643,56 +643,56 @@ class DINFox:
                 # Monitoring frame.
                 if (node_ul_payload_size == (2 * DINFOX_BCM_UL_PAYLOAD_SIZE_MONITORING)):
                     # Parse fields.
-                    vmcu_dinfox = int(node_ul_payload[0:4], 16)
-                    tmcu_dinfox = int(node_ul_payload[4:8], 16)
+                    mcu_voltage_dinfox = int(node_ul_payload[0:4], 16)
+                    mcu_temperature_dinfox = int(node_ul_payload[4:8], 16)
                     # Create monitoring record.
                     record.measurement = DATABASE_MEASUREMENT_MONITORING
                     record.fields = {
                         DATABASE_FIELD_LAST_DATA_TIME: timestamp
                     }
-                    record.add_field(vmcu_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_MCU_VOLTAGE, DINFox._get_voltage(vmcu_dinfox))
-                    record.add_field(tmcu_dinfox, DINFOX_ERROR_VALUE_TEMPERATURE, DATABASE_FIELD_MCU_TEMPERATURE, DINFox._get_temperature(tmcu_dinfox))
+                    record.add_field(mcu_voltage_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_MCU_VOLTAGE, DINFox._get_voltage(mcu_voltage_dinfox))
+                    record.add_field(mcu_temperature_dinfox, DINFOX_ERROR_VALUE_TEMPERATURE, DATABASE_FIELD_MCU_TEMPERATURE, DINFox._get_temperature(mcu_temperature_dinfox))
                     record_list.append(copy.copy(record))
                 # Electrical frame.
                 elif (node_ul_payload_size == (2 * DINFOX_BCM_UL_PAYLOAD_SIZE_ELECTRICAL)):
                     # Parse fields.
-                    vsrc_dinfox = int(node_ul_payload[0:4], 16)
-                    vstr_dinfox = int(node_ul_payload[4:8], 16)
-                    istr_dinfox = int(node_ul_payload[8:12], 16)
-                    vbkp_dinfox = int(node_ul_payload[12:16], 16)
-                    chrgst1 = ((int(node_ul_payload[16:18], 16) >> 6) & 0x03)
-                    chrgst0 = ((int(node_ul_payload[16:18], 16) >> 4) & 0x03)
-                    chenst = ((int(node_ul_payload[16:18], 16) >> 2) & 0x03)
-                    bkenst = ((int(node_ul_payload[16:18], 16) >> 0) & 0x03)
+                    source_voltage_dinfox = int(node_ul_payload[0:4], 16)
+                    storage_voltage_dinfox = int(node_ul_payload[4:8], 16)
+                    charge_current_dinfox = int(node_ul_payload[8:12], 16)
+                    backup_voltage_dinfox = int(node_ul_payload[12:16], 16)
+                    charge_status1 = ((int(node_ul_payload[16:18], 16) >> 6) & 0x03)
+                    charge_status0 = ((int(node_ul_payload[16:18], 16) >> 4) & 0x03)
+                    charge_control_state = ((int(node_ul_payload[16:18], 16) >> 2) & 0x03)
+                    backup_control_state = ((int(node_ul_payload[16:18], 16) >> 0) & 0x03)
                     # Create custom charge status field
-                    chrgst = 0
-                    if ((chrgst1 == DINFOX_UNA_BIT_ERROR) or (chrgst0 == DINFOX_UNA_BIT_ERROR)):
-                        chrgst = DINFOX_BCM_CHRGST_ERROR
-                    elif ((chrgst1 == DINFOX_UNA_BIT_HW) or (chrgst0 == DINFOX_UNA_BIT_HW)):
-                        chrgst = DINFOX_BCM_CHRGST_HW
+                    charge_status = 0
+                    if ((charge_status1 == DINFOX_UNA_BIT_ERROR) or (charge_status0 == DINFOX_UNA_BIT_ERROR)):
+                        charge_status = DINFOX_BCM_CHRGST_ERROR
+                    elif ((charge_status1 == DINFOX_UNA_BIT_HW) or (charge_status0 == DINFOX_UNA_BIT_HW)):
+                        charge_status = DINFOX_BCM_CHRGST_HW
                     else:
-                        if (chrgst1 == DINFOX_UNA_BIT_0):
-                            if (chrgst0 == DINFOX_UNA_BIT_0):
-                                chrgst = DINFOX_BCM_CHRGST_NOT_CHARGING_TERMINATED
+                        if (charge_status1 == DINFOX_UNA_BIT_0):
+                            if (charge_status0 == DINFOX_UNA_BIT_0):
+                                charge_status = DINFOX_BCM_CHRGST_NOT_CHARGING_TERMINATED
                             else:
-                                chrgst = DINFOX_BCM_CHRGST_CHARGING_CC
+                                charge_status = DINFOX_BCM_CHRGST_CHARGING_CC
                         else:
-                            if (chrgst0 == DINFOX_UNA_BIT_0):
-                                chrgst = DINFOX_BCM_CHRGST_FAULT
+                            if (charge_status0 == DINFOX_UNA_BIT_0):
+                                charge_status = DINFOX_BCM_CHRGST_FAULT
                             else:
-                                chrgst = DINFOX_BCM_CHRGST_CHARGING_CV
+                                charge_status = DINFOX_BCM_CHRGST_CHARGING_CV
                     # Create electrical record.
                     record.measurement = DATABASE_MEASUREMENT_ELECTRICAL
                     record.fields = {
                         DATABASE_FIELD_LAST_DATA_TIME: timestamp,
-                        DATABASE_FIELD_CHARGE_STATUS: chrgst,
-                        DATABASE_FIELD_CHARGE_CONTROL_STATE: chenst,
-                        DATABASE_FIELD_BACKUP_CONTROL_STATE: bkenst
+                        DATABASE_FIELD_CHARGE_STATUS: charge_status,
+                        DATABASE_FIELD_CHARGE_CONTROL_STATE: charge_control_state,
+                        DATABASE_FIELD_BACKUP_CONTROL_STATE: backup_control_state
                     }
-                    record.add_field(vsrc_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_SOURCE_VOLTAGE, DINFox._get_voltage(vsrc_dinfox))
-                    record.add_field(vstr_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_STORAGE_VOLTAGE, DINFox._get_voltage(vstr_dinfox))
-                    record.add_field(istr_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_CHARGE_CURRENT, DINFox._get_current(istr_dinfox))
-                    record.add_field(vbkp_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_BACKUP_VOLTAGE, DINFox._get_voltage(vbkp_dinfox))
+                    record.add_field(source_voltage_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_SOURCE_VOLTAGE, DINFox._get_voltage(source_voltage_dinfox))
+                    record.add_field(storage_voltage_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_STORAGE_VOLTAGE, DINFox._get_voltage(storage_voltage_dinfox))
+                    record.add_field(charge_current_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_CHARGE_CURRENT, DINFox._get_current(charge_current_dinfox))
+                    record.add_field(backup_voltage_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_BACKUP_VOLTAGE, DINFox._get_voltage(backup_voltage_dinfox))
                     record_list.append(copy.copy(record))
                 else:
                     Log.debug_print("[DINFOX BCM] * Invalid UL payload")

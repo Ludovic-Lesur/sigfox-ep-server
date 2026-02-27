@@ -23,7 +23,7 @@ HOMEFOX_UL_PAYLOAD_SIZE_ERROR_STACK = 12
 HOMEFOX_UL_PAYLOAD_SIZE_AIR_QUALITY = 7
 HOMEFOX_UL_PAYLOAD_SIZE_ACCELEROMETER = 1
 
-HOMEFOX_ERROR_VALUE_VBAT = 0xFFFF
+HOMEFOX_ERROR_VALUE_STORAGE_VOLTAGE = 0xFFFF
 HOMEFOX_ERROR_VALUE_TEMPERATURE = 0x7FF
 HOMEFOX_ERROR_VALUE_HUMIDITY = 0xFF
 HOMEFOX_ERROR_VALUE_TVOC = 0xFFFF
@@ -83,17 +83,17 @@ class HomeFox:
         # Monitoring frame.
         elif (len(ul_payload) == (2 * HOMEFOX_UL_PAYLOAD_SIZE_MONITORING)):
             # Parse fields.
-            vbat_mv = int(ul_payload[0:4], 16)
-            tamb_tenth_degrees_one_complement = int(ul_payload[5:8], 16)
-            hamb_percent = int(ul_payload[8:10], 16)
+            storage_voltage_mv = int(ul_payload[0:4], 16)
+            temperature_tenth_degrees_one_complement = int(ul_payload[5:8], 16)
+            humidity_percent = int(ul_payload[8:10], 16)
             status = int(ul_payload[10:12], 16)
             # Create sensor record.
             record.measurement = DATABASE_MEASUREMENT_HOME
             record.fields = {
                 DATABASE_FIELD_LAST_DATA_TIME: timestamp,
             }
-            record.add_field(tamb_tenth_degrees_one_complement, HOMEFOX_ERROR_VALUE_TEMPERATURE, DATABASE_FIELD_TEMPERATURE, float(Common.one_complement_to_value(tamb_tenth_degrees_one_complement, 11) / 10.0))
-            record.add_field(hamb_percent, HOMEFOX_ERROR_VALUE_HUMIDITY, DATABASE_FIELD_HUMIDITY, float(hamb_percent))
+            record.add_field(temperature_tenth_degrees_one_complement, HOMEFOX_ERROR_VALUE_TEMPERATURE, DATABASE_FIELD_TEMPERATURE, float(Common.one_complement_to_value(temperature_tenth_degrees_one_complement, 11) / 10.0))
+            record.add_field(humidity_percent, HOMEFOX_ERROR_VALUE_HUMIDITY, DATABASE_FIELD_HUMIDITY, float(humidity_percent))
             record_list.append(copy.copy(record))
             # Create monitoring record.
             record.measurement = DATABASE_MEASUREMENT_MONITORING
@@ -101,7 +101,7 @@ class HomeFox:
                 DATABASE_FIELD_LAST_DATA_TIME: timestamp,
                 DATABASE_FIELD_STATUS: status
             }
-            record.add_field(vbat_mv, HOMEFOX_ERROR_VALUE_VBAT, DATABASE_FIELD_STORAGE_VOLTAGE, float(vbat_mv / 1000.0))
+            record.add_field(storage_voltage_mv, HOMEFOX_ERROR_VALUE_STORAGE_VOLTAGE, DATABASE_FIELD_STORAGE_VOLTAGE, float(storage_voltage_mv / 1000.0))
             record_list.append(copy.copy(record))
         # Air quality data frame.
         elif (len(ul_payload) == (2 * HOMEFOX_UL_PAYLOAD_SIZE_AIR_QUALITY)):

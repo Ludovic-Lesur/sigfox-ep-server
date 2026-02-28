@@ -20,10 +20,10 @@ TRACKFOX_TAG_ASSET = [ "Proto_HW1.1", "Bike", "Hiking", "Hiking_spare", "Car" ]
 TRACKFOX_UL_PAYLOAD_SIZE_MONITORING = 7
 TRACKFOX_UL_PAYLOAD_SIZE_ERROR_STACK = 12
 
-TRACKFOX_ERROR_VALUE_SOURCE_VOLTAGE = 0xFFFF
-TRACKFOX_ERROR_VALUE_STORAGE_VOLTAGE = 0xFFFF
-TRACKFOX_ERROR_VALUE_TEMPERATURE = 0x7F
+TRACKFOX_ERROR_VALUE_TEMPERATURE = 0x7FF
 TRACKFOX_ERROR_VALUE_HUMIDITY = 0xFF
+TRACKFOX_ERROR_VALUE_SOURCE_VOLTAGE = 0xFFF
+TRACKFOX_ERROR_VALUE_STORAGE_VOLTAGE = 0xFFFF
 
 ### TRACKFOX classes ###
 
@@ -73,9 +73,9 @@ class TrackFox:
         # Monitoring frame.
         elif (len(ul_payload) == (2 * TRACKFOX_UL_PAYLOAD_SIZE_MONITORING)):
             # Parse fields.
-            temperature_degrees_one_complement = int(ul_payload[0:2], 16)
-            humidity_percent = int(ul_payload[2:4], 16)
-            source_voltage_mv = int(ul_payload[4:8], 16)
+            temperature_tenth_degrees_one_complement = int(ul_payload[0:3], 16)
+            humidity_percent = int(ul_payload[3:5], 16)
+            source_voltage_ten_mv = int(ul_payload[5:8], 16)
             storage_voltage_mv = int(ul_payload[8:12], 16)
             status = int(ul_payload[12:14], 16)
             # Create monitoring record.
@@ -84,9 +84,9 @@ class TrackFox:
                 DATABASE_FIELD_LAST_DATA_TIME: timestamp,
                 DATABASE_FIELD_STATUS: status
             }
-            record.add_field(temperature_degrees_one_complement, TRACKFOX_ERROR_VALUE_TEMPERATURE, DATABASE_FIELD_TEMPERATURE, float(Common.one_complement_to_value(temperature_degrees_one_complement, 7)))
+            record.add_field(temperature_tenth_degrees_one_complement, TRACKFOX_ERROR_VALUE_TEMPERATURE, DATABASE_FIELD_TEMPERATURE, float(Common.one_complement_to_value(temperature_tenth_degrees_one_complement, 11) / 10.0))
             record.add_field(humidity_percent, TRACKFOX_ERROR_VALUE_HUMIDITY, DATABASE_FIELD_HUMIDITY, float(humidity_percent))
-            record.add_field(source_voltage_mv, TRACKFOX_ERROR_VALUE_SOURCE_VOLTAGE, DATABASE_FIELD_SOURCE_VOLTAGE, float(source_voltage_mv / 1000.0))
+            record.add_field(source_voltage_ten_mv, TRACKFOX_ERROR_VALUE_SOURCE_VOLTAGE, DATABASE_FIELD_SOURCE_VOLTAGE, float(source_voltage_ten_mv / 100.0))
             record.add_field(storage_voltage_mv, TRACKFOX_ERROR_VALUE_STORAGE_VOLTAGE, DATABASE_FIELD_STORAGE_VOLTAGE, float(storage_voltage_mv / 1000.0))
             record_list.append(copy.copy(record))
         else:

@@ -300,12 +300,12 @@ class DINFox:
                     input_voltage_dinfox = int(node_ul_payload[0:4], 16)
                     output_voltage_dinfox = int(node_ul_payload[4:8], 16)
                     output_current_dinfox = int(node_ul_payload[8:12], 16)
-                    relay_state = ((int(node_ul_payload[12:14], 16) >> 0) & 0x03)
+                    relay_control_state = ((int(node_ul_payload[12:14], 16) >> 0) & 0x03)
                     # Create electrical record.
                     record.measurement = DATABASE_MEASUREMENT_ELECTRICAL
                     record.fields = {
                         DATABASE_FIELD_LAST_DATA_TIME: timestamp,
-                        DATABASE_FIELD_RELAY_STATE: relay_state
+                        DATABASE_FIELD_RELAY_CONTROL_STATE: relay_control_state
                     }
                     record.add_field(input_voltage_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_INPUT_VOLTAGE, DINFox._get_voltage(input_voltage_dinfox))
                     record.add_field(output_voltage_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_OUTPUT_VOLTAGE, DINFox._get_voltage(output_voltage_dinfox))
@@ -372,12 +372,12 @@ class DINFox:
                     input_voltage_dinfox = int(node_ul_payload[0:4], 16)
                     output_voltage_dinfox = int(node_ul_payload[4:8], 16)
                     output_current_dinfox = int(node_ul_payload[8:12], 16)
-                    regulator_state = ((int(node_ul_payload[12:14], 16) >> 0) & 0x03)
+                    regulator_control_state = ((int(node_ul_payload[12:14], 16) >> 0) & 0x03)
                     # Create electrical record.
                     record.measurement = DATABASE_MEASUREMENT_ELECTRICAL
                     record.fields = {
                         DATABASE_FIELD_LAST_DATA_TIME: timestamp,
-                        DATABASE_FIELD_REGULATOR_STATE: regulator_state
+                        DATABASE_FIELD_REGULATOR_CONTROL_STATE: regulator_control_state
                     }
                     record.add_field(input_voltage_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_INPUT_VOLTAGE, DINFox._get_voltage(input_voltage_dinfox))
                     record.add_field(output_voltage_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_OUTPUT_VOLTAGE, DINFox._get_voltage(output_voltage_dinfox))
@@ -508,22 +508,22 @@ class DINFox:
                 # Status frame.
                 if (node_ul_payload_size == (2 * DINFOX_MPMCM_UL_PAYLOAD_SIZE_STATUS)):
                     # Parse fields.
-                    mvd = ((int(node_ul_payload[0:2], 16) >> 5) & 0x01)
-                    ticd = ((int(node_ul_payload[0:2], 16) >> 4) & 0x01)
-                    ch4d = ((int(node_ul_payload[0:2], 16) >> 3) & 0x01)
-                    ch3d = ((int(node_ul_payload[0:2], 16) >> 2) & 0x01)
-                    ch2d = ((int(node_ul_payload[0:2], 16) >> 1) & 0x01)
-                    ch1d = ((int(node_ul_payload[0:2], 16) >> 0) & 0x01)
+                    mains_voltage_detect = ((int(node_ul_payload[0:2], 16) >> 5) & 0x01)
+                    mains_linky_tic_detect = ((int(node_ul_payload[0:2], 16) >> 4) & 0x01)
+                    mains_current_detect_ch4 = ((int(node_ul_payload[0:2], 16) >> 3) & 0x01)
+                    mains_current_detect_ch3 = ((int(node_ul_payload[0:2], 16) >> 2) & 0x01)
+                    mains_current_detect_ch2 = ((int(node_ul_payload[0:2], 16) >> 1) & 0x01)
+                    mains_current_detect_ch1 = ((int(node_ul_payload[0:2], 16) >> 0) & 0x01)
                     # Create electrical record.
                     record.measurement = DATABASE_MEASUREMENT_ELECTRICAL
                     record.fields = {
                         DATABASE_FIELD_LAST_DATA_TIME: timestamp,
-                        DATABASE_FIELD_MAINS_VOLTAGE_DETECT: mvd,
-                        DATABASE_FIELD_MAINS_LINKY_TIC_DETECT: ticd,
-                        DATABASE_FIELD_MAINS_CURRENT_DETECT_CH1: ch1d,
-                        DATABASE_FIELD_MAINS_CURRENT_DETECT_CH2: ch2d,
-                        DATABASE_FIELD_MAINS_CURRENT_DETECT_CH3: ch3d,
-                        DATABASE_FIELD_MAINS_CURRENT_DETECT_CH4: ch4d,
+                        DATABASE_FIELD_MAINS_VOLTAGE_DETECT: mains_voltage_detect,
+                        DATABASE_FIELD_MAINS_LINKY_TIC_DETECT: mains_linky_tic_detect,
+                        DATABASE_FIELD_MAINS_CURRENT_DETECT_CH1: mains_current_detect_ch1,
+                        DATABASE_FIELD_MAINS_CURRENT_DETECT_CH2: mains_current_detect_ch2,
+                        DATABASE_FIELD_MAINS_CURRENT_DETECT_CH3: mains_current_detect_ch3,
+                        DATABASE_FIELD_MAINS_CURRENT_DETECT_CH4: mains_current_detect_ch4,
                     }
                     record_list.append(copy.copy(record))
                 # Mains voltage frame.
@@ -614,26 +614,26 @@ class DINFox:
                 # Electrical frame.
                 if (node_ul_payload_size == (2 * DINFOX_R4S8CR_UL_PAYLOAD_SIZE_ELECTRICAL)):
                     # Parse fields.
-                    relay8_state = ((int(node_ul_payload[0:2], 16) >> 6) & 0x03)
-                    relay7_state = ((int(node_ul_payload[0:2], 16) >> 4) & 0x03)
-                    relay6_state = ((int(node_ul_payload[0:2], 16) >> 2) & 0x03)
-                    relay5_state = ((int(node_ul_payload[0:2], 16) >> 0) & 0x03)
-                    relay4_state = ((int(node_ul_payload[2:4], 16) >> 6) & 0x03)
-                    relay3_state = ((int(node_ul_payload[2:4], 16) >> 4) & 0x03)
-                    relay2_state = ((int(node_ul_payload[2:4], 16) >> 2) & 0x03)
-                    relay1_state = ((int(node_ul_payload[2:4], 16) >> 0) & 0x03)
+                    relay8_status = ((int(node_ul_payload[0:2], 16) >> 6) & 0x03)
+                    relay7_status = ((int(node_ul_payload[0:2], 16) >> 4) & 0x03)
+                    relay6_status = ((int(node_ul_payload[0:2], 16) >> 2) & 0x03)
+                    relay5_status = ((int(node_ul_payload[0:2], 16) >> 0) & 0x03)
+                    relay4_status = ((int(node_ul_payload[2:4], 16) >> 6) & 0x03)
+                    relay3_status = ((int(node_ul_payload[2:4], 16) >> 4) & 0x03)
+                    relay2_status = ((int(node_ul_payload[2:4], 16) >> 2) & 0x03)
+                    relay1_status = ((int(node_ul_payload[2:4], 16) >> 0) & 0x03)
                     # Create electrical record.
                     record.measurement = DATABASE_MEASUREMENT_ELECTRICAL
                     record.fields = {
                         DATABASE_FIELD_LAST_DATA_TIME: timestamp,
-                        DATABASE_FIELD_RELAY1_STATE: relay1_state,
-                        DATABASE_FIELD_RELAY2_STATE: relay2_state,
-                        DATABASE_FIELD_RELAY3_STATE: relay3_state,
-                        DATABASE_FIELD_RELAY4_STATE: relay4_state,
-                        DATABASE_FIELD_RELAY5_STATE: relay5_state,
-                        DATABASE_FIELD_RELAY6_STATE: relay6_state,
-                        DATABASE_FIELD_RELAY7_STATE: relay7_state,
-                        DATABASE_FIELD_RELAY8_STATE: relay8_state
+                        DATABASE_FIELD_RELAY1_STATUS: relay1_status,
+                        DATABASE_FIELD_RELAY2_STATUS: relay2_status,
+                        DATABASE_FIELD_RELAY3_STATUS: relay3_status,
+                        DATABASE_FIELD_RELAY4_STATUS: relay4_status,
+                        DATABASE_FIELD_RELAY5_STATUS: relay5_status,
+                        DATABASE_FIELD_RELAY6_STATUS: relay6_status,
+                        DATABASE_FIELD_RELAY7_STATUS: relay7_status,
+                        DATABASE_FIELD_RELAY8_STATUS: relay8_status
                     }
                     record_list.append(copy.copy(record))
                 else:

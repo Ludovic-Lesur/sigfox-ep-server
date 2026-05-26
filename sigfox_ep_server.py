@@ -213,7 +213,7 @@ class SigfoxEpServer:
                     # Log downlink in database.
                     record.database = self._database_name
                     record.measurement = DATABASE_MEASUREMENT_SIGFOX_DOWNLINK
-                    record.timestamp = timestamp_now,
+                    record.timestamp = timestamp_now
                     record.fields = {
                         DATABASE_FIELD_SIGFOX_DOWNLINK_HASH: self._downlink_hash,
                         DATABASE_FIELD_SIGFOX_DOWNLINK_RECORD_TIME: dl_message_record_time,

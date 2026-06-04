@@ -11,11 +11,11 @@ from log import *
 
 ### TRACKFOX public macros ###
 
-TRACKFOX_SIGFOX_EP_ID_LIST = [ "4257", "428D", "42F1", "43B9" ]
+TRACKFOX_SIGFOX_EP_ID_LIST = [ "4257", "428D", "42F1", "43B9", "43CD" ]
 
 ### TRACKFOX local macros ###
 
-TRACKFOX_TAG_ASSET = [ "Proto_HW2.0", "Car", "Hiking", "Bike" ]
+TRACKFOX_TAG_ASSET = [ "Proto_HW2.0", "Car", "Hiking", "Bike", "Moto" ]
 
 TRACKFOX_UL_PAYLOAD_SIZE_MONITORING = 7
 TRACKFOX_UL_PAYLOAD_SIZE_ERROR_STACK = 10

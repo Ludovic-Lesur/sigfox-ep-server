@@ -13,11 +13,11 @@ from log import *
 
 ### METEOFOX public macros ###
 
-METEOFOX_SIGFOX_EP_ID_LIST = [ "53B5", "5436", "546C", "5477", "5497", "549D", "54B6", "54E4" ]
+METEOFOX_SIGFOX_EP_ID_LIST = [ "53B5", "5436", "546C", "5477", "5497", "549D", "54B6", "54E4", "5521" ]
 
 ### METEOFOX local macros ###
 
-METEOFOX_TAG_SITE = [ "Proto_HW1.0", "Proto_HW2.0", "Lamothe_Capdeville", "Prat_Albis", "Eaunes", "Escalquens", "Saint_Leon", "Kourou" ]
+METEOFOX_TAG_SITE = [ "Proto_HW1.0", "Proto_HW2.0", "Lamothe_Capdeville", "Prat_Albis", "Eaunes", "Escalquens", "Saint_Leon", "Kourou", "Dev_HW2.0" ]
 
 METEOFOX_UL_PAYLOAD_SIZE_MONITORING = 9
 METEOFOX_UL_PAYLOAD_SIZE_WEATHER_IM = 6

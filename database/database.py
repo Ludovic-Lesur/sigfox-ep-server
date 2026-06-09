@@ -181,6 +181,10 @@ DATABASE_FIELD_GPS_ACQUISITION_TIME = "gps_acquisition_time"
 DATABASE_FIELD_GPS_ACQUISITION_TIMEOUT_TIME = "gps_acquisition_timeout_time"
 DATABASE_FIELD_GPS_VOLTAGE = "gps_voltage"
 DATABASE_FIELD_GPS_ANTENNA_VOLTAGE = "gps_antenna_voltage"
+# WiFi.
+DATABASE_FIELD_WIFI_SCAN_STATUS = "wifi_scan_status"
+DATABASE_FIELD_WIFI_SCAN_TIME = "wifi_scan_time"
+DATABASE_FIELD_WIFI_SCAN_TIMEOUT_TIME = "wifi_scan_timeout_time"
 
 # Tags name.
 DATABASE_TAG_SIGFOX_EP_ID = "sigfox_ep_id"

@@ -18,6 +18,7 @@ TRACKFOX_SIGFOX_EP_ID_LIST = [ "4257", "428D", "42F1", "43B9", "43CD" ]
 TRACKFOX_TAG_ASSET = [ "Proto_HW2.0", "Car", "Hiking", "Bike", "Moto" ]
 
 TRACKFOX_UL_PAYLOAD_SIZE_MONITORING = 7
+TRACKFOX_UL_PAYLOAD_SIZE_GEOLOC_ERROR = 4
 TRACKFOX_UL_PAYLOAD_SIZE_ERROR_STACK = 10
 
 TRACKFOX_ERROR_VALUE_TEMPERATURE = 0x7FF
@@ -88,6 +89,21 @@ class TrackFox:
             record.add_field(humidity_percent, TRACKFOX_ERROR_VALUE_HUMIDITY, DATABASE_FIELD_HUMIDITY, float(humidity_percent))
             record.add_field(source_voltage_ten_mv, TRACKFOX_ERROR_VALUE_SOURCE_VOLTAGE, DATABASE_FIELD_SOURCE_VOLTAGE, float(source_voltage_ten_mv / 100.0))
             record.add_field(storage_voltage_mv, TRACKFOX_ERROR_VALUE_STORAGE_VOLTAGE, DATABASE_FIELD_STORAGE_VOLTAGE, float(storage_voltage_mv / 1000.0))
+            record_list.append(copy.copy(record))
+        elif (len(ul_payload) == (2 * TRACKFOX_UL_PAYLOAD_SIZE_GEOLOC_ERROR)):
+            # Parse fields
+            gps_acquisition_status = int(ul_payload[0:2], 16)
+            gps_acquisition_time_seconds = int(ul_payload[2:4], 16)
+            wifi_scan_status = int(ul_payload[4:6], 16)
+            wifi_scan_time_seconds = int(ul_payload[6:8], 16)
+            # Create geoloc record.
+            record.measurement = DATABASE_MEASUREMENT_GEOLOCATION
+            record.fields = {
+                DATABASE_FIELD_GPS_ACQUISITION_STATUS: gps_acquisition_status,
+                DATABASE_FIELD_GPS_ACQUISITION_TIMEOUT_TIME: float(gps_acquisition_time_seconds),
+                DATABASE_FIELD_WIFI_SCAN_STATUS: wifi_scan_status,
+                DATABASE_FIELD_WIFI_SCAN_TIMEOUT_TIME: float(wifi_scan_time_seconds)
+            }
             record_list.append(copy.copy(record))
         else:
             Log.debug_print("[TRACKFOX] * Invalid UL payload")

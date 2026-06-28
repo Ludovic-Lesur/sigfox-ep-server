@@ -338,6 +338,8 @@ class SigfoxEpServer:
                         DATABASE_FIELD_GEOLOCATION_SOURCE: geolocation_source,
                         DATABASE_FIELD_GEOLOCATION_RADIUS: float(radius)
                     }
+                    if (source == SIGFOX_CALLBACK_GEOLOCATION_SOURCE_WIFI):
+                        record.add_field(0x00, 0xFF, DATABASE_FIELD_WIFI_SCAN_STATUS, 0x00)
                     record.tags = self._get_tags_pfn(sigfox_ep_id)
                     record.limited_retention = True
                     self._database.write_record(record)

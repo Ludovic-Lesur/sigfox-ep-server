@@ -90,6 +90,7 @@ class TrackFox:
             record.add_field(source_voltage_ten_mv, TRACKFOX_ERROR_VALUE_SOURCE_VOLTAGE, DATABASE_FIELD_SOURCE_VOLTAGE, float(source_voltage_ten_mv / 100.0))
             record.add_field(storage_voltage_mv, TRACKFOX_ERROR_VALUE_STORAGE_VOLTAGE, DATABASE_FIELD_STORAGE_VOLTAGE, float(storage_voltage_mv / 1000.0))
             record_list.append(copy.copy(record))
+        # Geolocation error frame.
         elif (len(ul_payload) == (2 * TRACKFOX_UL_PAYLOAD_SIZE_GEOLOC_ERROR)):
             # Parse fields
             gps_acquisition_status = int(ul_payload[0:2], 16)

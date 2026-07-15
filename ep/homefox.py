@@ -11,12 +11,12 @@ from log import *
 
 ### HOMEFOX public macros ###
 
-HOMEFOX_SIGFOX_EP_ID_LIST = [ "1230", "1331", "133F", "1389", "13ED", "147D" ]
+HOMEFOX_SIGFOX_EP_ID_LIST = [ "1230", "1331", "133F", "1389", "13ED", "147D", "14DE" ]
 
 ### HOMEFOX local macros ###
 
-HOMEFOX_TAG_SITE = [ "Proto_HW2.0", "Escalquens", "Escalquens", "Escalquens", "Escalquens", "Escalquens" ]
-HOMEFOX_TAG_LOCATION = [ "Proto_HW2.0", "Living_room", "Bed_room", "Store_room", "Bath_room", "Main_door" ]
+HOMEFOX_TAG_SITE = [ "Proto_HW2.0", "Escalquens", "Escalquens", "Escalquens", "Escalquens", "Escalquens", "Escalquens" ]
+HOMEFOX_TAG_LOCATION = [ "Proto_HW2.0", "Living_room", "Bed_room", "Store_room", "Bath_room", "Main_door", "Cellar" ]
 
 HOMEFOX_UL_PAYLOAD_SIZE_MONITORING = 6
 HOMEFOX_UL_PAYLOAD_SIZE_ERROR_STACK = 12

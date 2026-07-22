@@ -43,6 +43,7 @@ class SigfoxEpServer:
         self._get_tags_pfn = None
         self._get_record_list_pfn = None
         self._get_default_dl_payload_pfn = None
+        self._update_dl_payload_pfn = None
         # Update Git version in database.
         self._update_git_version()
         # Init downlink messages file.
@@ -117,42 +118,49 @@ class SigfoxEpServer:
             self._get_tags_pfn = ATXFox.get_tags
             self._get_record_list_pfn = ATXFox.get_record_list
             self._get_default_dl_payload_pfn = ATXFox.get_default_dl_payload
+            self._update_dl_payload_pfn = ATXFox.update_dl_payload
         # DinFox.
         elif (sigfox_ep_id in DINFOX_SIGFOX_EP_ID_LIST):
             self._database_name = DATABASE_DINFOX
             self._get_tags_pfn = DINFox.get_tags
             self._get_record_list_pfn = DINFox.get_record_list
             self._get_default_dl_payload_pfn = DINFox.get_default_dl_payload
+            self._update_dl_payload_pfn = DINFox.update_dl_payload
         # HomeFox.
         elif (sigfox_ep_id in HOMEFOX_SIGFOX_EP_ID_LIST):
             self._database_name = DATABASE_HOMEFOX
             self._get_tags_pfn = HomeFox.get_tags
             self._get_record_list_pfn = HomeFox.get_record_list
             self._get_default_dl_payload_pfn = HomeFox.get_default_dl_payload
+            self._update_dl_payload_pfn = HomeFox.update_dl_payload
         # MeteoFox.
         elif (sigfox_ep_id in METEOFOX_SIGFOX_EP_ID_LIST):
             self._database_name = DATABASE_METEOFOX
             self._get_tags_pfn = MeteoFox.get_tags
             self._get_record_list_pfn = MeteoFox.get_record_list
             self._get_default_dl_payload_pfn = MeteoFox.get_default_dl_payload
+            self._update_dl_payload_pfn = MeteoFox.update_dl_payload
         # Sensit.
         elif (sigfox_ep_id in SENSIT_SIGFOX_EP_ID_LIST):
             self._database_name = DATABASE_SENSIT
             self._get_tags_pfn = Sensit.get_tags
             self._get_record_list_pfn = Sensit.get_record_list
             self._get_default_dl_payload_pfn = Sensit.get_default_dl_payload
+            self._update_dl_payload_pfn = Sensit.update_dl_payload
         # TrackFox.
         elif (sigfox_ep_id in TRACKFOX_SIGFOX_EP_ID_LIST):
             self._database_name = DATABASE_TRACKFOX
             self._get_tags_pfn = TrackFox.get_tags
             self._get_record_list_pfn = TrackFox.get_record_list
             self._get_default_dl_payload_pfn = TrackFox.get_default_dl_payload
+            self._update_dl_payload_pfn = TrackFox.update_dl_payload
         # Unknown device.
         else:
             self._database_name = None
             self._get_tags_pfn = None
             self._get_record_list_pfn = None
             self._get_default_dl_payload_pfn = None
+            self._update_dl_payload_pfn = None
             
     # Function to compute dynamic DL payload.
     def _compute_dl_payload(self, sigfox_ep_id: str):
@@ -210,6 +218,8 @@ class SigfoxEpServer:
             if (dl_payload is not None):
                 # Check size.
                 if (len(dl_payload) == (2 * SIGFOX_DL_PAYLOAD_SIZE_BYTES)):
+                    # Update dynamic fields.)
+                    dl_payload = self._update_dl_payload_pfn(sigfox_ep_id, dl_payload)
                     # Log downlink in database.
                     record.database = self._database_name
                     record.measurement = DATABASE_MEASUREMENT_SIGFOX_DOWNLINK

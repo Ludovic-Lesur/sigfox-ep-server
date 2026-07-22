@@ -117,3 +117,10 @@ class Sensit:
             else:
                 dl_payload = "00FF008F04017316"
         return dl_payload
+
+    @staticmethod
+    def update_dl_payload(sigfox_ep_id: str, dl_payload: str) -> str:
+        # Unused parameter.
+        _ = sigfox_ep_id
+        # No dynamic payload used.
+        return dl_payload

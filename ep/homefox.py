@@ -149,3 +149,10 @@ class HomeFox:
         if (sigfox_ep_id in HOMEFOX_SIGFOX_EP_ID_LIST):
             dl_payload = "0000000000000000"
         return dl_payload
+
+    @staticmethod
+    def update_dl_payload(sigfox_ep_id: str, dl_payload: str) -> str:
+        # Unused parameter.
+        _ = sigfox_ep_id
+        # No dynamic payload used.
+        return dl_payload

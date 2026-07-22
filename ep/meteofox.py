@@ -10,6 +10,8 @@ import math
 from database.database import *
 from ep.common import *
 from log import *
+from utils.sigfox import *
+from datetime import datetime, timedelta
 
 ### METEOFOX public macros ###
 
@@ -247,4 +249,25 @@ class MeteoFox:
         # Check ID.
         if (sigfox_ep_id in METEOFOX_SIGFOX_EP_ID_LIST):
             dl_payload = "0000000000000000"
+        return dl_payload
+
+    @staticmethod
+    def update_dl_payload(sigfox_ep_id: str, dl_payload: str) -> str:
+        # Check ID.
+        if (sigfox_ep_id in METEOFOX_SIGFOX_EP_ID_LIST):
+            # Convert to byte array.
+            payload_bytes = bytearray.fromhex(dl_payload)
+            # Check operation code.
+            if (payload_bytes[0] == 3):
+                # Update time.
+                dl_timestamp = datetime.utcnow() + timedelta(seconds=SIGFOX_CALLBACK_DOWNLINK_TIMESTAMP_DELTA)
+                payload_bytes[1] = ((dl_timestamp.year >> 8) & 0xFF)
+                payload_bytes[2] = ((dl_timestamp.year >> 0) & 0xFF)
+                payload_bytes[3] = dl_timestamp.month
+                payload_bytes[4] = dl_timestamp.day
+                payload_bytes[5] = dl_timestamp.hour
+                payload_bytes[6] = dl_timestamp.minute
+                payload_bytes[7] = dl_timestamp.second
+            # Convert to string.
+            dl_payload = payload_bytes.hex().upper()
         return dl_payload

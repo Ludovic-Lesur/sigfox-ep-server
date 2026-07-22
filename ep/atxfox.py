@@ -111,3 +111,10 @@ class ATXFox:
         _ = sigfox_ep_id
         # No downlink payload defined.
         return dl_payload
+
+    @staticmethod
+    def update_dl_payload(sigfox_ep_id: str, dl_payload: str) -> str:
+        # Unused parameter.
+        _ = sigfox_ep_id
+        # No dynamic payload used.
+        return dl_payload

@@ -218,7 +218,7 @@ class SigfoxEpServer:
             if (dl_payload is not None):
                 # Check size.
                 if (len(dl_payload) == (2 * SIGFOX_DL_PAYLOAD_SIZE_BYTES)):
-                    # Update dynamic fields.)
+                    # Update dynamic fields.
                     dl_payload = self._update_dl_payload_pfn(sigfox_ep_id, dl_payload)
                     # Log downlink in database.
                     record.database = self._database_name

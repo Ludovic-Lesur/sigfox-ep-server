@@ -381,12 +381,12 @@ class Database:
         for record in record_list:
             self.write_record(record)
         
-    def read_field(self, sigfox_ep_id: str, database: str, measurement: str, field: str, limited_retention: bool) -> Any:
+    def read_field(self, where_clause: str, database: str, measurement: str, field: str, limited_retention: bool) -> Any:
         # Local variables.
         result = None
         rp = "" if (limited_retention == True) else (DATABASE_RETENTION_POLICY_10_YEARS_NAME + ".")
         # Build query.
-        query = "SELECT last(" + field + ") FROM " + rp + measurement + " WHERE sigfox_ep_id='" + sigfox_ep_id + "'"
+        query = "SELECT last(" + field + ") FROM " + rp + measurement + " WHERE " + where_clause
         # Switch database.
         Log.debug_print("[DATABASE] * Switching and reading database " + database)
         self._influxdb_client.switch_database(database)

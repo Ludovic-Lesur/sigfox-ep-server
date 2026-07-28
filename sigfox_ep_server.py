@@ -254,7 +254,7 @@ class SigfoxEpServer:
             # Read fields.
             callback_type = json_in[SIGFOX_CALLBACK_JSON_KEY_TYPE]
             timestamp = int(json_in[SIGFOX_CALLBACK_JSON_KEY_TIME])
-            sigfox_ep_id = json_in[SIGFOX_CALLBACK_JSON_KEY_EP_ID].upper()
+            sigfox_ep_id = EpList.format_sigfox_ep_id(json_in[SIGFOX_CALLBACK_JSON_KEY_EP_ID])
             # Update functions pointer.
             self._set_database_pointers(sigfox_ep_id)
             # Directly returns if the end-point ID is unknown.

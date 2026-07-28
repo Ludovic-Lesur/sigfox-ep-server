@@ -9,17 +9,19 @@ import math
 
 from database.database import *
 from ep.common import *
+from ep.ep_list import *
 from log import *
 from utils.sigfox import *
 from datetime import datetime, timedelta
 
 ### METEOFOX public macros ###
 
-METEOFOX_SIGFOX_EP_ID_LIST = [ "53B5", "5436", "546C", "5477", "5497", "549D", "54B6", "54E4", "5521" ]
+METEOFOX_DEVICE_TYPE_NAME = "meteofox"
+METEOFOX_SIGFOX_EP_ID_LIST = ep_list.get(METEOFOX_DEVICE_TYPE_NAME, DATABASE_TAG_SIGFOX_EP_ID)
 
 ### METEOFOX local macros ###
 
-METEOFOX_TAG_SITE = [ "Proto_HW1.0", "Proto_HW2.0", "Lamothe_Capdeville", "Prat_Albis", "Eaunes", "Escalquens", "Saint_Leon", "Kourou", "Dev_HW2.0" ]
+METEOFOX_TAG_SITE = ep_list.get(METEOFOX_DEVICE_TYPE_NAME, DATABASE_TAG_SITE)
 
 METEOFOX_UL_PAYLOAD_SIZE_MONITORING = 9
 METEOFOX_UL_PAYLOAD_SIZE_WEATHER_IM = 6
@@ -75,6 +77,7 @@ class MeteoFox:
         # Local variables.
         record_list = []
         record = Record()
+        where_clause = DATABASE_TAG_SITE + "='" + MeteoFox._get_site(sigfox_ep_id) + "'"
         # Common properties.
         record.database = DATABASE_METEOFOX
         record.timestamp = timestamp
@@ -103,8 +106,8 @@ class MeteoFox:
         # Other frames format depends on software version.
         else:
             # Read software version.
-            sw_version_major_query = database.read_field(sigfox_ep_id, DATABASE_METEOFOX, DATABASE_MEASUREMENT_METADATA, DATABASE_FIELD_SW_VERSION_MAJOR, False)
-            sw_version_minor_query = database.read_field(sigfox_ep_id, DATABASE_METEOFOX, DATABASE_MEASUREMENT_METADATA, DATABASE_FIELD_SW_VERSION_MINOR, False)
+            sw_version_major_query = database.read_field(where_clause, DATABASE_METEOFOX, DATABASE_MEASUREMENT_METADATA, DATABASE_FIELD_SW_VERSION_MAJOR, False)
+            sw_version_minor_query = database.read_field(where_clause, DATABASE_METEOFOX, DATABASE_MEASUREMENT_METADATA, DATABASE_FIELD_SW_VERSION_MINOR, False)
             # Check results.
             if ((sw_version_major_query is not None) and (sw_version_minor_query is not None)):
                 sw_version_major = int(sw_version_major_query)
@@ -198,7 +201,7 @@ class MeteoFox:
                     # Compute sea level pressure.
                     if ((pressure_atmospheric_absolute_pa != METEOFOX_ERROR_VALUE_PRESSURE) and (temperature_one_complement != temperature_error_value)):
                         try:
-                            altitude_query = database.read_field(sigfox_ep_id, DATABASE_METEOFOX, DATABASE_MEASUREMENT_GEOLOCATION, DATABASE_FIELD_GEOLOCATION_ALTITUDE, True)
+                            altitude_query = database.read_field(where_clause, DATABASE_METEOFOX, DATABASE_MEASUREMENT_GEOLOCATION, DATABASE_FIELD_GEOLOCATION_ALTITUDE, True)
                             if (altitude_query):
                                 altitude = int(altitude_query)
                                 Log.debug_print("[METEOFOX] * Computing sea-level pressure at altitude " + str(altitude) + "m")

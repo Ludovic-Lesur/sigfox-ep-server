@@ -7,16 +7,18 @@
 
 from database.database import *
 from ep.common import *
+from ep.ep_list import *
 from log import *
 
 ### HOMEFOX public macros ###
 
-HOMEFOX_SIGFOX_EP_ID_LIST = [ "1230", "1331", "133F", "1389", "13ED", "147D", "14DE" ]
+HOMEFOX_DEVICE_TYPE_NAME = "homefox"
+HOMEFOX_SIGFOX_EP_ID_LIST = ep_list.get(HOMEFOX_DEVICE_TYPE_NAME, DATABASE_TAG_SIGFOX_EP_ID)
 
 ### HOMEFOX local macros ###
 
-HOMEFOX_TAG_SITE = [ "Proto_HW2.0", "Escalquens", "Escalquens", "Escalquens", "Escalquens", "Escalquens", "Escalquens" ]
-HOMEFOX_TAG_LOCATION = [ "Proto_HW2.0", "Living_room", "Bed_room", "Store_room", "Bath_room", "Main_door", "Cellar" ]
+HOMEFOX_TAG_SITE = ep_list.get(HOMEFOX_DEVICE_TYPE_NAME, DATABASE_TAG_SITE)
+HOMEFOX_TAG_LOCATION = ep_list.get(HOMEFOX_DEVICE_TYPE_NAME, DATABASE_TAG_LOCATION)
 
 HOMEFOX_UL_PAYLOAD_SIZE_MONITORING = 6
 HOMEFOX_UL_PAYLOAD_SIZE_ERROR_STACK = 12

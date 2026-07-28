@@ -7,17 +7,19 @@
 
 from database.database import *
 from ep.common import *
+from ep.ep_list import *
 from log import *
 
 ### SENSIT public macros ###
 
-SENSIT_SIGFOX_EP_ID_LIST = [ "86BD75" ]
+SENSIT_DEVICE_TYPE_NAME = "sensit"
+SENSIT_SIGFOX_EP_ID_LIST = ep_list.get(SENSIT_DEVICE_TYPE_NAME, DATABASE_TAG_SIGFOX_EP_ID)
 
 ### SENSIT local macros ###
 
-SENSIT_TAG_SITE = [ "Prat_Albis" ]
+SENSIT_TAG_SITE = ep_list.get(SENSIT_DEVICE_TYPE_NAME, DATABASE_TAG_SITE)
 
-SENSIT_VERSION = [ "V2" ]
+SENSIT_VERSION = ep_list.get(SENSIT_DEVICE_TYPE_NAME, "version")
 
 SENSIT_UL_PAYLOAD_SIZE_MONITORING = 4
 SENSIT_UL_PAYLOAD_SIZE_CONFIGURATION = 12

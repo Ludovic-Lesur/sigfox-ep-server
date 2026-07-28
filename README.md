@@ -88,3 +88,10 @@ sudo service sigfox_ep_server stop
 git pull
 sudo service sigfox_ep_server start
 ```
+
+## Devices list update
+
+```bash
+cd git/sigfox_ep_server
+sudo scp -P <port> sigfox_ep_list.json ludo@<server>:/home/ludo/git/sigfox-ep-server
+```

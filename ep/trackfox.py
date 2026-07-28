@@ -7,15 +7,17 @@
 
 from database.database import *
 from ep.common import *
+from ep.ep_list import *
 from log import *
 
 ### TRACKFOX public macros ###
 
-TRACKFOX_SIGFOX_EP_ID_LIST = [ "4257", "428D", "42F1", "43B9", "43CD" ]
+TRACKFOX_DEVICE_TYPE_NAME = "trackfox"
+TRACKFOX_SIGFOX_EP_ID_LIST = ep_list.get(TRACKFOX_DEVICE_TYPE_NAME, DATABASE_TAG_SIGFOX_EP_ID)
 
 ### TRACKFOX local macros ###
 
-TRACKFOX_TAG_ASSET = [ "Proto_HW2.0", "Car", "Hiking", "Bike", "Moto" ]
+TRACKFOX_TAG_ASSET = ep_list.get(TRACKFOX_DEVICE_TYPE_NAME, DATABASE_TAG_ASSET)
 
 TRACKFOX_UL_PAYLOAD_SIZE_MONITORING = 7
 TRACKFOX_UL_PAYLOAD_SIZE_GEOLOC_ERROR = 4

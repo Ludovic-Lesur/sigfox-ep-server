@@ -40,11 +40,8 @@ class SigfoxEpServer:
         # Init context.
         self._database = Database()
         self._downlink_hash = 0
-        self._database_name = None
-        self._get_tags_pfn = None
-        self._get_record_list_pfn = None
-        self._get_default_dl_payload_pfn = None
-        self._update_dl_payload_pfn = None
+        self._ep_class = None
+        self._ep_database = None
         # Update Git version in database.
         self._update_git_version()
         # Init downlink messages file.
@@ -112,57 +109,36 @@ class SigfoxEpServer:
             json.dump(downlink_messages_json, downlink_messages_file, indent = 4)
             downlink_messages_file.close()
             
-    def _set_database_pointers(self, sigfox_ep_id: str) -> None:
+    def _set_ep_class_and_database(self, sigfox_ep_id: str) -> None:
         # ATXFox.
         if (sigfox_ep_id in ATXFOX_SIGFOX_EP_ID_LIST):
-            self._database_name = DATABASE_ATXFOX
-            self._get_tags_pfn = ATXFox.get_tags
-            self._get_record_list_pfn = ATXFox.get_record_list
-            self._get_default_dl_payload_pfn = ATXFox.get_default_dl_payload
-            self._update_dl_payload_pfn = ATXFox.update_dl_payload
+            self._ep_class = ATXFox
+            self._ep_database = DATABASE_ATXFOX
         # DinFox.
         elif (sigfox_ep_id in DINFOX_SIGFOX_EP_ID_LIST):
-            self._database_name = DATABASE_DINFOX
-            self._get_tags_pfn = DINFox.get_tags
-            self._get_record_list_pfn = DINFox.get_record_list
-            self._get_default_dl_payload_pfn = DINFox.get_default_dl_payload
-            self._update_dl_payload_pfn = DINFox.update_dl_payload
+            self._ep_class = DINFox
+            self._ep_database = DATABASE_DINFOX
         # HomeFox.
         elif (sigfox_ep_id in HOMEFOX_SIGFOX_EP_ID_LIST):
-            self._database_name = DATABASE_HOMEFOX
-            self._get_tags_pfn = HomeFox.get_tags
-            self._get_record_list_pfn = HomeFox.get_record_list
-            self._get_default_dl_payload_pfn = HomeFox.get_default_dl_payload
-            self._update_dl_payload_pfn = HomeFox.update_dl_payload
+            self._ep_class = HomeFox
+            self._ep_database = DATABASE_HOMEFOX
         # MeteoFox.
         elif (sigfox_ep_id in METEOFOX_SIGFOX_EP_ID_LIST):
-            self._database_name = DATABASE_METEOFOX
-            self._get_tags_pfn = MeteoFox.get_tags
-            self._get_record_list_pfn = MeteoFox.get_record_list
-            self._get_default_dl_payload_pfn = MeteoFox.get_default_dl_payload
-            self._update_dl_payload_pfn = MeteoFox.update_dl_payload
+            self._ep_class = MeteoFox
+            self._ep_database = DATABASE_METEOFOX
         # Sensit.
         elif (sigfox_ep_id in SENSIT_SIGFOX_EP_ID_LIST):
-            self._database_name = DATABASE_SENSIT
-            self._get_tags_pfn = Sensit.get_tags
-            self._get_record_list_pfn = Sensit.get_record_list
-            self._get_default_dl_payload_pfn = Sensit.get_default_dl_payload
-            self._update_dl_payload_pfn = Sensit.update_dl_payload
+            self._ep_class = Sensit
+            self._ep_database = DATABASE_SENSIT
         # TrackFox.
         elif (sigfox_ep_id in TRACKFOX_SIGFOX_EP_ID_LIST):
-            self._database_name = DATABASE_TRACKFOX
-            self._get_tags_pfn = TrackFox.get_tags
-            self._get_record_list_pfn = TrackFox.get_record_list
-            self._get_default_dl_payload_pfn = TrackFox.get_default_dl_payload
-            self._update_dl_payload_pfn = TrackFox.update_dl_payload
+            self._ep_class = TrackFox
+            self._ep_database = DATABASE_TRACKFOX
         # Unknown device.
         else:
-            self._database_name = None
-            self._get_tags_pfn = None
-            self._get_record_list_pfn = None
-            self._get_default_dl_payload_pfn = None
-            self._update_dl_payload_pfn = None
-            
+            self._ep_class = None
+            self._ep_database = None
+
     # Function to compute dynamic DL payload.
     def _compute_dl_payload(self, sigfox_ep_id: str):
         # Local variables.
@@ -171,7 +147,7 @@ class SigfoxEpServer:
         dl_message_record_time = timestamp_now
         record = Record()
         # Initialize with default payload if there is any.
-        dl_payload = self._get_default_dl_payload_pfn(sigfox_ep_id)
+        dl_payload = self._ep_class.get_default_dl_payload(sigfox_ep_id)
         # Open downlink messages file.
         try:
             # Load JSON data.
@@ -220,9 +196,9 @@ class SigfoxEpServer:
                 # Check size.
                 if (len(dl_payload) == (2 * SIGFOX_DL_PAYLOAD_SIZE_BYTES)):
                     # Update dynamic fields.
-                    dl_payload = self._update_dl_payload_pfn(sigfox_ep_id, dl_payload)
+                    dl_payload = self._ep_class.update_dl_payload(sigfox_ep_id, dl_payload)
                     # Log downlink in database.
-                    record.database = self._database_name
+                    record.database = self._ep_database
                     record.measurement = DATABASE_MEASUREMENT_SIGFOX_DOWNLINK
                     record.timestamp = timestamp_now
                     record.fields = {
@@ -231,7 +207,7 @@ class SigfoxEpServer:
                         DATABASE_FIELD_SIGFOX_DOWNLINK_SERVER_TIME: timestamp_now,
                         DATABASE_FIELD_SIGFOX_DOWNLINK_PAYLOAD: dl_payload.upper(),
                     }
-                    record.tags = self._get_tags_pfn(sigfox_ep_id)
+                    record.tags = self._ep_class.get_tags(sigfox_ep_id)
                     record.limited_retention = True
                     self._database.write_record(record)
             return dl_payload
@@ -256,10 +232,10 @@ class SigfoxEpServer:
             callback_type = json_in[SIGFOX_CALLBACK_JSON_KEY_TYPE]
             timestamp = int(json_in[SIGFOX_CALLBACK_JSON_KEY_TIME])
             sigfox_ep_id = Ep.format_sigfox_ep_id(json_in[SIGFOX_CALLBACK_JSON_KEY_EP_ID])
-            # Update functions pointer.
-            self._set_database_pointers(sigfox_ep_id)
+            # Update class pointer and database.
+            self._set_ep_class_and_database(sigfox_ep_id)
             # Directly returns if the end-point ID is unknown.
-            if (self._database_name == None):
+            if ((self._ep_class == None) or (self._ep_database == None)):
                 Log.debug_print("[SIGFOX EP SERVER] * ERROR: unknown Sigfox EP-ID.")
                 raise Exception
             # Data bidirectional callback.
@@ -284,11 +260,11 @@ class SigfoxEpServer:
                     ul_payload = COMMON_UL_PAYLOAD_KEEP_ALIVE
                 Log.debug_print("[SIGFOX EP SERVER] * Data bidirectional callback: timestamp=" + str(timestamp) + " sigfox_ep_id=" + sigfox_ep_id + " message_counter=" + str(message_counter) + " ul_payload=" + ul_payload + " bidirectional_flag=" + bidirectional_flag)
                 # Parse UL payload.
-                record_list = self._get_record_list_pfn(self._database, timestamp, sigfox_ep_id, ul_payload)
+                record_list = self._ep_class.get_record_list(self._database, timestamp, sigfox_ep_id, ul_payload)
                 # Check parsing status.
                 if (len(record_list) > 0):
                     # Create metadata measurement.
-                    record.database = self._database_name
+                    record.database = self._ep_database
                     record.measurement = DATABASE_MEASUREMENT_METADATA
                     record.timestamp = timestamp
                     record.fields = {
@@ -339,7 +315,7 @@ class SigfoxEpServer:
                         Log.debug_print("[SIGFOX EP SERVER] * ERROR: invalid data advanced callback (geolocation_source=" + str(source) + ")")
                         raise Exception
                     # Create geolocation record.
-                    record.database = self._database_name
+                    record.database = self._ep_database
                     record.measurement = DATABASE_MEASUREMENT_GEOLOCATION
                     record.timestamp = (timestamp + 1)
                     record.fields = {
@@ -351,7 +327,7 @@ class SigfoxEpServer:
                     }
                     if (source == SIGFOX_CALLBACK_GEOLOCATION_SOURCE_WIFI):
                         record.add_field(0x00, 0xFF, DATABASE_FIELD_WIFI_SCAN_STATUS, 0x00)
-                    record.tags = self._get_tags_pfn(sigfox_ep_id)
+                    record.tags = self._ep_class.get_tags(sigfox_ep_id)
                     record.limited_retention = True
                     self._database.write_record(record)
             # Service status callback.
@@ -372,7 +348,7 @@ class SigfoxEpServer:
                 dl_status = json_in[SIGFOX_CALLBACK_JSON_KEY_DL_STATUS]
                 Log.debug_print("[SIGFOX EP SERVER] * Service acknowledge callback: timestamp=" + str(timestamp) + " sigfox_ep_id=" + sigfox_ep_id + " dl_payload=" + dl_payload + " dl_success=" + dl_success + " dl_status=" + dl_status)
                 # Log downlink network status in database.
-                record.database = self._database_name
+                record.database = self._ep_database
                 record.measurement = DATABASE_MEASUREMENT_SIGFOX_DOWNLINK
                 record.timestamp = timestamp_now
                 record.fields = {
@@ -382,7 +358,7 @@ class SigfoxEpServer:
                     DATABASE_FIELD_SIGFOX_DOWNLINK_SUCCESS: dl_success,
                     DATABASE_FIELD_SIGFOX_DOWNLINK_STATUS: dl_status
                 }
-                record.tags = self._get_tags_pfn(sigfox_ep_id)
+                record.tags = self._ep_class.get_tags(sigfox_ep_id)
                 record.limited_retention = True
                 self._database.write_record(record)
             # Invalid callback type.

@@ -1,5 +1,5 @@
 """
-* ep_list.py
+* ep.py
 *
 *  Created on: 28 jul. 2026
 *      Author: Ludo & Copilot
@@ -15,7 +15,7 @@ SIGFOX_EP_LIST_FILE_NAME = "/home/ludo/git/sigfox-ep-server/sigfox_ep_list.json"
 
 ### EP LIST classes ###
 
-class EpList:
+class Ep:
     
     def __init__(self) -> None:
         # Local variables.
@@ -43,16 +43,16 @@ class EpList:
                     if not sigfox_ep_id:
                         raise Exception
                     meta = dict(item)
-                    meta[DATABASE_TAG_SIGFOX_EP_ID] = EpList.format_sigfox_ep_id(sigfox_ep_id)
+                    meta[DATABASE_TAG_SIGFOX_EP_ID] = Ep.format_sigfox_ep_id(sigfox_ep_id)
                     self.device_types[device_type].append(meta)
         except:
             return    
     
-    def get_devices(self, device_type: str) -> List[Dict]:
+    def _get_devices_list(self, device_type: str) -> List[Dict]:
         return list(self.device_types.get(device_type, []))
 
-    def get(self, device_type: str, tag: str) -> Optional[Dict]:
-        return [d[tag] for d in self.get_devices(device_type)]
+    def get_tags_list(self, device_type: str, tag: str) -> Optional[Dict]:
+        return [d[tag] for d in self._get_devices_list(device_type)]
     
     @staticmethod
     def format_sigfox_ep_id(sigfox_ep_id) -> str:
@@ -74,5 +74,5 @@ class EpList:
         return f"{value:08X}"
     
 # Init shared class instance.
-ep_list = EpList()
+ep = Ep()
     

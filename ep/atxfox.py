@@ -7,18 +7,18 @@
 
 from database.database import *
 from ep.common import *
-from ep.ep_list import *
+from ep.ep import *
 from log import *
 
 ### ATXFOX public macros ###
 
 ATXFOX_DEVICE_TYPE_NAME = "atxfox"
-ATXFOX_SIGFOX_EP_ID_LIST = ep_list.get(ATXFOX_DEVICE_TYPE_NAME, DATABASE_TAG_SIGFOX_EP_ID)
+ATXFOX_SIGFOX_EP_ID_LIST = ep.get_tags_list(ATXFOX_DEVICE_TYPE_NAME, DATABASE_TAG_SIGFOX_EP_ID)
 
 ### ATXFOX local macros ###
 
-ATXFOX_TAG_RACK = ep_list.get(ATXFOX_DEVICE_TYPE_NAME, DATABASE_TAG_RACK)
-ATXFOX_TAG_PSFE = ep_list.get(ATXFOX_DEVICE_TYPE_NAME, DATABASE_TAG_PSFE)
+ATXFOX_TAG_RACK = ep.get_tags_list(ATXFOX_DEVICE_TYPE_NAME, DATABASE_TAG_RACK)
+ATXFOX_TAG_PSFE = ep.get_tags_list(ATXFOX_DEVICE_TYPE_NAME, DATABASE_TAG_PSFE)
 
 ATXFOX_UL_PAYLOAD_SIZE_MONITORING = 9
 ATXFOX_UL_PAYLOAD_SIZE_ERROR_STACK = 12

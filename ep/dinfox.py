@@ -7,17 +7,17 @@
 
 from database.database import *
 from ep.common import *
-from ep.ep_list import *
+from ep.ep import *
 from log import *
 
 ### DINFOX public macros ###
 
 DINFOX_DEVICE_TYPE_NAME = "dinfox"
-DINFOX_SIGFOX_EP_ID_LIST = ep_list.get(DINFOX_DEVICE_TYPE_NAME, DATABASE_TAG_SIGFOX_EP_ID)
+DINFOX_SIGFOX_EP_ID_LIST = ep.get_tags_list(DINFOX_DEVICE_TYPE_NAME, DATABASE_TAG_SIGFOX_EP_ID)
 
 ### DINFOX local macros ###
 
-DINFOX_TAG_SYSTEM = ep_list.get(DINFOX_DEVICE_TYPE_NAME, DATABASE_TAG_SYSTEM)
+DINFOX_TAG_SYSTEM = ep.get_tags_list(DINFOX_DEVICE_TYPE_NAME, DATABASE_TAG_SYSTEM)
 
 DINFOX_NODE_NAME = [ "LVRM", "BPSM", "DDRM", "UHFM", "GPSM", "SM", "DIM", "RRM", "DMM", "MPMCM", "R4S8CR", "BCM" ]
 

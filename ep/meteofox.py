@@ -9,7 +9,7 @@ import math
 
 from database.database import *
 from ep.common import *
-from ep.ep_list import *
+from ep.ep import *
 from log import *
 from utils.sigfox import *
 from datetime import datetime, timedelta
@@ -17,11 +17,11 @@ from datetime import datetime, timedelta
 ### METEOFOX public macros ###
 
 METEOFOX_DEVICE_TYPE_NAME = "meteofox"
-METEOFOX_SIGFOX_EP_ID_LIST = ep_list.get(METEOFOX_DEVICE_TYPE_NAME, DATABASE_TAG_SIGFOX_EP_ID)
+METEOFOX_SIGFOX_EP_ID_LIST = ep.get_tags_list(METEOFOX_DEVICE_TYPE_NAME, DATABASE_TAG_SIGFOX_EP_ID)
 
 ### METEOFOX local macros ###
 
-METEOFOX_TAG_SITE = ep_list.get(METEOFOX_DEVICE_TYPE_NAME, DATABASE_TAG_SITE)
+METEOFOX_TAG_SITE = ep.get_tags_list(METEOFOX_DEVICE_TYPE_NAME, DATABASE_TAG_SITE)
 
 METEOFOX_UL_PAYLOAD_SIZE_MONITORING = 9
 METEOFOX_UL_PAYLOAD_SIZE_WEATHER_IM = 6

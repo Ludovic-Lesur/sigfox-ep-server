@@ -198,6 +198,7 @@ DATABASE_TAG_SYSTEM = "system"
 DATABASE_TAG_NODE = "node"
 DATABASE_TAG_BOARD_ID = "board_id"
 DATABASE_TAG_CHANNEL = "channel"
+DATABASE_TAG_VERSION = "version"
 
 ### DATABASE local macros ###
 

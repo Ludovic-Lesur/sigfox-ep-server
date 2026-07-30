@@ -171,17 +171,17 @@ HOMEFOX_TEST_REQUEST = [
 
 SMARTTAG_TEST_REQUEST = [
     # SmartTag on event.
-    [SIGFOX_CALLBACK_TYPE_DATA_BIDIR, "33e0a87", "405b8b55", SIGFOX_CALLBACK_JSON_FALSE],
+    [SIGFOX_CALLBACK_TYPE_DATA_UPLINK, "33e0a87", "405b8b55" ],
     # SmartTag off event.
-    [SIGFOX_CALLBACK_TYPE_DATA_BIDIR, "33e0a87", "20598a03", SIGFOX_CALLBACK_JSON_FALSE],
+    [SIGFOX_CALLBACK_TYPE_DATA_UPLINK, "33e0a87", "20598a03" ],
     # SmartTag accelerometer event.
-    [SIGFOX_CALLBACK_TYPE_DATA_BIDIR, "33e0a87", "5060abcd", SIGFOX_CALLBACK_JSON_FALSE],
+    [SIGFOX_CALLBACK_TYPE_DATA_UPLINK, "33e0a87", "5060abcd" ],
     # SmartTag periodic message.
-    [SIGFOX_CALLBACK_TYPE_DATA_BIDIR, "33e0a87", "605a7e2a", SIGFOX_CALLBACK_JSON_FALSE],
+    [SIGFOX_CALLBACK_TYPE_DATA_UPLINK, "33e0a87", "605a7e2a" ],
     # SmartTag periodic message.
-    [SIGFOX_CALLBACK_TYPE_DATA_BIDIR, "33e0a87", "77588be6", SIGFOX_CALLBACK_JSON_FALSE],
+    [SIGFOX_CALLBACK_TYPE_DATA_UPLINK, "33e0a87", "77588be6" ],
     # SmartTag invalid payload.
-    [SIGFOX_CALLBACK_TYPE_DATA_BIDIR, "33e0a87", "010203", SIGFOX_CALLBACK_JSON_FALSE],
+    [SIGFOX_CALLBACK_TYPE_DATA_UPLINK, "33e0a87", "010203" ],
 ]
 
 ### TEST classes ###
@@ -205,7 +205,10 @@ class Test:
                 SIGFOX_CALLBACK_JSON_KEY_MESSAGE_COUNTER: str(idx)
             }
             # Check callback type.
-            if (callback_type == SIGFOX_CALLBACK_TYPE_DATA_BIDIR):
+            if (callback_type == SIGFOX_CALLBACK_TYPE_DATA_UPLINK):
+                # Data uplink.
+                json_from_backend[SIGFOX_CALLBACK_JSON_KEY_UL_PAYLOAD] = request_table[idx][2]
+            elif (callback_type == SIGFOX_CALLBACK_TYPE_DATA_BIDIR):
                 # Data bidirectional.
                 json_from_backend[SIGFOX_CALLBACK_JSON_KEY_UL_PAYLOAD] = request_table[idx][2]
                 json_from_backend[SIGFOX_CALLBACK_JSON_KEY_BIDIRECTIONAL_FLAG] = request_table[idx][3]

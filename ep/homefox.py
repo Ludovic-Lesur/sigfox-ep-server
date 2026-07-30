@@ -132,11 +132,16 @@ class HomeFox:
         elif (len(ul_payload) == (2 * HOMEFOX_UL_PAYLOAD_SIZE_ACCELEROMETER)):
             # Parse fields.
             accelerometer_event_source = int(ul_payload[0:2], 16)
+            accelerometer_x_flag = ((accelerometer_event_source >> 1) & 0x01)
+            accelerometer_y_flag = ((accelerometer_event_source >> 3) & 0x01)
+            accelerometer_z_flag = ((accelerometer_event_source >> 5) & 0x01)
             # Create motion record.
             record.measurement = DATABASE_MEASUREMENT_HOME
             record.fields = {
                 DATABASE_FIELD_LAST_DATA_TIME: timestamp,
-                DATABASE_FIELD_ACCELEROMETER_EVENT_SOURCE: accelerometer_event_source
+                DATABASE_FIELD_ACCELEROMETER_X_FLAG: accelerometer_x_flag,
+                DATABASE_FIELD_ACCELEROMETER_Y_FLAG: accelerometer_y_flag,
+                DATABASE_FIELD_ACCELEROMETER_Z_FLAG: accelerometer_z_flag
             }
             record_list.append(copy.copy(record))
         else:

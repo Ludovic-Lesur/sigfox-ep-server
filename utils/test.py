@@ -169,6 +169,21 @@ HOMEFOX_TEST_REQUEST = [
     [SIGFOX_CALLBACK_TYPE_DATA_BIDIR, "1230", "371700000000000000000000", SIGFOX_CALLBACK_JSON_FALSE],
 ]
 
+SMARTTAG_TEST_REQUEST = [
+    # SmartTag on event.
+    [SIGFOX_CALLBACK_TYPE_DATA_BIDIR, "33e0a87", "405b8b55", SIGFOX_CALLBACK_JSON_FALSE],
+    # SmartTag off event.
+    [SIGFOX_CALLBACK_TYPE_DATA_BIDIR, "33e0a87", "20598a03", SIGFOX_CALLBACK_JSON_FALSE],
+    # SmartTag accelerometer event.
+    [SIGFOX_CALLBACK_TYPE_DATA_BIDIR, "33e0a87", "5060abcd", SIGFOX_CALLBACK_JSON_FALSE],
+    # SmartTag periodic message.
+    [SIGFOX_CALLBACK_TYPE_DATA_BIDIR, "33e0a87", "605a7e2a", SIGFOX_CALLBACK_JSON_FALSE],
+    # SmartTag periodic message.
+    [SIGFOX_CALLBACK_TYPE_DATA_BIDIR, "33e0a87", "77588be6", SIGFOX_CALLBACK_JSON_FALSE],
+    # SmartTag invalid payload.
+    [SIGFOX_CALLBACK_TYPE_DATA_BIDIR, "33e0a87", "010203", SIGFOX_CALLBACK_JSON_FALSE],
+]
+
 ### TEST classes ###
 
 class Test:
@@ -222,3 +237,4 @@ if __name__ == "__main__":
     Test.make("TRACKFOX requests test", TRACKFOX_TEST_REQUEST)
     Test.make("DINFOX requests test", DINFOX_TEST_REQUEST)
     Test.make("HOMEFOX requests test", HOMEFOX_TEST_REQUEST)
+    Test.make("SMARTTAG requests test", SMARTTAG_TEST_REQUEST)

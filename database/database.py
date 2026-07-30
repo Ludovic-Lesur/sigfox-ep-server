@@ -21,6 +21,7 @@ DATABASE_ATXFOX = "atxfox_db"
 DATABASE_TRACKFOX = "trackfox_db"
 DATABASE_DINFOX = "dinfox_db"
 DATABASE_HOMEFOX = "homefox_db"
+DATABASE_SMARTTAG = "smarttag_db"
 
 # Measurements name.
 DATABASE_MEASUREMENT_METADATA = "metadata"
@@ -36,6 +37,7 @@ DATABASE_MEASUREMENT_HOME = "home"
 # Generic.
 DATABASE_FIELD_STATUS = "status"
 DATABASE_FIELD_MODE = "mode"
+DATABASE_FIELD_HEADER = "header"
 DATABASE_FIELD_RESET_FLAGS = "reset_flags"
 DATABASE_FIELD_ERROR = "error"
 DATABASE_FIELD_LAST_STARTUP_TIME = "last_startup_time"
@@ -71,6 +73,7 @@ DATABASE_FIELD_OUTPUT_CURRENT = "output_current"
 DATABASE_FIELD_OUTPUT_CURRENT_RANGE = "output_current_range"
 # Storage.
 DATABASE_FIELD_STORAGE_VOLTAGE = "storage_voltage"
+DATABASE_FIELD_STORAGE_VOLTAGE_LOW_FLAG = "storage_voltage_low_flag"
 # Backup.
 DATABASE_FIELD_BACKUP_VOLTAGE = "backup_voltage"
 DATABASE_FIELD_BACKUP_CONTROL_STATE = "backup_control_state"
@@ -151,7 +154,9 @@ DATABASE_FIELD_AIR_QUALITY_INDEX_S = "air_quality_index_s"
 DATABASE_FIELD_AIR_QUALITY_ACQUISITION_MODE = "air_quality_acquisition_mode"
 DATABASE_FIELD_AIR_QUALITY_ACQUISITION_STATUS = "air_quality_acquisition_status"
 DATABASE_FIELD_AIR_QUALITY_ACQUISITION_TIME = "air_quality_acquisition_time"
-# Sunshine.
+# Light.
+DATABASE_FIELD_LIGHT = "light"
+DATABASE_FIELD_LIGHT_THRESHOLD_FLAG = "light_threshold_flag"
 DATABASE_FIELD_SUNSHINE_LIGHT = "sunshine_light"
 DATABASE_FIELD_SUNSHINE_UV_INDEX = "sunshine_uv_index"
 # Pressure.
@@ -164,7 +169,19 @@ DATABASE_FIELD_WIND_DIRECTION_AVERAGE = "wind_direction_average"
 # Rainfall.
 DATABASE_FIELD_RAINFALL = "rainfall"
 # Accelerometer.
-DATABASE_FIELD_ACCELEROMETER_EVENT_SOURCE = "accelerometer_event_source"
+DATABASE_FIELD_ACCELEROMETER_X_FLAG = "accelerometer_x_flag"
+DATABASE_FIELD_ACCELEROMETER_Y_FLAG = "accelerometer_y_flag"
+DATABASE_FIELD_ACCELEROMETER_Z_FLAG = "accelerometer_z_flag"
+DATABASE_FIELD_ACCELEROMETER_LOW_THRESHOLD_X_FLAG = "accelerometer_low_threshold_x_flag"
+DATABASE_FIELD_ACCELEROMETER_LOW_THRESHOLD_Y_FLAG = "accelerometer_low_threshold_y_flag"
+DATABASE_FIELD_ACCELEROMETER_LOW_THRESHOLD_Z_FLAG = "accelerometer_low_threshold_z_flag"
+DATABASE_FIELD_ACCELEROMETER_LOW_THRESHOLD_INTERRUPT_COUNT = "accelerometer_low_threshold_interrupt_count"
+DATABASE_FIELD_ACCELEROMETER_LOW_THRESHOLD_EVENT_COUNT = "accelerometer_low_threshold_event_count"
+DATABASE_FIELD_ACCELEROMETER_HIGH_THRESHOLD_X_FLAG = "accelerometer_high_threshold_x_flag"
+DATABASE_FIELD_ACCELEROMETER_HIGH_THRESHOLD_Y_FLAG = "accelerometer_high_threshold_y_flag"
+DATABASE_FIELD_ACCELEROMETER_HIGH_THRESHOLD_Z_FLAG = "accelerometer_high_threshold_z_flag"
+DATABASE_FIELD_ACCELEROMETER_HIGH_THRESHOLD_INTERRUPT_COUNT = "accelerometer_high_threshold_interrupt_count"
+DATABASE_FIELD_ACCELEROMETER_HIGH_THRESHOLD_EVENT_COUNT = "accelerometer_high_threshold_event_count"
 # Geolocation.
 DATABASE_FIELD_GEOLOCATION_LATITUDE = "geolocation_latitude"
 DATABASE_FIELD_GEOLOCATION_LONGITUDE = "geolocation_longitude"
@@ -185,9 +202,12 @@ DATABASE_FIELD_GPS_ANTENNA_VOLTAGE = "gps_antenna_voltage"
 DATABASE_FIELD_WIFI_SCAN_STATUS = "wifi_scan_status"
 DATABASE_FIELD_WIFI_SCAN_TIME = "wifi_scan_time"
 DATABASE_FIELD_WIFI_SCAN_TIMEOUT_TIME = "wifi_scan_timeout_time"
+# Opening detection.
+DATABASE_FIELD_OPENING_DETECTION_MESSAGE_COUNTER = "opening_detection_message_counter"
 
 # Tags name.
 DATABASE_TAG_SIGFOX_EP_ID = "sigfox_ep_id"
+DATABASE_TAG_NAME = "name"
 DATABASE_TAG_NODE_ADDRESS = "node_address"
 DATABASE_TAG_SITE = "site"
 DATABASE_TAG_LOCATION = "location"
@@ -209,7 +229,8 @@ DATABASE_LIST = {
     DATABASE_ATXFOX: "30d",
     DATABASE_TRACKFOX: "365d",
     DATABASE_DINFOX: "60d",
-    DATABASE_HOMEFOX: "60d"
+    DATABASE_HOMEFOX: "60d",
+    DATABASE_SMARTTAG: "365d"
 }
 
 DATABASE_RETENTION_POLICY_10_YEARS_NAME = "rp_10y"

@@ -15,6 +15,7 @@ from ep.ep import *
 from ep.homefox import *
 from ep.meteofox import *
 from ep.sensit import *
+from ep.smarttag import *
 from ep.trackfox import *
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from log import *
@@ -130,6 +131,10 @@ class SigfoxEpServer:
         elif (sigfox_ep_id in SENSIT_SIGFOX_EP_ID_LIST):
             self._ep_class = Sensit
             self._ep_database = DATABASE_SENSIT
+        # SmartTag.
+        elif (sigfox_ep_id in SMARTTAG_SIGFOX_EP_ID_LIST):
+            self._ep_class = SmartTag
+            self._ep_database = DATABASE_SMARTTAG
         # TrackFox.
         elif (sigfox_ep_id in TRACKFOX_SIGFOX_EP_ID_LIST):
             self._ep_class = TrackFox

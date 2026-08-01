@@ -24,6 +24,8 @@ from utils.sigfox import *
 
 ### SIGFOX EP SERVER macros ###
 
+SIGFOX_UL_PAYLOAD_SIZE_ATLAS_WIFI = 12
+
 SIGFOX_DOWNLINK_MESSAGES_FILE_NAME = "/home/ludo/git/sigfox-ep-server/sigfox_downlink_messages.json"
 SIGFOX_DOWNLINK_MESSAGES_HEADER = "downlink_messages_list"
 SIGFOX_DOWNLINK_MESSAGES_HEADER_RECORD_TIME = "record_time"
@@ -311,18 +313,19 @@ class SigfoxEpServer:
             # Data advanced callback.
             elif (callback_type == SIGFOX_CALLBACK_TYPE_DATA_ADVANCED):
                 # Check mandatory JSON fields.
-                if (SIGFOX_CALLBACK_JSON_KEY_GEOLOCATION not in json_in):
+                if ((SIGFOX_CALLBACK_JSON_KEY_GEOLOCATION not in json_in) or (SIGFOX_CALLBACK_JSON_KEY_UL_PAYLOAD not in json_in)):
                     Log.debug_print("[SIGFOX EP SERVER] * ERROR: missing headers in callback JSON (specific fields)")
                     http_return_code = 424
                     raise Exception
                 # Parse fields.
+                ul_payload_size = (len(json_in[SIGFOX_CALLBACK_JSON_KEY_UL_PAYLOAD]) // 2)
                 geolocation = json_in[SIGFOX_CALLBACK_JSON_KEY_GEOLOCATION]
                 latitude = float(geolocation[SIGFOX_CALLBACK_JSON_KEY_GEOLOCATION_LATITUDE])
                 longitude = float(geolocation[SIGFOX_CALLBACK_JSON_KEY_GEOLOCATION_LONGITUDE])
                 radius = int(geolocation[SIGFOX_CALLBACK_JSON_KEY_GEOLOCATION_RADIUS])
                 source = int(geolocation[SIGFOX_CALLBACK_JSON_KEY_GEOLOCATION_SOURCE])
                 status = int(geolocation[SIGFOX_CALLBACK_JSON_KEY_GEOLOCATION_STATUS])
-                Log.debug_print("[SIGFOX EP SERVER] * Data advanced callback: timestamp=" + str(timestamp) + " sigfox_ep_id=" + sigfox_ep_id + " latitude=" + str(latitude) + " longitude=" + str(longitude) + " radius=" + str(radius) + " source=" + str(source) + " status=" + str(status))
+                Log.debug_print("[SIGFOX EP SERVER] * Data advanced callback: timestamp=" + str(timestamp) + " sigfox_ep_id=" + sigfox_ep_id + " ul_payload_size=" + str(ul_payload_size) + " latitude=" + str(latitude) + " longitude=" + str(longitude) + " radius=" + str(radius) + " source=" + str(source) + " status=" + str(status))
                 # Check status.
                 if ((status == SIGFOX_CALLBACK_GEOLOCATION_STATUS_OK) or (status == SIGFOX_CALLBACK_GEOLOCATION_STATUS_FALLBACK_OF_WIFI)):
                     # Set source and message type.
@@ -335,13 +338,10 @@ class SigfoxEpServer:
                         data_type = DatabaseFieldDataType.GEOLOCATION_SIGFOX_ATLAS_WIFI.value
                     elif (source == SIGFOX_CALLBACK_GEOLOCATION_SOURCE_NETWORK):
                         geolocation_source = DATABASE_FIELD_GEOLOCATION_SOURCE_SIGFOX_ATLAS_NATIVE
-                        if (status == SIGFOX_CALLBACK_GEOLOCATION_STATUS_OK):
-                            data_type = DatabaseFieldDataType.GEOLOCATION_SIGFOX_ATLAS_NATIVE.value
-                        elif (status == SIGFOX_CALLBACK_GEOLOCATION_STATUS_FALLBACK_OF_WIFI):
+                        if (ul_payload_size == SIGFOX_UL_PAYLOAD_SIZE_ATLAS_WIFI):
                             data_type = DatabaseFieldDataType.GEOLOCATION_SIGFOX_ATLAS_NATIVE_FALLBACK_OF_WIFI.value
                         else:
-                            Log.debug_print("[SIGFOX EP SERVER] * ERROR: invalid data advanced callback (status=" + str(status) + ")")
-                            raise Exception
+                            data_type = DatabaseFieldDataType.GEOLOCATION_SIGFOX_ATLAS_NATIVE.value
                     else:
                         Log.debug_print("[SIGFOX EP SERVER] * ERROR: invalid data advanced callback (geolocation_source=" + str(source) + ")")
                         raise Exception

@@ -330,6 +330,9 @@ class SigfoxEpServer:
                         geolocation_source = DATABASE_FIELD_GEOLOCATION_SOURCE_GPS
                         data_type = DatabaseFieldDataType.GEOLOCATION_GPS.value
                         radius = DATABASE_FIELD_GEOLOCATION_RADIUS_GPS
+                    elif (source == SIGFOX_CALLBACK_GEOLOCATION_SOURCE_WIFI):
+                        geolocation_source = DATABASE_FIELD_GEOLOCATION_SOURCE_SIGFOX_ATLAS_WIFI
+                        data_type = DatabaseFieldDataType.GEOLOCATION_SIGFOX_ATLAS_WIFI.value
                     elif (source == SIGFOX_CALLBACK_GEOLOCATION_SOURCE_NETWORK):
                         geolocation_source = DATABASE_FIELD_GEOLOCATION_SOURCE_SIGFOX_ATLAS_NATIVE
                         if (status == SIGFOX_CALLBACK_GEOLOCATION_STATUS_OK):
@@ -339,9 +342,6 @@ class SigfoxEpServer:
                         else:
                             Log.debug_print("[SIGFOX EP SERVER] * ERROR: invalid data advanced callback (status=" + str(status) + ")")
                             raise Exception
-                    elif (source == SIGFOX_CALLBACK_GEOLOCATION_SOURCE_WIFI):
-                        geolocation_source = DATABASE_FIELD_GEOLOCATION_SOURCE_SIGFOX_ATLAS_WIFI
-                        data_type = DatabaseFieldDataType.GEOLOCATION_SIGFOX_ATLAS_WIFI.value
                     else:
                         Log.debug_print("[SIGFOX EP SERVER] * ERROR: invalid data advanced callback (geolocation_source=" + str(source) + ")")
                         raise Exception

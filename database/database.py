@@ -50,8 +50,7 @@ DATABASE_FIELD_DATA_TYPE_UNKNOWN = 0
 
 class DatabaseFieldDataType(Enum):
 
-    @staticmethod
-    def _generate_next_value_(name, start, count, last_values):
+    def _generate_next_value_(name, start, count, last_values): #noqa
         if last_values:
             return last_values[-1] + 1
         return 1

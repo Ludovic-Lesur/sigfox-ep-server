@@ -63,6 +63,7 @@ class SmartTag:
     @staticmethod
     def get_record_list(database: Database, timestamp: int, sigfox_ep_id: str, ul_payload: str) -> List[Record]:
         # Local variables.
+        data_type = DATABASE_FIELD_DATA_TYPE_UNKNOWN
         record_list = []
         record = Record()
         # Unused parameter.
@@ -72,7 +73,7 @@ class SmartTag:
         record.timestamp = timestamp
         record.tags = SmartTag.get_tags(sigfox_ep_id)
         record.limited_retention = True
-        # Monitoring or configuration frame.
+        # All frames have the same length.
         if (len(ul_payload) == (2 * SMARTTAG_UL_PAYLOAD_SIZE)):
             # Init data.
             lpi = SMARTTAG_ERROR_VALUE_LPI
@@ -95,6 +96,8 @@ class SmartTag:
             header = ((int(ul_payload[0:2], 16) >> 4) & 0x0F)
             # Periodic temperature / humidity / light.
             if (header == SMARTTAG_HEADER_PERIODIC_TEMP_HUM_LUX):
+                # Set message type.
+                data_type = DatabaseFieldDataType.PERIODIC_MONITORING.value
                 # Parse fields.
                 lpi = ((int(ul_payload[0:2], 16) >> 3) & 0x01)
                 open_message_cnt = ((int(ul_payload[0:2], 16) >> 0) & 0x07)
@@ -103,6 +106,8 @@ class SmartTag:
                 lux = int(ul_payload[6:8], 16)
             # Periodic temperature / humidity / accelerometer data.
             elif (header == SMARTTAG_HEADER_PERIODIC_TEMP_HUM_ACC):
+                # Set message type.
+                data_type = DatabaseFieldDataType.PERIODIC_MONITORING.value
                 # Parse fields.
                 lpi = ((int(ul_payload[0:2], 16) >> 3) & 0x01)
                 open_message_cnt = ((int(ul_payload[0:2], 16) >> 0) & 0x07)
@@ -113,6 +118,15 @@ class SmartTag:
                 low_threshold_event_count = ((motion_history >> 0) & 0x0F)
             # Start, stop; button and light events.
             elif ((header == SMARTTAG_HEADER_EVENT_ON) or (header == SMARTTAG_HEADER_EVENT_OFF) or (header == SMARTTAG_HEADER_EVENT_BUTTON) or (header == SMARTTAG_HEADER_EVENT_LUX)):
+                # Set message type.
+                if (header == SMARTTAG_HEADER_EVENT_ON):
+                    data_type = DatabaseFieldDataType.EVENT_STARTUP.value
+                elif (header == SMARTTAG_HEADER_EVENT_OFF):
+                    data_type = DatabaseFieldDataType.EVENT_SHUTDOWN.value
+                elif (header == SMARTTAG_HEADER_EVENT_BUTTON):
+                    data_type = DatabaseFieldDataType.EVENT_BUTTON_PRESSED.value
+                else:
+                    data_type = DatabaseFieldDataType.EVENT_LIGHT_THRESHOLD.value
                 # Parse fields.
                 lpi = ((int(ul_payload[0:2], 16) >> 3) & 0x01)
                 open_message_cnt = ((int(ul_payload[0:2], 16) >> 0) & 0x07)
@@ -135,13 +149,17 @@ class SmartTag:
                 low_threshold_x_flag = ((low_threshold_event >> 5) & 0x01)
                 low_threshold_y_flag = ((low_threshold_event >> 6) & 0x01)
                 low_threshold_z_flag = ((low_threshold_event >> 7) & 0x01)
+                # Set message type.
+                if ((high_threshold_event == 0) and (low_threshold_event == 0)):
+                    data_type = DatabaseFieldDataType.EVENT_ACCELEROMETER_STOP.value
+                else:
+                    data_type = DatabaseFieldDataType.EVENT_ACCELEROMETER_START.value
             else:
                 Log.debug_print("[SMARTTAG] * Invalid UL payload header")
                 return record_list
             # Create monitoring record.
             record.measurement = DATABASE_MEASUREMENT_MONITORING
             record.fields = {
-                DATABASE_FIELD_HEADER : header,
                 DATABASE_FIELD_LAST_DATA_TIME: timestamp
             }
             record.add_field(lpi, SMARTTAG_ERROR_VALUE_LPI, DATABASE_FIELD_STORAGE_VOLTAGE_LOW_FLAG, lpi)
@@ -150,7 +168,7 @@ class SmartTag:
             # Create sensor record.
             record.measurement = DATABASE_MEASUREMENT_SENSOR
             record.fields = {
-                DATABASE_FIELD_LAST_DATA_TIME: timestamp,
+                DATABASE_FIELD_LAST_DATA_TIME: timestamp
             }
             record.add_field(temperature, SMARTTAG_ERROR_VALUE_TEMPERATURE, DATABASE_FIELD_TEMPERATURE, float((temperature / 2.0) - 20.0))
             record.add_field(humidity, SMARTTAG_ERROR_VALUE_HUMIDITY, DATABASE_FIELD_HUMIDITY, float(humidity / 2.0))
@@ -169,7 +187,7 @@ class SmartTag:
             record_list.append(copy.copy(record))
         else:
             Log.debug_print("[SMARTTAG] * Invalid UL payload")
-        return record_list
+        return [data_type, record_list]
     
     @staticmethod
     def get_default_dl_payload(sigfox_ep_id: str) -> str:

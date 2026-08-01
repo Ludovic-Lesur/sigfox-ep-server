@@ -61,6 +61,7 @@ class Sensit:
     @staticmethod
     def get_record_list(database: Database, timestamp: int, sigfox_ep_id: str, ul_payload: str) -> List[Record]:
         # Local variables.
+        data_type = DATABASE_FIELD_DATA_TYPE_UNKNOWN
         record_list = []
         record = Record()
         sensit_version = Sensit._get_version(sigfox_ep_id)
@@ -102,9 +103,14 @@ class Sensit:
             record.add_field(temperature_degrees, SENSIT_ERROR_VALUE_TEMPERATURE, DATABASE_FIELD_TEMPERATURE, float(temperature_degrees))
             record.add_field(humidity_percent, SENSIT_ERROR_VALUE_HUMIDITY, DATABASE_FIELD_HUMIDITY, float(humidity_percent))
             record_list.append(copy.copy(record))
+            # Set message type.
+            if (len(ul_payload) == (2 * SENSIT_UL_PAYLOAD_SIZE_CONFIGURATION)):
+                data_type = DatabaseFieldDataType.PERIODIC_CONFIGURATION.value
+            else:
+                data_type = DatabaseFieldDataType.PERIODIC_MONITORING.value
         else:
             Log.debug_print("[SENSIT] * Invalid UL payload")
-        return record_list
+        return [data_type, record_list]
     
     @staticmethod
     def get_default_dl_payload(sigfox_ep_id: str) -> str:

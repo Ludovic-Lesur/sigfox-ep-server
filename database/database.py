@@ -7,6 +7,7 @@
 
 import json
 
+from enum import Enum, auto
 from influxdb import InfluxDBClient
 from log import *
 from typing import List, Dict, Any
@@ -43,6 +44,48 @@ DATABASE_FIELD_ERROR = "error"
 DATABASE_FIELD_LAST_STARTUP_TIME = "last_startup_time"
 DATABASE_FIELD_LAST_SHUTDOWN_TIME = "last_shutdown_time"
 DATABASE_FIELD_LAST_DATA_TIME = "last_data_time"
+DATABASE_FIELD_DATA_TYPE = "data_type"
+
+DATABASE_FIELD_DATA_TYPE_UNKNOWN = 0
+
+class DatabaseFieldDataType(Enum):
+
+    @staticmethod
+    def _generate_next_value_(name, start, count, last_values):
+        if last_values:
+            return last_values[-1] + 1
+        return 1
+
+    # Periodic messages.
+    PERIODIC_CONFIGURATION = 1                                          # 1
+    PERIODIC_MONITORING = auto()                                        # 2
+    PERIODIC_STATUS = auto()                                            # 3
+    PERIODIC_SENSOR = auto()                                            # 4
+    PERIODIC_WEATHER = auto()                                           # 5
+    PERIODIC_AIR_QUALITY = auto()                                       # 6
+    PERIODIC_ELECTRICAL = auto()                                        # 7
+    PERIODIC_ELECTRICAL_MAINS_POWER_FACTOR = auto()                     # 8
+    PERIODIC_ELECTRICAL_MAINS_ENERGY = auto()                           # 9
+    PERIODIC_ELECTRICAL_MAINS_FREQUENCY = auto()                        # 10
+    PERIODIC_ELECTRICAL_MAINS_VOLTAGE = auto()                          # 11
+    PERIODIC_ELECTRICAL_MAINS_POWER = auto()                            # 12
+    # Event messages.
+    EVENT_STARTUP = 101                                                 # 101
+    EVENT_SHUTDOWN = auto()                                             # 102
+    EVENT_ERROR_STACK = auto()                                          # 103
+    EVENT_ACTION_LOG = auto()                                           # 104
+    EVENT_BUTTON_PRESSED = auto()                                       # 105
+    EVENT_LIGHT_THRESHOLD = auto()                                      # 106
+    EVENT_ACCELEROMETER_THRESHOLD = auto()                              # 107
+    EVENT_ACCELEROMETER_START = auto()                                  # 108
+    EVENT_ACCELEROMETER_STOP = auto()                                   # 109
+    # Geolocation messages.
+    GEOLOCATION_GPS = 201                                               # 201
+    GEOLOCATION_SIGFOX_ATLAS_WIFI = auto()                              # 202
+    GEOLOCATION_SIGFOX_ATLAS_NATIVE = auto()                            # 203
+    GEOLOCATION_SIGFOX_ATLAS_NATIVE_FALLBACK_OF_WIFI = auto()           # 204
+    GEOLOCATION_ERROR = auto()                                          # 205
+
 # Software.
 DATABASE_FIELD_SW_VERSION = "sw_version"
 DATABASE_FIELD_SW_VERSION_MAJOR = "sw_version_major"

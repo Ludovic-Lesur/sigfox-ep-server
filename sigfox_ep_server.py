@@ -278,15 +278,16 @@ class SigfoxEpServer:
                     ul_payload = COMMON_UL_PAYLOAD_KEEP_ALIVE
                 Log.debug_print("[SIGFOX EP SERVER] * " + callback_type_str + " callback: timestamp=" + str(timestamp) + " sigfox_ep_id=" + sigfox_ep_id + " message_counter=" + str(message_counter) + " ul_payload=" + ul_payload + " bidirectional_flag=" + bidirectional_flag)
                 # Parse UL payload.
-                record_list = self._ep_class.get_record_list(self._database, timestamp, sigfox_ep_id, ul_payload)
+                [data_type, record_list] = self._ep_class.get_record_list(self._database, timestamp, sigfox_ep_id, ul_payload)
                 # Check parsing status.
-                if (len(record_list) > 0):
-                    # Create metadata measurement.
+                if ((data_type != DATABASE_FIELD_DATA_TYPE_UNKNOWN) and (len(record_list) > 0)):
+                    # Add common metadata record.
                     record.database = self._ep_database
                     record.measurement = DATABASE_MEASUREMENT_METADATA
                     record.timestamp = timestamp
                     record.fields = {
                         DATABASE_FIELD_LAST_DATA_TIME: timestamp,
+                        DATABASE_FIELD_DATA_TYPE: data_type
                     }
                     record.tags = record_list[0].tags
                     record.limited_retention = False
@@ -323,21 +324,46 @@ class SigfoxEpServer:
                 status = int(geolocation[SIGFOX_CALLBACK_JSON_KEY_GEOLOCATION_STATUS])
                 Log.debug_print("[SIGFOX EP SERVER] * Data advanced callback: timestamp=" + str(timestamp) + " sigfox_ep_id=" + sigfox_ep_id + " latitude=" + str(latitude) + " longitude=" + str(longitude) + " radius=" + str(radius) + " source=" + str(source) + " status=" + str(status))
                 # Check status.
-                if ((status == SIGFOX_CALLBACK_GEOLOCATION_STATUS_OK) or (status == SIGFOX_CALLBACK_GEOLOCATION_STATUS_FALLBACK_OR_WIFI)):
-                    # Check source.
-                    if (source == SIGFOX_CALLBACK_GEOLOCATION_SOURCE_NETWORK):
+                if ((status == SIGFOX_CALLBACK_GEOLOCATION_STATUS_OK) or (status == SIGFOX_CALLBACK_GEOLOCATION_STATUS_FALLBACK_OF_WIFI)):
+                    # Set source and message type.
+                    if (source == SIGFOX_CALLBACK_GEOLOCATION_SOURCE_GPS):
+                        geolocation_source = DATABASE_FIELD_GEOLOCATION_SOURCE_GPS
+                        data_type = DatabaseFieldDataType.GEOLOCATION_GPS.value
+                        radius = DATABASE_FIELD_GEOLOCATION_RADIUS_GPS
+                    elif (source == SIGFOX_CALLBACK_GEOLOCATION_SOURCE_NETWORK):
                         geolocation_source = DATABASE_FIELD_GEOLOCATION_SOURCE_SIGFOX_ATLAS_NATIVE
+                        if (status == SIGFOX_CALLBACK_GEOLOCATION_STATUS_OK):
+                            data_type = DatabaseFieldDataType.GEOLOCATION_SIGFOX_ATLAS_NATIVE.value
+                        elif (status == SIGFOX_CALLBACK_GEOLOCATION_STATUS_FALLBACK_OF_WIFI):
+                            data_type = DatabaseFieldDataType.GEOLOCATION_SIGFOX_ATLAS_NATIVE_FALLBACK_OF_WIFI.value
+                        else:
+                            Log.debug_print("[SIGFOX EP SERVER] * ERROR: invalid data advanced callback (status=" + str(status) + ")")
+                            raise Exception
                     elif (source == SIGFOX_CALLBACK_GEOLOCATION_SOURCE_WIFI):
                         geolocation_source = DATABASE_FIELD_GEOLOCATION_SOURCE_SIGFOX_ATLAS_WIFI
+                        data_type = DatabaseFieldDataType.GEOLOCATION_SIGFOX_ATLAS_WIFI.value
                     else:
                         Log.debug_print("[SIGFOX EP SERVER] * ERROR: invalid data advanced callback (geolocation_source=" + str(source) + ")")
                         raise Exception
+                    # Change timestamp to avoid overwriting custom GPS message with Atlas Native.
+                    geolocation_timestamp = (timestamp + 1)
+                    # Create metadata record.
+                    record.database = self._ep_database
+                    record.measurement = DATABASE_MEASUREMENT_METADATA
+                    record.timestamp = geolocation_timestamp
+                    record.fields = {
+                        DATABASE_FIELD_LAST_DATA_TIME: geolocation_timestamp,
+                        DATABASE_FIELD_DATA_TYPE: data_type
+                    }
+                    record.tags = self._ep_class.get_tags(sigfox_ep_id)
+                    record.limited_retention = False
+                    self._database.write_record(record)
                     # Create geolocation record.
                     record.database = self._ep_database
                     record.measurement = DATABASE_MEASUREMENT_GEOLOCATION
-                    record.timestamp = (timestamp + 1)
+                    record.timestamp = geolocation_timestamp
                     record.fields = {
-                        DATABASE_FIELD_LAST_DATA_TIME: timestamp,
+                        DATABASE_FIELD_LAST_DATA_TIME: geolocation_timestamp,
                         DATABASE_FIELD_GEOLOCATION_LATITUDE: float(latitude),
                         DATABASE_FIELD_GEOLOCATION_LONGITUDE: float(longitude),
                         DATABASE_FIELD_GEOLOCATION_SOURCE: geolocation_source,

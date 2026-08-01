@@ -67,6 +67,7 @@ class HomeFox:
     @staticmethod
     def get_record_list(database: Database, timestamp: int, sigfox_ep_id: str, ul_payload: str) -> List[Record]:
         # Local variables.
+        data_type = DATABASE_FIELD_DATA_TYPE_UNKNOWN
         record_list = []
         record = Record()
         # Unused parameter.
@@ -78,10 +79,10 @@ class HomeFox:
         record.limited_retention = True
         # Startup frame.
         if (len(ul_payload) == (2 * COMMON_UL_PAYLOAD_SIZE_STARTUP)):
-            Common.get_record_startup(record, timestamp, ul_payload, record_list)
+            data_type = Common.get_record_startup(record, timestamp, ul_payload, record_list)
         # Error stack frame.
         elif (len(ul_payload) == (2 * HOMEFOX_UL_PAYLOAD_SIZE_ERROR_STACK)):
-            Common.get_record_error_stack(record, timestamp, ul_payload, (HOMEFOX_UL_PAYLOAD_SIZE_ERROR_STACK // 2), record_list)
+            data_type = Common.get_record_error_stack(record, timestamp, ul_payload, (HOMEFOX_UL_PAYLOAD_SIZE_ERROR_STACK // 2), record_list)
         # Monitoring frame.
         elif (len(ul_payload) == (2 * HOMEFOX_UL_PAYLOAD_SIZE_MONITORING)):
             # Parse fields.
@@ -92,7 +93,7 @@ class HomeFox:
             # Create sensor record.
             record.measurement = DATABASE_MEASUREMENT_HOME
             record.fields = {
-                DATABASE_FIELD_LAST_DATA_TIME: timestamp,
+                DATABASE_FIELD_LAST_DATA_TIME: timestamp
             }
             record.add_field(temperature_tenth_degrees_one_complement, HOMEFOX_ERROR_VALUE_TEMPERATURE, DATABASE_FIELD_TEMPERATURE, float(Common.one_complement_to_value(temperature_tenth_degrees_one_complement, 11) / 10.0))
             record.add_field(humidity_percent, HOMEFOX_ERROR_VALUE_HUMIDITY, DATABASE_FIELD_HUMIDITY, float(humidity_percent))
@@ -105,6 +106,7 @@ class HomeFox:
             }
             record.add_field(storage_voltage_mv, HOMEFOX_ERROR_VALUE_STORAGE_VOLTAGE, DATABASE_FIELD_STORAGE_VOLTAGE, float(storage_voltage_mv / 1000.0))
             record_list.append(copy.copy(record))
+            data_type = DatabaseFieldDataType.PERIODIC_MONITORING.value
         # Air quality data frame.
         elif (len(ul_payload) == (2 * HOMEFOX_UL_PAYLOAD_SIZE_AIR_QUALITY)):
             # Parse fields.
@@ -128,6 +130,7 @@ class HomeFox:
             record.add_field(aqi_s, HOMEFOX_ERROR_VALUE_AQI_S, DATABASE_FIELD_AIR_QUALITY_INDEX_S, float(aqi_s))
             record.add_field(acquisition_mode, HOMEFOX_ERROR_VALUE_ACQUISITION_MODE, DATABASE_FIELD_AIR_QUALITY_ACQUISITION_MODE, acquisition_mode)
             record_list.append(copy.copy(record))
+            data_type = DatabaseFieldDataType.PERIODIC_AIR_QUALITY.value
         # Accelerometer event frame.
         elif (len(ul_payload) == (2 * HOMEFOX_UL_PAYLOAD_SIZE_ACCELEROMETER)):
             # Parse fields.
@@ -144,9 +147,10 @@ class HomeFox:
                 DATABASE_FIELD_ACCELEROMETER_Z_FLAG: accelerometer_z_flag
             }
             record_list.append(copy.copy(record))
+            data_type = DatabaseFieldDataType.EVENT_ACCELEROMETER_THRESHOLD.value
         else:
             Log.debug_print("[HOMEFOX] * Invalid UL payload")
-        return record_list
+        return [data_type, record_list]
     
     @staticmethod
     def get_default_dl_payload(sigfox_ep_id: str) -> str:

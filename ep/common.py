@@ -33,7 +33,7 @@ class Common:
         return value
     
     @staticmethod
-    def get_record_startup(template: Record, timestamp: int, ul_payload: str, record_list: List[Record]) -> None:
+    def get_record_startup(template: Record, timestamp: int, ul_payload: str, record_list: List[Record]) -> int:
         # Local variables.
         record = template
         # Parse fields.
@@ -60,9 +60,10 @@ class Common:
         }
         record.limited_retention = False
         record_list.append(copy.copy(record))
+        return DatabaseFieldDataType.EVENT_STARTUP.value
     
     @staticmethod
-    def get_record_gps(template: Record, timestamp: int, ul_payload: str, record_list: List[Record]) -> None:
+    def get_record_gps(template: Record, timestamp: int, ul_payload: str, record_list: List[Record]) -> int:
         # Local variables.
         record = template
         # Parse fields.
@@ -98,9 +99,10 @@ class Common:
         }
         record.limited_retention = True
         record_list.append(copy.copy(record))
+        return DatabaseFieldDataType.GEOLOCATION_GPS.value
     
     @staticmethod
-    def get_record_gps_timeout(template: Record, timestamp: int, ul_payload: str, record_list: List[Record]) -> None:
+    def get_record_gps_timeout(template: Record, timestamp: int, ul_payload: str, record_list: List[Record]) -> int:
         # Local variables.
         record = template
         # Unused parameter.
@@ -116,9 +118,10 @@ class Common:
         }
         record.limited_retention = True
         record_list.append(copy.copy(record))
+        return DatabaseFieldDataType.GEOLOCATION_ERROR.value
     
     @staticmethod
-    def get_record_error_stack(template: Record, timestamp: int, ul_payload: str, number_of_errors: int, record_list: List[Record]) -> None:
+    def get_record_error_stack(template: Record, timestamp: int, ul_payload: str, number_of_errors: int, record_list: List[Record]) -> int:
         # Local variables.
         record = template
         record.measurement = DATABASE_MEASUREMENT_METADATA
@@ -134,3 +137,4 @@ class Common:
                      DATABASE_FIELD_ERROR: error
                 }
                 record_list.append(copy.copy(record))
+        return DatabaseFieldDataType.EVENT_ERROR_STACK.value

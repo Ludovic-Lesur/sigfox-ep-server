@@ -238,6 +238,7 @@ class DINFox:
     @staticmethod
     def get_record_list(database: Database, timestamp: int, sigfox_ep_id: str, ul_payload: str) -> List[Record]:
         # Local variables.
+        data_type = DATABASE_FIELD_DATA_TYPE_UNKNOWN
         record_list = []
         record = Record()
         mpmcm_channel_index = 0
@@ -274,11 +275,12 @@ class DINFox:
                     DATABASE_FIELD_NODE_ACCESS_STATUS: node_access_status
                 }
                 record_list.append(copy.copy(record))
+                data_type = DatabaseFieldDataType.EVENT_ACTION_LOG.value
             else:
-                Common.get_record_startup(record, timestamp, node_ul_payload, record_list)
+                data_type = Common.get_record_startup(record, timestamp, node_ul_payload, record_list)
         # Error stack frame.
         elif (node_ul_payload_size == (2 * DINFOX_UL_PAYLOAD_SIZE_ERROR_STACK)):
-            Common.get_record_error_stack(record, timestamp, node_ul_payload, (DINFOX_UL_PAYLOAD_SIZE_ERROR_STACK // 2), record_list)
+            data_type = Common.get_record_error_stack(record, timestamp, node_ul_payload, (DINFOX_UL_PAYLOAD_SIZE_ERROR_STACK // 2), record_list)
         # Node-specific frames.
         else:
             # LVRM.
@@ -296,6 +298,7 @@ class DINFox:
                     record.add_field(mcu_voltage_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_MCU_VOLTAGE, DINFox._get_voltage(mcu_voltage_dinfox))
                     record.add_field(mcu_temperature_dinfox, DINFOX_ERROR_VALUE_TEMPERATURE, DATABASE_FIELD_MCU_TEMPERATURE, DINFox._get_temperature(mcu_temperature_dinfox))
                     record_list.append(copy.copy(record))
+                    data_type = DatabaseFieldDataType.PERIODIC_MONITORING.value
                 # Electrical frame.
                 elif (node_ul_payload_size == (2 * DINFOX_LVRM_UL_PAYLOAD_SIZE_ELECTRICAL)):
                     # Parse field.
@@ -313,6 +316,7 @@ class DINFox:
                     record.add_field(output_voltage_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_OUTPUT_VOLTAGE, DINFox._get_voltage(output_voltage_dinfox))
                     record.add_field(output_current_dinfox, DINFOX_ERROR_VALUE_CURRENT, DATABASE_FIELD_OUTPUT_CURRENT, DINFox._get_current(output_current_dinfox))
                     record_list.append(copy.copy(record))
+                    data_type = DatabaseFieldDataType.PERIODIC_ELECTRICAL.value
                 else:
                     Log.debug_print("[DINFOX LVRM] * Invalid UL payload")
             # BPSM.
@@ -330,6 +334,7 @@ class DINFox:
                     record.add_field(mcu_voltage_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_MCU_VOLTAGE, DINFox._get_voltage(mcu_voltage_dinfox))
                     record.add_field(mcu_temperature_dinfox, DINFOX_ERROR_VALUE_TEMPERATURE, DATABASE_FIELD_MCU_TEMPERATURE, DINFox._get_temperature(mcu_temperature_dinfox))
                     record_list.append(copy.copy(record))
+                    data_type = DatabaseFieldDataType.PERIODIC_MONITORING.value
                 # Electrical frame.
                 elif (node_ul_payload_size == (2 * DINFOX_BPSM_UL_PAYLOAD_SIZE_ELECTRICAL)):
                     # Parse fields.
@@ -351,6 +356,7 @@ class DINFox:
                     record.add_field(storage_voltage_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_STORAGE_VOLTAGE, DINFox._get_voltage(storage_voltage_dinfox))
                     record.add_field(backup_voltage_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_BACKUP_VOLTAGE, DINFox._get_voltage(backup_voltage_dinfox))
                     record_list.append(copy.copy(record))
+                    data_type = DatabaseFieldDataType.PERIODIC_ELECTRICAL.value
                 else:
                     Log.debug_print("[DINFOX BPSM] * Invalid UL payload")
             # DDRM.
@@ -368,6 +374,7 @@ class DINFox:
                     record.add_field(mcu_voltage_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_MCU_VOLTAGE, DINFox._get_voltage(mcu_voltage_dinfox))
                     record.add_field(mcu_temperature_dinfox, DINFOX_ERROR_VALUE_TEMPERATURE, DATABASE_FIELD_MCU_TEMPERATURE, DINFox._get_temperature(mcu_temperature_dinfox))
                     record_list.append(copy.copy(record))
+                    data_type = DatabaseFieldDataType.PERIODIC_MONITORING.value
                 # Electrical frame.
                 elif (node_ul_payload_size == (2 * DINFOX_DDRM_UL_PAYLOAD_SIZE_ELECTRICAL)):
                     # Parse field.
@@ -385,6 +392,7 @@ class DINFox:
                     record.add_field(output_voltage_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_OUTPUT_VOLTAGE, DINFox._get_voltage(output_voltage_dinfox))
                     record.add_field(output_current_dinfox, DINFOX_ERROR_VALUE_CURRENT, DATABASE_FIELD_OUTPUT_CURRENT, DINFox._get_current(output_current_dinfox))
                     record_list.append(copy.copy(record))
+                    data_type = DatabaseFieldDataType.PERIODIC_ELECTRICAL.value
                 else:
                     Log.debug_print("[DINFOX DDRM] * Invalid UL payload")
             # UHFM.
@@ -406,6 +414,7 @@ class DINFox:
                     record.add_field(radio_tx_voltage_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_RADIO_TX_VOLTAGE, DINFox._get_voltage(radio_tx_voltage_dinfox))
                     record.add_field(radio_rx_voltage_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_RADIO_RX_VOLTAGE, DINFox._get_voltage(radio_rx_voltage_dinfox))
                     record_list.append(copy.copy(record))
+                    data_type = DatabaseFieldDataType.PERIODIC_MONITORING.value
                 else:
                     Log.debug_print("[DINFOX UHFM] * Invalid UL payload")
             # GPSM.
@@ -427,6 +436,7 @@ class DINFox:
                     record.add_field(gps_voltage_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_GPS_VOLTAGE, DINFox._get_voltage(gps_voltage_dinfox))
                     record.add_field(antenna_voltage_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_GPS_ANTENNA_VOLTAGE, DINFox._get_voltage(antenna_voltage_dinfox))
                     record_list.append(copy.copy(record))
+                    data_type = DatabaseFieldDataType.PERIODIC_MONITORING.value
                 else:
                     Log.debug_print("[DINFOX GPSM] * Invalid UL payload")
             # SM.
@@ -444,6 +454,7 @@ class DINFox:
                     record.add_field(mcu_voltage_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_MCU_VOLTAGE, DINFox._get_voltage(mcu_voltage_dinfox))
                     record.add_field(mcu_temperature_dinfox, DINFOX_ERROR_VALUE_TEMPERATURE, DATABASE_FIELD_MCU_TEMPERATURE, DINFox._get_temperature(mcu_temperature_dinfox))
                     record_list.append(copy.copy(record))
+                    data_type = DatabaseFieldDataType.PERIODIC_MONITORING.value
                 # Electrical frame.
                 if (node_ul_payload_size == (2 * DINFOX_SM_UL_PAYLOAD_SIZE_ELECTRICAL)):
                     # Parse fields.
@@ -469,6 +480,7 @@ class DINFox:
                     record.add_field(ain2_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_AIN2_VOLTAGE, DINFox._get_voltage(ain2_dinfox))
                     record.add_field(ain3_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_AIN3_VOLTAGE, DINFox._get_voltage(ain3_dinfox))
                     record_list.append(copy.copy(record))
+                    data_type = DatabaseFieldDataType.PERIODIC_ELECTRICAL.value
                 # Digital sensors frame.
                 elif (node_ul_payload_size == (2 * DINFOX_SM_UL_PAYLOAD_SIZE_SENSOR)):
                     # Parse fields.
@@ -477,11 +489,12 @@ class DINFox:
                     # Create sensor record.
                     record.measurement = DATABASE_MEASUREMENT_SENSOR
                     record.fields = {
-                        DATABASE_FIELD_LAST_DATA_TIME: timestamp,
+                        DATABASE_FIELD_LAST_DATA_TIME: timestamp
                     }
                     record.add_field(temperature_dinfox, DINFOX_ERROR_VALUE_TEMPERATURE, DATABASE_FIELD_TEMPERATURE, DINFox._get_temperature(temperature_dinfox))
                     record.add_field(humidity_percent, DINFOX_ERROR_VALUE_HUMIDITY, DATABASE_FIELD_HUMIDITY, float(humidity_percent))
                     record_list.append(copy.copy(record))
+                    data_type = DatabaseFieldDataType.PERIODIC_SENSOR.value
                 else:
                     Log.debug_print("[DINFOX SM] * Invalid UL payload")
             # DMM.
@@ -503,6 +516,7 @@ class DINFox:
                     record.add_field(hmi_voltage_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_HMI_VOLTAGE, DINFox._get_voltage(hmi_voltage_dinfox))
                     record.add_field(usb_voltage_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_USB_VOLTAGE, DINFox._get_voltage(usb_voltage_dinfox))
                     record_list.append(copy.copy(record))
+                    data_type = DatabaseFieldDataType.PERIODIC_MONITORING.value
                 else:
                     Log.debug_print("[DINFOX DMM] * Invalid UL payload")
             # MPMCM.
@@ -528,6 +542,7 @@ class DINFox:
                         DATABASE_FIELD_MAINS_CURRENT_DETECT_CH4: mains_current_detect_ch4,
                     }
                     record_list.append(copy.copy(record))
+                    data_type = DatabaseFieldDataType.PERIODIC_STATUS.value
                 # Mains voltage frame.
                 elif (node_ul_payload_size == (2 * DINFOX_MPMCM_UL_PAYLOAD_SIZE_MAINS_VOLTAGE)):
                     # Parse fields.
@@ -537,12 +552,13 @@ class DINFox:
                     # Create electrical record.
                     record.measurement = DATABASE_MEASUREMENT_ELECTRICAL
                     record.fields = {
-                        DATABASE_FIELD_LAST_DATA_TIME: timestamp,
+                        DATABASE_FIELD_LAST_DATA_TIME: timestamp
                     }
                     record.add_field(mains_voltage_rms_min_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_MAINS_VOLTAGE_RMS_MIN, DINFox._get_voltage(mains_voltage_rms_min_dinfox))
                     record.add_field(mains_voltage_rms_mean_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_MAINS_VOLTAGE_RMS_MEAN, DINFox._get_voltage(mains_voltage_rms_mean_dinfox))
                     record.add_field(mains_voltage_rms_max_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_MAINS_VOLTAGE_RMS_MAX, DINFox._get_voltage(mains_voltage_rms_max_dinfox))
                     record_list.append(copy.copy(record))
+                    data_type = DatabaseFieldDataType.PERIODIC_ELECTRICAL_MAINS_VOLTAGE.value
                 # Mains frequency frame.
                 elif (node_ul_payload_size == (2 * DINFOX_MPMCM_UL_PAYLOAD_SIZE_MAINS_FREQUENCY)):
                     # Parse fields.
@@ -552,12 +568,13 @@ class DINFox:
                     # Create electrical record.
                     record.measurement = DATABASE_MEASUREMENT_ELECTRICAL
                     record.fields = {
-                        DATABASE_FIELD_LAST_DATA_TIME: timestamp,
+                        DATABASE_FIELD_LAST_DATA_TIME: timestamp
                     }
                     record.add_field(mains_frequency_min_chz, DINFOX_ERROR_VALUE_FREQUENCY, DATABASE_FIELD_MAINS_FREQUENCY_MIN, float(mains_frequency_min_chz / 100.0))
                     record.add_field(mains_frequency_mean_chz, DINFOX_ERROR_VALUE_FREQUENCY, DATABASE_FIELD_MAINS_FREQUENCY_MEAN, float(mains_frequency_mean_chz / 100.0))
                     record.add_field(mains_frequency_max_chz, DINFOX_ERROR_VALUE_FREQUENCY, DATABASE_FIELD_MAINS_FREQUENCY_MAX, float(mains_frequency_max_chz / 100.0))
                     record_list.append(copy.copy(record))
+                    data_type = DatabaseFieldDataType.PERIODIC_ELECTRICAL_MAINS_FREQUENCY.value
                 # Mains power frame.
                 elif (node_ul_payload_size == (2 * DINFOX_MPMCM_UL_PAYLOAD_SIZE_MAINS_POWER)):
                     # Parse fields.
@@ -569,7 +586,7 @@ class DINFox:
                     # Create electrical record.
                     record.measurement = DATABASE_MEASUREMENT_ELECTRICAL
                     record.fields = {
-                        DATABASE_FIELD_LAST_DATA_TIME: timestamp,
+                        DATABASE_FIELD_LAST_DATA_TIME: timestamp
                     }
                     record.add_field(mains_active_power_mean_dinfox, DINFOX_ERROR_VALUE_ELECTRICAL_POWER, DATABASE_FIELD_MAINS_ACTIVE_POWER_MEAN, DINFox._get_electrical_power(mains_active_power_mean_dinfox))
                     record.add_field(mains_active_power_max_dinfox, DINFOX_ERROR_VALUE_ELECTRICAL_POWER, DATABASE_FIELD_MAINS_ACTIVE_POWER_MAX, DINFox._get_electrical_power(mains_active_power_max_dinfox))
@@ -577,6 +594,7 @@ class DINFox:
                     record.add_field(mains_apparent_power_max_dinfox, DINFOX_ERROR_VALUE_ELECTRICAL_POWER, DATABASE_FIELD_MAINS_APPARENT_POWER_MAX, DINFox._get_electrical_power(mains_apparent_power_max_dinfox))
                     record.tags[DATABASE_TAG_CHANNEL] = mpmcm_channel_index
                     record_list.append(copy.copy(record))
+                    data_type = DatabaseFieldDataType.PERIODIC_ELECTRICAL_MAINS_POWER.value
                 # Mains power factor frame.
                 elif (node_ul_payload_size == (2 * DINFOX_MPMCM_UL_PAYLOAD_SIZE_MAINS_POWER_FACTOR)):
                     # Parse fields.
@@ -587,13 +605,14 @@ class DINFox:
                     # Create electrical record.
                     record.measurement = DATABASE_MEASUREMENT_ELECTRICAL
                     record.fields = {
-                        DATABASE_FIELD_LAST_DATA_TIME: timestamp,
+                        DATABASE_FIELD_LAST_DATA_TIME: timestamp
                     }
                     record.add_field(mains_power_factor_min_dinfox, DINFOX_ERROR_VALUE_POWER_FACTOR, DATABASE_FIELD_MAINS_POWER_FACTOR_MIN, DINFox._get_power_factor(mains_power_factor_min_dinfox))
                     record.add_field(mains_power_factor_mean_dinfox, DINFOX_ERROR_VALUE_POWER_FACTOR, DATABASE_FIELD_MAINS_POWER_FACTOR_MEAN, DINFox._get_power_factor(mains_power_factor_mean_dinfox))
                     record.add_field(mains_power_factor_max_dinfox, DINFOX_ERROR_VALUE_POWER_FACTOR, DATABASE_FIELD_MAINS_POWER_FACTOR_MAX, DINFox._get_power_factor(mains_power_factor_max_dinfox))
                     record.tags[DATABASE_TAG_CHANNEL] = mpmcm_channel_index
                     record_list.append(copy.copy(record))
+                    data_type = DatabaseFieldDataType.PERIODIC_ELECTRICAL_MAINS_POWER_FACTOR.value
                 # Mains energy frame.
                 elif (node_ul_payload_size == (2 * DINFOX_MPMCM_UL_PAYLOAD_SIZE_MAINS_ENERGY)):
                     # Parse fields.
@@ -603,12 +622,13 @@ class DINFox:
                     # Create electrical record.
                     record.measurement = DATABASE_MEASUREMENT_ELECTRICAL
                     record.fields = {
-                        DATABASE_FIELD_LAST_DATA_TIME: timestamp,
+                        DATABASE_FIELD_LAST_DATA_TIME: timestamp
                     }
                     record.add_field(mains_active_energy_dinfox, DINFOX_ERROR_VALUE_ELECTRICAL_ENERGY, DATABASE_FIELD_MAINS_ACTIVE_ENERGY, DINFox._get_electrical_energy(mains_active_energy_dinfox))
                     record.add_field(mains_apparent_energy_dinfox, DINFOX_ERROR_VALUE_ELECTRICAL_ENERGY, DATABASE_FIELD_MAINS_APPARENT_ENERGY, DINFox._get_electrical_energy(mains_apparent_energy_dinfox))
                     record.tags[DATABASE_TAG_CHANNEL] = mpmcm_channel_index
                     record_list.append(copy.copy(record))
+                    data_type = DatabaseFieldDataType.PERIODIC_ELECTRICAL_MAINS_ENERGY.value
                 else:
                     Log.debug_print("[DINFOX MPMCM] * Invalid UL payload")
             # R4S8CR.
@@ -638,6 +658,7 @@ class DINFox:
                         DATABASE_FIELD_RELAY8_STATUS: relay8_status
                     }
                     record_list.append(copy.copy(record))
+                    data_type = DatabaseFieldDataType.PERIODIC_ELECTRICAL.value
                 else:
                     Log.debug_print("[DINFOX R4S8CR] * Invalid UL payload")
             # BCM.
@@ -655,6 +676,7 @@ class DINFox:
                     record.add_field(mcu_voltage_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_MCU_VOLTAGE, DINFox._get_voltage(mcu_voltage_dinfox))
                     record.add_field(mcu_temperature_dinfox, DINFOX_ERROR_VALUE_TEMPERATURE, DATABASE_FIELD_MCU_TEMPERATURE, DINFox._get_temperature(mcu_temperature_dinfox))
                     record_list.append(copy.copy(record))
+                    data_type = DatabaseFieldDataType.PERIODIC_MONITORING.value
                 # Electrical frame.
                 elif (node_ul_payload_size == (2 * DINFOX_BCM_UL_PAYLOAD_SIZE_ELECTRICAL)):
                     # Parse fields.
@@ -696,12 +718,13 @@ class DINFox:
                     record.add_field(charge_current_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_CHARGE_CURRENT, DINFox._get_current(charge_current_dinfox))
                     record.add_field(backup_voltage_dinfox, DINFOX_ERROR_VALUE_VOLTAGE, DATABASE_FIELD_BACKUP_VOLTAGE, DINFox._get_voltage(backup_voltage_dinfox))
                     record_list.append(copy.copy(record))
+                    data_type = DatabaseFieldDataType.PERIODIC_ELECTRICAL.value
                 else:
                     Log.debug_print("[DINFOX BCM] * Invalid UL payload")
             # Unknown board ID.
             else:
                 Log.debug_print("[DINFOX] * Unknown board ID")
-        return record_list
+        return [data_type, record_list]
     
     @staticmethod
     def get_default_dl_payload(sigfox_ep_id: str) -> str:

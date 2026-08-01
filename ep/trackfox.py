@@ -20,7 +20,7 @@ TRACKFOX_SIGFOX_EP_ID_LIST = ep.get_tags_list(TRACKFOX_DEVICE_TYPE_NAME, DATABAS
 TRACKFOX_TAG_ASSET = ep.get_tags_list(TRACKFOX_DEVICE_TYPE_NAME, DATABASE_TAG_ASSET)
 
 TRACKFOX_UL_PAYLOAD_SIZE_MONITORING = 7
-TRACKFOX_UL_PAYLOAD_SIZE_GEOLOC_ERROR = 4
+TRACKFOX_UL_PAYLOAD_SIZE_GEOLOCATION_ERROR = 4
 TRACKFOX_UL_PAYLOAD_SIZE_ERROR_STACK = 10
 
 TRACKFOX_ERROR_VALUE_TEMPERATURE = 0x7FF
@@ -52,6 +52,7 @@ class TrackFox:
     @staticmethod
     def get_record_list(database: Database, timestamp: int, sigfox_ep_id: str, ul_payload: str) -> List[Record]:
         # Local variables.
+        data_type = DATABASE_FIELD_DATA_TYPE_UNKNOWN
         record_list = []
         record = Record()
         # Unused parameter.
@@ -63,16 +64,16 @@ class TrackFox:
         record.limited_retention = True
         # Startup frame.
         if (len(ul_payload) == (2 * COMMON_UL_PAYLOAD_SIZE_STARTUP)):
-            Common.get_record_startup(record, timestamp, ul_payload, record_list)
+            data_type = Common.get_record_startup(record, timestamp, ul_payload, record_list)
         # Geolocation frame.
         elif (len(ul_payload) == (2 * COMMON_UL_PAYLOAD_SIZE_GPS)):
-            Common.get_record_gps(record, timestamp, ul_payload, record_list)
+            data_type = Common.get_record_gps(record, timestamp, ul_payload, record_list)
         # Geolocation timeout frame.
         elif (len(ul_payload) == (2 * COMMON_UL_PAYLOAD_SIZE_GPS_TIMEOUT)):
-            Common.get_record_gps_timeout(record, timestamp, ul_payload, record_list)
+            data_type = Common.get_record_gps_timeout(record, timestamp, ul_payload, record_list)
         # Error stack frame.
         elif (len(ul_payload) == (2 * TRACKFOX_UL_PAYLOAD_SIZE_ERROR_STACK)):
-            Common.get_record_error_stack(record, timestamp, ul_payload, (TRACKFOX_UL_PAYLOAD_SIZE_ERROR_STACK // 2), record_list)
+            data_type = Common.get_record_error_stack(record, timestamp, ul_payload, (TRACKFOX_UL_PAYLOAD_SIZE_ERROR_STACK // 2), record_list)
         # Monitoring frame.
         elif (len(ul_payload) == (2 * TRACKFOX_UL_PAYLOAD_SIZE_MONITORING)):
             # Parse fields.
@@ -92,8 +93,16 @@ class TrackFox:
             record.add_field(source_voltage_ten_mv, TRACKFOX_ERROR_VALUE_SOURCE_VOLTAGE, DATABASE_FIELD_SOURCE_VOLTAGE, float(source_voltage_ten_mv / 100.0))
             record.add_field(storage_voltage_mv, TRACKFOX_ERROR_VALUE_STORAGE_VOLTAGE, DATABASE_FIELD_STORAGE_VOLTAGE, float(storage_voltage_mv / 1000.0))
             record_list.append(copy.copy(record))
+            # Set message type.
+            if (((status >> 2) & 0x01) == 0):
+                data_type = DatabaseFieldDataType.PERIODIC_MONITORING.value
+            else:
+                if (((status >> 3) & 0x01) == 0):
+                    data_type = DatabaseFieldDataType.EVENT_ACCELEROMETER_STOP.value
+                else:
+                    data_type = DatabaseFieldDataType.EVENT_ACCELEROMETER_START.value
         # Geolocation error frame.
-        elif (len(ul_payload) == (2 * TRACKFOX_UL_PAYLOAD_SIZE_GEOLOC_ERROR)):
+        elif (len(ul_payload) == (2 * TRACKFOX_UL_PAYLOAD_SIZE_GEOLOCATION_ERROR)):
             # Parse fields
             gps_acquisition_status = int(ul_payload[0:2], 16)
             gps_acquisition_time_seconds = int(ul_payload[2:4], 16)
@@ -108,9 +117,10 @@ class TrackFox:
                 DATABASE_FIELD_WIFI_SCAN_TIMEOUT_TIME: float(wifi_scan_time_seconds)
             }
             record_list.append(copy.copy(record))
+            data_type = DatabaseFieldDataType.GEOLOCATION_ERROR.value
         else:
             Log.debug_print("[TRACKFOX] * Invalid UL payload")
-        return record_list
+        return [data_type, record_list]
     
     @staticmethod
     def get_default_dl_payload(sigfox_ep_id: str) -> str:

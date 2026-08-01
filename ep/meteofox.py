@@ -75,6 +75,7 @@ class MeteoFox:
     @staticmethod
     def get_record_list(database: Database, timestamp: int, sigfox_ep_id: str, ul_payload: str) -> List[Record]:
         # Local variables.
+        data_type = DATABASE_FIELD_DATA_TYPE_UNKNOWN
         record_list = []
         record = Record()
         where_clause = DATABASE_TAG_SITE + "='" + MeteoFox._get_site(sigfox_ep_id) + "'"
@@ -87,22 +88,23 @@ class MeteoFox:
         if (ul_payload == COMMON_UL_PAYLOAD_KEEP_ALIVE):
             record.measurement = DATABASE_MEASUREMENT_METADATA
             record.fields = {
-                DATABASE_FIELD_LAST_STARTUP_TIME: timestamp,
+                DATABASE_FIELD_LAST_STARTUP_TIME: timestamp
             }
             record.limited_retention = False
             record_list.append(copy.copy(record))
+            data_type = DatabaseFieldDataType.EVENT_STARTUP.value
         # Startup frame.
         elif (len(ul_payload) == (2 * COMMON_UL_PAYLOAD_SIZE_STARTUP)):
-            Common.get_record_startup(record, timestamp, ul_payload, record_list)
+            data_type = Common.get_record_startup(record, timestamp, ul_payload, record_list)
         # Geolocation frame.
         elif (len(ul_payload) == (2 * COMMON_UL_PAYLOAD_SIZE_GPS)):
-            Common.get_record_gps(record, timestamp, ul_payload, record_list)
+            data_type = Common.get_record_gps(record, timestamp, ul_payload, record_list)
         # Geolocation timeout frame.
         elif (len(ul_payload) == (2 * COMMON_UL_PAYLOAD_SIZE_GPS_TIMEOUT)):
-            Common.get_record_gps_timeout(record, timestamp, ul_payload, record_list)
+            data_type = Common.get_record_gps_timeout(record, timestamp, ul_payload, record_list)
         # Error stack frame.
         elif (len(ul_payload) == (2 * METEOFOX_UL_PAYLOAD_SIZE_ERROR_STACK)):
-            Common.get_record_error_stack(record, timestamp, ul_payload, (METEOFOX_UL_PAYLOAD_SIZE_ERROR_STACK // 2), record_list)
+            data_type = Common.get_record_error_stack(record, timestamp, ul_payload, (METEOFOX_UL_PAYLOAD_SIZE_ERROR_STACK // 2), record_list)
         # Other frames format depends on software version.
         else:
             # Read software version.
@@ -157,6 +159,7 @@ class MeteoFox:
                     record.add_field(mcu_temperature_one_complement, temperature_error_value, DATABASE_FIELD_MCU_TEMPERATURE, float(Common.one_complement_to_value(mcu_temperature_one_complement, 7)))
                     record.add_field(mcu_voltage_mv, METEOFOX_ERROR_VALUE_MCU_VOLTAGE, DATABASE_FIELD_MCU_VOLTAGE, float(mcu_voltage_mv / 1000.0))
                     record_list.append(copy.copy(record))
+                    data_type = DatabaseFieldDataType.PERIODIC_MONITORING.value
                 # Weather data frame.
                 elif ((len(ul_payload) == (2 * METEOFOX_UL_PAYLOAD_SIZE_WEATHER_IM)) or (len(ul_payload) == (2 * METEOFOX_UL_PAYLOAD_SIZE_WEATHER_CM))):
                     # Default values.
@@ -239,11 +242,12 @@ class MeteoFox:
                     record.add_field(wind_direction_average_two_degrees, METEOFOX_ERROR_VALUE_WIND, DATABASE_FIELD_WIND_DIRECTION_AVERAGE, float(wind_direction_average_two_degrees * 2.0))
                     record.add_field(rainfall_mm, METEOFOX_ERROR_VALUE_RAIN, DATABASE_FIELD_RAINFALL, float(rainfall_mm))
                     record_list.append(copy.copy(record))
+                    data_type = DatabaseFieldDataType.PERIODIC_WEATHER.value
                 else:
                     Log.debug_print("[METEOFOX] * Invalid UL payload")
             else:
                 Log.debug_print("[METEOFOX] * Firmware version not available for parsing")
-        return record_list
+        return [data_type, record_list]
     
     @staticmethod
     def get_default_dl_payload(sigfox_ep_id: str) -> str:

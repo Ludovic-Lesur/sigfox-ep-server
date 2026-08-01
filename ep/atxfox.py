@@ -61,6 +61,7 @@ class ATXFox:
     @staticmethod
     def get_record_list(database: Database, timestamp: int, sigfox_ep_id: str, ul_payload: str) -> List[Record]:
         # Local variables.
+        data_type = DATABASE_FIELD_DATA_TYPE_UNKNOWN
         record_list = []
         record = Record()
         # Unused parameter.
@@ -72,10 +73,10 @@ class ATXFox:
         record.limited_retention = True
         # Startup frame.
         if (len(ul_payload) == (2 * COMMON_UL_PAYLOAD_SIZE_STARTUP)):
-            Common.get_record_startup(record, timestamp, ul_payload, record_list)
+            data_type = Common.get_record_startup(record, timestamp, ul_payload, record_list)
         # Error stack frame.
         elif (len(ul_payload) == (2 * ATXFOX_UL_PAYLOAD_SIZE_ERROR_STACK)):
-            Common.get_record_error_stack(record, timestamp, ul_payload, (ATXFOX_UL_PAYLOAD_SIZE_ERROR_STACK // 2), record_list)
+            data_type = Common.get_record_error_stack(record, timestamp, ul_payload, (ATXFOX_UL_PAYLOAD_SIZE_ERROR_STACK // 2), record_list)
         # Monitoring frame.
         elif (len(ul_payload) == (2 * ATXFOX_UL_PAYLOAD_SIZE_MONITORING)):
             # Parse fields.
@@ -101,9 +102,10 @@ class ATXFox:
             record.add_field(mcu_voltage_mv, ATXFOX_ERROR_VALUE_MCU_VOLTAGE, DATABASE_FIELD_MCU_VOLTAGE, float(mcu_voltage_mv / 1000.0))
             record.add_field(mcu_temperature_one_complement, ATXFOX_ERROR_VALUE_MCU_TEMPERATURE, DATABASE_FIELD_MCU_TEMPERATURE, float(Common.one_complement_to_value(mcu_temperature_one_complement, 7)))
             record_list.append(copy.copy(record))
+            data_type = DatabaseFieldDataType.PERIODIC_MONITORING.value
         else:
             Log.debug_print("[ATXFOX] * Invalid UL payload")
-        return record_list
+        return [data_type, record_list]
     
     @staticmethod
     def get_default_dl_payload(sigfox_ep_id: str) -> str:

@@ -162,28 +162,15 @@ def API_CALLBACK_send_sigfox_ep_server_callback(ep_id, messages_list):
     global sigfox_ep_server_address
     # Message loop.
     for message in messages_list:
-        # Check OOB flag.
-        if (message.get(SIGFOX_CLOUD_API_JSON_KEY_OOB) == True):
-            # Check length.
-            if (len(message.get(SIGFOX_CLOUD_API_JSON_KEY_UL_PAYLOAD)) == (2 * SIGFOX_CONTROL_KEEP_ALIVE_MESSAGE_SIZE)):
-                # Create JSON for service status.
-                json_callback = {
-                    SIGFOX_CALLBACK_JSON_KEY_TYPE: SIGFOX_CALLBACK_TYPE_SERVICE_STATUS,
-                    SIGFOX_CALLBACK_JSON_KEY_TIME: str(int(message.get(SIGFOX_CLOUD_API_JSON_KEY_TIME)) // 1000),
-                    SIGFOX_CALLBACK_JSON_KEY_EP_ID: ep_id,
-                }
-            else:
-                continue
-        else:
-            # Create JSON for data bidir.
-            json_callback = {
-                SIGFOX_CALLBACK_JSON_KEY_TYPE: SIGFOX_CALLBACK_TYPE_DATA_BIDIR,
-                SIGFOX_CALLBACK_JSON_KEY_TIME: str(int(message.get(SIGFOX_CLOUD_API_JSON_KEY_TIME)) // 1000),
-                SIGFOX_CALLBACK_JSON_KEY_EP_ID: ep_id,
-                SIGFOX_CALLBACK_JSON_KEY_MESSAGE_COUNTER: str(message.get(SIGFOX_CLOUD_API_JSON_KEY_MESSAGE_COUNTER)),
-                SIGFOX_CALLBACK_JSON_KEY_UL_PAYLOAD: message.get(SIGFOX_CLOUD_API_JSON_KEY_UL_PAYLOAD),
-                SIGFOX_CALLBACK_JSON_KEY_BIDIRECTIONAL_FLAG: SIGFOX_CALLBACK_JSON_FALSE
-            }
+        # Create JSON for data bidirectional callback.
+        json_callback = {
+            SIGFOX_CALLBACK_JSON_KEY_TYPE: SIGFOX_CALLBACK_TYPE_DATA_BIDIR,
+            SIGFOX_CALLBACK_JSON_KEY_TIME: str(int(message.get(SIGFOX_CLOUD_API_JSON_KEY_TIME)) // 1000),
+            SIGFOX_CALLBACK_JSON_KEY_EP_ID: ep_id,
+            SIGFOX_CALLBACK_JSON_KEY_MESSAGE_COUNTER: str(message.get(SIGFOX_CLOUD_API_JSON_KEY_MESSAGE_COUNTER)),
+            SIGFOX_CALLBACK_JSON_KEY_UL_PAYLOAD: message.get(SIGFOX_CLOUD_API_JSON_KEY_UL_PAYLOAD),
+            SIGFOX_CALLBACK_JSON_KEY_BIDIRECTIONAL_FLAG: SIGFOX_CALLBACK_JSON_FALSE
+        }
         print("[SIGFOX_EP_SERVER] * Sending callback for message [time=" + str(message.get(SIGFOX_CLOUD_API_JSON_KEY_TIME)) + ", ul_payload=" + message.get(SIGFOX_CLOUD_API_JSON_KEY_UL_PAYLOAD) + "]")
         # Sigfox EP server callback.
         try:

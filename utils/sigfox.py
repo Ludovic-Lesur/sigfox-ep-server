@@ -12,7 +12,6 @@
 SIGFOX_CALLBACK_TYPE_DATA_UPLINK = "data_uplink"
 SIGFOX_CALLBACK_TYPE_DATA_BIDIR = "data_bidir"
 SIGFOX_CALLBACK_TYPE_DATA_ADVANCED = "data_advanced"
-SIGFOX_CALLBACK_TYPE_SERVICE_STATUS = "service_status"
 SIGFOX_CALLBACK_TYPE_SERVICE_ACKNOWLEDGE = "service_acknowledge"
 
 # Sigfox callbacks fields.

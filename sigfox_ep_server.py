@@ -246,38 +246,30 @@ class SigfoxEpServer:
                 Log.debug_print("[SIGFOX EP SERVER] * ERROR: unknown Sigfox EP-ID.")
                 raise Exception
             # Data callback.
-            if ((callback_type == SIGFOX_CALLBACK_TYPE_DATA_UPLINK) or (callback_type == SIGFOX_CALLBACK_TYPE_DATA_BIDIR) or (callback_type == SIGFOX_CALLBACK_TYPE_SERVICE_STATUS)):
+            if ((callback_type == SIGFOX_CALLBACK_TYPE_DATA_UPLINK) or (callback_type == SIGFOX_CALLBACK_TYPE_DATA_BIDIR)):
+                # Check mandatory JSON fields.
+                if ((SIGFOX_CALLBACK_JSON_KEY_MESSAGE_COUNTER not in json_in) or (SIGFOX_CALLBACK_JSON_KEY_UL_PAYLOAD not in json_in)):
+                    Log.debug_print("[SIGFOX EP SERVER] * ERROR: missing headers in callback JSON (specific fields)")
+                    http_return_code = 424
+                    raise Exception
+                # Extract common fields.
+                message_counter = int(json_in[SIGFOX_CALLBACK_JSON_KEY_MESSAGE_COUNTER])
+                ul_payload = json_in[SIGFOX_CALLBACK_JSON_KEY_UL_PAYLOAD].upper()
                 # Data uplink callback.
                 if (callback_type == SIGFOX_CALLBACK_TYPE_DATA_UPLINK):
-                    # Check mandatory JSON fields.
-                    if ((SIGFOX_CALLBACK_JSON_KEY_MESSAGE_COUNTER not in json_in) or (SIGFOX_CALLBACK_JSON_KEY_UL_PAYLOAD not in json_in)):
-                        Log.debug_print("[SIGFOX EP SERVER] * ERROR: missing headers in callback JSON (specific fields)")
-                        http_return_code = 424
-                        raise Exception
-                    # Parse fields.
+                    # Update fields.
                     callback_type_str = "Data uplink"
-                    message_counter = int(json_in[SIGFOX_CALLBACK_JSON_KEY_MESSAGE_COUNTER])
                     bidirectional_flag = SIGFOX_CALLBACK_JSON_FALSE
-                    ul_payload = json_in[SIGFOX_CALLBACK_JSON_KEY_UL_PAYLOAD].upper()
                 # Data bidirectional callback.
-                elif (callback_type == SIGFOX_CALLBACK_TYPE_DATA_BIDIR):
+                else:
                     # Check mandatory JSON fields.
-                    if ((SIGFOX_CALLBACK_JSON_KEY_MESSAGE_COUNTER not in json_in) or (SIGFOX_CALLBACK_JSON_KEY_UL_PAYLOAD not in json_in) or (SIGFOX_CALLBACK_JSON_KEY_BIDIRECTIONAL_FLAG not in json_in)):
+                    if (SIGFOX_CALLBACK_JSON_KEY_BIDIRECTIONAL_FLAG not in json_in):
                         Log.debug_print("[SIGFOX EP SERVER] * ERROR: missing headers in callback JSON (specific fields)")
                         http_return_code = 424
                         raise Exception
-                    # Parse fields.
+                    # Update fields.
                     callback_type_str = "Data bidirectional"
-                    message_counter = int(json_in[SIGFOX_CALLBACK_JSON_KEY_MESSAGE_COUNTER])
                     bidirectional_flag = json_in[SIGFOX_CALLBACK_JSON_KEY_BIDIRECTIONAL_FLAG]
-                    ul_payload = json_in[SIGFOX_CALLBACK_JSON_KEY_UL_PAYLOAD].upper()
-                # Service status callback.
-                else:
-                    # Set fields.
-                    callback_type_str = "Service status"
-                    message_counter = 0
-                    bidirectional_flag = SIGFOX_CALLBACK_JSON_FALSE
-                    ul_payload = COMMON_UL_PAYLOAD_KEEP_ALIVE
                 Log.debug_print("[SIGFOX EP SERVER] * " + callback_type_str + " callback: timestamp=" + str(timestamp) + " sigfox_ep_id=" + sigfox_ep_id + " message_counter=" + str(message_counter) + " ul_payload=" + ul_payload + " bidirectional_flag=" + bidirectional_flag)
                 # Parse UL payload.
                 [data_type, record_list] = self._ep_class.get_record_list(self._database, timestamp, sigfox_ep_id, ul_payload)
@@ -289,6 +281,7 @@ class SigfoxEpServer:
                     record.timestamp = timestamp
                     record.fields = {
                         DATABASE_FIELD_LAST_DATA_TIME: timestamp,
+                        DATABASE_FIELD_SIGFOX_UPLINK_MESSAGE_COUNTER: message_counter,
                         DATABASE_FIELD_DATA_TYPE: data_type
                     }
                     record.tags = record_list[0].tags
@@ -313,11 +306,12 @@ class SigfoxEpServer:
             # Data advanced callback.
             elif (callback_type == SIGFOX_CALLBACK_TYPE_DATA_ADVANCED):
                 # Check mandatory JSON fields.
-                if ((SIGFOX_CALLBACK_JSON_KEY_GEOLOCATION not in json_in) or (SIGFOX_CALLBACK_JSON_KEY_UL_PAYLOAD not in json_in)):
+                if ((SIGFOX_CALLBACK_JSON_KEY_MESSAGE_COUNTER not in json_in) or (SIGFOX_CALLBACK_JSON_KEY_UL_PAYLOAD not in json_in) or (SIGFOX_CALLBACK_JSON_KEY_GEOLOCATION not in json_in)):
                     Log.debug_print("[SIGFOX EP SERVER] * ERROR: missing headers in callback JSON (specific fields)")
                     http_return_code = 424
                     raise Exception
                 # Parse fields.
+                message_counter = int(json_in[SIGFOX_CALLBACK_JSON_KEY_MESSAGE_COUNTER])
                 ul_payload_size = (len(json_in[SIGFOX_CALLBACK_JSON_KEY_UL_PAYLOAD]) // 2)
                 geolocation = json_in[SIGFOX_CALLBACK_JSON_KEY_GEOLOCATION]
                 latitude = float(geolocation[SIGFOX_CALLBACK_JSON_KEY_GEOLOCATION_LATITUDE])
@@ -353,6 +347,7 @@ class SigfoxEpServer:
                     record.timestamp = geolocation_timestamp
                     record.fields = {
                         DATABASE_FIELD_LAST_DATA_TIME: geolocation_timestamp,
+                        DATABASE_FIELD_SIGFOX_UPLINK_MESSAGE_COUNTER: message_counter,
                         DATABASE_FIELD_DATA_TYPE: data_type
                     }
                     record.tags = self._ep_class.get_tags(sigfox_ep_id)

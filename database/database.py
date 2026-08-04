@@ -97,6 +97,8 @@ DATABASE_FIELD_NODE_COUNT = "node_count"
 DATABASE_FIELD_NODE_ACCESS_STATUS = "node_access_status"
 DATABASE_FIELD_NODE_REGISTER_ADDRESS = "node_register_address"
 DATABASE_FIELD_NODE_REGISTER_VALUE = "node_register_value"
+# Sigfox uplink.
+DATABASE_FIELD_SIGFOX_UPLINK_MESSAGE_COUNTER = "sigfox_uplink_message_counter"
 # Sigfox downlink.
 DATABASE_FIELD_SIGFOX_DOWNLINK_RECORD_TIME = "sigfox_downlink_record_time"
 DATABASE_FIELD_SIGFOX_DOWNLINK_SERVER_TIME = "sigfox_downlink_server_time"

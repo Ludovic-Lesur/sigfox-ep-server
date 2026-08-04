@@ -312,27 +312,40 @@ class SigfoxEpServer:
                     raise Exception
                 # Parse fields.
                 message_counter = int(json_in[SIGFOX_CALLBACK_JSON_KEY_MESSAGE_COUNTER])
-                ul_payload_size = (len(json_in[SIGFOX_CALLBACK_JSON_KEY_UL_PAYLOAD]) // 2)
+                ul_payload = json_in[SIGFOX_CALLBACK_JSON_KEY_UL_PAYLOAD].upper()
+                ul_payload_size = (len(ul_payload) // 2)
                 geolocation = json_in[SIGFOX_CALLBACK_JSON_KEY_GEOLOCATION]
                 latitude = float(geolocation[SIGFOX_CALLBACK_JSON_KEY_GEOLOCATION_LATITUDE])
                 longitude = float(geolocation[SIGFOX_CALLBACK_JSON_KEY_GEOLOCATION_LONGITUDE])
                 radius = int(geolocation[SIGFOX_CALLBACK_JSON_KEY_GEOLOCATION_RADIUS])
                 source = int(geolocation[SIGFOX_CALLBACK_JSON_KEY_GEOLOCATION_SOURCE])
                 status = int(geolocation[SIGFOX_CALLBACK_JSON_KEY_GEOLOCATION_STATUS])
-                Log.debug_print("[SIGFOX EP SERVER] * Data advanced callback: timestamp=" + str(timestamp) + " sigfox_ep_id=" + sigfox_ep_id + " ul_payload_size=" + str(ul_payload_size) + " latitude=" + str(latitude) + " longitude=" + str(longitude) + " radius=" + str(radius) + " source=" + str(source) + " status=" + str(status))
+                Log.debug_print("[SIGFOX EP SERVER] * Data advanced callback: timestamp=" + str(timestamp) + " sigfox_ep_id=" + sigfox_ep_id + " ul_payload=" + ul_payload + " latitude=" + str(latitude) + " longitude=" + str(longitude) + " radius=" + str(radius) + " source=" + str(source) + " status=" + str(status))
+                # Determine if the uplink data is an Atlas WiFi payload.
+                is_wifi_payload = True
+                if (ul_payload_size == SIGFOX_UL_PAYLOAD_SIZE_ATLAS_WIFI):
+                    # Check I/G bit of the first byte.
+                    first_byte = int(ul_payload[0:2], 16)
+                    if ((first_byte & 0x01) != 0):
+                        is_wifi_payload = False
+                else:
+                    is_wifi_payload = False
                 # Check status.
                 if ((status == SIGFOX_CALLBACK_GEOLOCATION_STATUS_OK) or (status == SIGFOX_CALLBACK_GEOLOCATION_STATUS_FALLBACK_OF_WIFI)):
-                    # Set source and message type.
+                    # GPS location.
                     if (source == SIGFOX_CALLBACK_GEOLOCATION_SOURCE_GPS):
                         geolocation_source = DATABASE_FIELD_GEOLOCATION_SOURCE_GPS
                         data_type = DatabaseFieldDataType.GEOLOCATION_GPS.value
                         radius = DATABASE_FIELD_GEOLOCATION_RADIUS_GPS
+                    # Atlas WiFi location.
                     elif (source == SIGFOX_CALLBACK_GEOLOCATION_SOURCE_WIFI):
                         geolocation_source = DATABASE_FIELD_GEOLOCATION_SOURCE_SIGFOX_ATLAS_WIFI
                         data_type = DatabaseFieldDataType.GEOLOCATION_SIGFOX_ATLAS_WIFI.value
+                    # Atlas Native location.
                     elif (source == SIGFOX_CALLBACK_GEOLOCATION_SOURCE_NETWORK):
                         geolocation_source = DATABASE_FIELD_GEOLOCATION_SOURCE_SIGFOX_ATLAS_NATIVE
-                        if (ul_payload_size == SIGFOX_UL_PAYLOAD_SIZE_ATLAS_WIFI):
+                        # Set the data type according to the payload type (override the status field which is always set to fallback for WiFi devices).
+                        if (is_wifi_payload == True):
                             data_type = DatabaseFieldDataType.GEOLOCATION_SIGFOX_ATLAS_NATIVE_FALLBACK_OF_WIFI.value
                         else:
                             data_type = DatabaseFieldDataType.GEOLOCATION_SIGFOX_ATLAS_NATIVE.value

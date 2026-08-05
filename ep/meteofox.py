@@ -11,7 +11,7 @@ from database.database import *
 from ep.common import *
 from ep.ep import *
 from log import *
-from utils.sigfox import *
+from utils.sigfox_cloud import *
 from datetime import datetime, timedelta
 
 ### METEOFOX public macros ###
@@ -84,17 +84,8 @@ class MeteoFox:
         record.timestamp = timestamp
         record.tags = MeteoFox.get_tags(sigfox_ep_id)
         record.limited_retention = True
-        # Keep alive frame (only for embedded software version older than sw1.2.42).
-        if (ul_payload == COMMON_UL_PAYLOAD_KEEP_ALIVE):
-            record.measurement = DATABASE_MEASUREMENT_METADATA
-            record.fields = {
-                DATABASE_FIELD_LAST_STARTUP_TIME: timestamp
-            }
-            record.limited_retention = False
-            record_list.append(copy.copy(record))
-            data_type = DatabaseFieldDataType.EVENT_STARTUP.value
         # Startup frame.
-        elif (len(ul_payload) == (2 * COMMON_UL_PAYLOAD_SIZE_STARTUP)):
+        if (len(ul_payload) == (2 * COMMON_UL_PAYLOAD_SIZE_STARTUP)):
             data_type = Common.get_record_startup(record, timestamp, ul_payload, record_list)
         # Geolocation frame.
         elif (len(ul_payload) == (2 * COMMON_UL_PAYLOAD_SIZE_GPS)):
@@ -267,7 +258,7 @@ class MeteoFox:
             # Check operation code.
             if (payload_bytes[0] == 3):
                 # Update time.
-                dl_timestamp = datetime.utcnow() + timedelta(seconds=SIGFOX_CALLBACK_DOWNLINK_TIMESTAMP_DELTA)
+                dl_timestamp = datetime.utcnow() + timedelta(seconds=SIGFOX_CLOUD_CALLBACK_DOWNLINK_TIMESTAMP_DELTA)
                 payload_bytes[1] = ((dl_timestamp.year >> 8) & 0xFF)
                 payload_bytes[2] = ((dl_timestamp.year >> 0) & 0xFF)
                 payload_bytes[3] = dl_timestamp.month

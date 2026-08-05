@@ -20,7 +20,7 @@ from ep.trackfox import *
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from log import *
 from utils.configuration import *
-from utils.sigfox import *
+from utils.sigfox_cloud import *
 
 ### SIGFOX EP SERVER macros ###
 
@@ -185,7 +185,7 @@ class SigfoxEpServer:
                         # Update flag.
                         dl_message_found = True
                     # Check mode.
-                    if (dl_message[SIGFOX_DOWNLINK_MESSAGES_HEADER_PERMANENT] == SIGFOX_CALLBACK_JSON_FALSE):
+                    if (dl_message[SIGFOX_DOWNLINK_MESSAGES_HEADER_PERMANENT] == SIGFOX_CLOUD_CALLBACK_JSON_FALSE):
                         # Force reading.
                         dl_message_record_time = int(dl_message[SIGFOX_DOWNLINK_MESSAGES_HEADER_RECORD_TIME])
                         dl_payload = dl_message[SIGFOX_DOWNLINK_MESSAGES_HEADER_DL_PAYLOAD]
@@ -229,16 +229,16 @@ class SigfoxEpServer:
         json_out = []
         try:
             # Check mandatory JSON fields.
-            if ((SIGFOX_CALLBACK_JSON_KEY_TYPE not in json_in) or
-                (SIGFOX_CALLBACK_JSON_KEY_TIME not in json_in) or
-                (SIGFOX_CALLBACK_JSON_KEY_EP_ID not in json_in)):
+            if ((SIGFOX_CLOUD_CALLBACK_JSON_KEY_TYPE not in json_in) or
+                (SIGFOX_CLOUD_CALLBACK_JSON_KEY_TIME not in json_in) or
+                (SIGFOX_CLOUD_CALLBACK_JSON_KEY_EP_ID not in json_in)):
                 Log.debug_print("[SIGFOX EP SERVER] * ERROR: missing headers in callback JSON (common fields)")
                 http_return_code = 415
                 raise Exception
             # Read fields.
-            callback_type = json_in[SIGFOX_CALLBACK_JSON_KEY_TYPE]
-            timestamp = int(json_in[SIGFOX_CALLBACK_JSON_KEY_TIME])
-            sigfox_ep_id = Ep.format_sigfox_ep_id(json_in[SIGFOX_CALLBACK_JSON_KEY_EP_ID])
+            callback_type = json_in[SIGFOX_CLOUD_CALLBACK_JSON_KEY_TYPE]
+            timestamp = int(json_in[SIGFOX_CLOUD_CALLBACK_JSON_KEY_TIME])
+            sigfox_ep_id = Ep.format_sigfox_ep_id(json_in[SIGFOX_CLOUD_CALLBACK_JSON_KEY_EP_ID])
             # Update class pointer and database.
             self._set_ep_class_and_database(sigfox_ep_id)
             # Directly returns if the end-point ID is unknown.
@@ -246,30 +246,30 @@ class SigfoxEpServer:
                 Log.debug_print("[SIGFOX EP SERVER] * ERROR: unknown Sigfox EP-ID.")
                 raise Exception
             # Data callback.
-            if ((callback_type == SIGFOX_CALLBACK_TYPE_DATA_UPLINK) or (callback_type == SIGFOX_CALLBACK_TYPE_DATA_BIDIR)):
+            if ((callback_type == SIGFOX_CLOUD_CALLBACK_TYPE_DATA_UPLINK) or (callback_type == SIGFOX_CLOUD_CALLBACK_TYPE_DATA_BIDIR)):
                 # Check mandatory JSON fields.
-                if ((SIGFOX_CALLBACK_JSON_KEY_MESSAGE_COUNTER not in json_in) or (SIGFOX_CALLBACK_JSON_KEY_UL_PAYLOAD not in json_in)):
+                if ((SIGFOX_CLOUD_CALLBACK_JSON_KEY_MESSAGE_COUNTER not in json_in) or (SIGFOX_CLOUD_CALLBACK_JSON_KEY_UL_PAYLOAD not in json_in)):
                     Log.debug_print("[SIGFOX EP SERVER] * ERROR: missing headers in callback JSON (specific fields)")
                     http_return_code = 424
                     raise Exception
                 # Extract common fields.
-                message_counter = int(json_in[SIGFOX_CALLBACK_JSON_KEY_MESSAGE_COUNTER])
-                ul_payload = json_in[SIGFOX_CALLBACK_JSON_KEY_UL_PAYLOAD].upper()
+                message_counter = int(json_in[SIGFOX_CLOUD_CALLBACK_JSON_KEY_MESSAGE_COUNTER])
+                ul_payload = json_in[SIGFOX_CLOUD_CALLBACK_JSON_KEY_UL_PAYLOAD].upper()
                 # Data uplink callback.
-                if (callback_type == SIGFOX_CALLBACK_TYPE_DATA_UPLINK):
+                if (callback_type == SIGFOX_CLOUD_CALLBACK_TYPE_DATA_UPLINK):
                     # Update fields.
                     callback_type_str = "Data uplink"
-                    bidirectional_flag = SIGFOX_CALLBACK_JSON_FALSE
+                    bidirectional_flag = SIGFOX_CLOUD_CALLBACK_JSON_FALSE
                 # Data bidirectional callback.
                 else:
                     # Check mandatory JSON fields.
-                    if (SIGFOX_CALLBACK_JSON_KEY_BIDIRECTIONAL_FLAG not in json_in):
+                    if (SIGFOX_CLOUD_CALLBACK_JSON_KEY_BIDIRECTIONAL_FLAG not in json_in):
                         Log.debug_print("[SIGFOX EP SERVER] * ERROR: missing headers in callback JSON (specific fields)")
                         http_return_code = 424
                         raise Exception
                     # Update fields.
                     callback_type_str = "Data bidirectional"
-                    bidirectional_flag = json_in[SIGFOX_CALLBACK_JSON_KEY_BIDIRECTIONAL_FLAG]
+                    bidirectional_flag = json_in[SIGFOX_CLOUD_CALLBACK_JSON_KEY_BIDIRECTIONAL_FLAG]
                 Log.debug_print("[SIGFOX EP SERVER] * " + callback_type_str + " callback: timestamp=" + str(timestamp) + " sigfox_ep_id=" + sigfox_ep_id + " message_counter=" + str(message_counter) + " ul_payload=" + ul_payload + " bidirectional_flag=" + bidirectional_flag)
                 # Parse UL payload.
                 [data_type, record_list] = self._ep_class.get_record_list(self._database, timestamp, sigfox_ep_id, ul_payload)
@@ -290,7 +290,7 @@ class SigfoxEpServer:
                     # Write data base.
                     self._database.write_records(record_list)
                     # Check bidirectional flag.
-                    if (bidirectional_flag == SIGFOX_CALLBACK_JSON_TRUE):
+                    if (bidirectional_flag == SIGFOX_CLOUD_CALLBACK_JSON_TRUE):
                         # Use uplink message counter as downlink message hash.
                         self._downlink_hash = message_counter
                         # Compute DL payload.
@@ -304,22 +304,22 @@ class SigfoxEpServer:
                                 json_out = {sigfox_ep_id: {"downlinkData": dl_payload}}
                                 Log.debug_print("[SIGFOX EP SERVER] * Bidirectional request response: dl_payload=" + dl_payload)
             # Data advanced callback.
-            elif (callback_type == SIGFOX_CALLBACK_TYPE_DATA_ADVANCED):
+            elif (callback_type == SIGFOX_CLOUD_CALLBACK_TYPE_DATA_ADVANCED):
                 # Check mandatory JSON fields.
-                if ((SIGFOX_CALLBACK_JSON_KEY_MESSAGE_COUNTER not in json_in) or (SIGFOX_CALLBACK_JSON_KEY_UL_PAYLOAD not in json_in) or (SIGFOX_CALLBACK_JSON_KEY_GEOLOCATION not in json_in)):
+                if ((SIGFOX_CLOUD_CALLBACK_JSON_KEY_MESSAGE_COUNTER not in json_in) or (SIGFOX_CLOUD_CALLBACK_JSON_KEY_UL_PAYLOAD not in json_in) or (SIGFOX_CLOUD_CALLBACK_JSON_KEY_GEOLOCATION not in json_in)):
                     Log.debug_print("[SIGFOX EP SERVER] * ERROR: missing headers in callback JSON (specific fields)")
                     http_return_code = 424
                     raise Exception
                 # Parse fields.
-                message_counter = int(json_in[SIGFOX_CALLBACK_JSON_KEY_MESSAGE_COUNTER])
-                ul_payload = json_in[SIGFOX_CALLBACK_JSON_KEY_UL_PAYLOAD].upper()
+                message_counter = int(json_in[SIGFOX_CLOUD_CALLBACK_JSON_KEY_MESSAGE_COUNTER])
+                ul_payload = json_in[SIGFOX_CLOUD_CALLBACK_JSON_KEY_UL_PAYLOAD].upper()
                 ul_payload_size = (len(ul_payload) // 2)
-                geolocation = json_in[SIGFOX_CALLBACK_JSON_KEY_GEOLOCATION]
-                latitude = float(geolocation[SIGFOX_CALLBACK_JSON_KEY_GEOLOCATION_LATITUDE])
-                longitude = float(geolocation[SIGFOX_CALLBACK_JSON_KEY_GEOLOCATION_LONGITUDE])
-                radius = int(geolocation[SIGFOX_CALLBACK_JSON_KEY_GEOLOCATION_RADIUS])
-                source = int(geolocation[SIGFOX_CALLBACK_JSON_KEY_GEOLOCATION_SOURCE])
-                status = int(geolocation[SIGFOX_CALLBACK_JSON_KEY_GEOLOCATION_STATUS])
+                geolocation = json_in[SIGFOX_CLOUD_CALLBACK_JSON_KEY_GEOLOCATION]
+                latitude = float(geolocation[SIGFOX_CLOUD_CALLBACK_JSON_KEY_GEOLOCATION_LATITUDE])
+                longitude = float(geolocation[SIGFOX_CLOUD_CALLBACK_JSON_KEY_GEOLOCATION_LONGITUDE])
+                radius = int(geolocation[SIGFOX_CLOUD_CALLBACK_JSON_KEY_GEOLOCATION_RADIUS])
+                source = int(geolocation[SIGFOX_CLOUD_CALLBACK_JSON_KEY_GEOLOCATION_SOURCE])
+                status = int(geolocation[SIGFOX_CLOUD_CALLBACK_JSON_KEY_GEOLOCATION_STATUS])
                 Log.debug_print("[SIGFOX EP SERVER] * Data advanced callback: timestamp=" + str(timestamp) + " sigfox_ep_id=" + sigfox_ep_id + " ul_payload=" + ul_payload + " latitude=" + str(latitude) + " longitude=" + str(longitude) + " radius=" + str(radius) + " source=" + str(source) + " status=" + str(status))
                 # Determine if the uplink data is an Atlas WiFi payload.
                 is_wifi_payload = True
@@ -331,18 +331,18 @@ class SigfoxEpServer:
                 else:
                     is_wifi_payload = False
                 # Check status.
-                if ((status == SIGFOX_CALLBACK_GEOLOCATION_STATUS_OK) or (status == SIGFOX_CALLBACK_GEOLOCATION_STATUS_FALLBACK_OF_WIFI)):
+                if ((status == SIGFOX_CLOUD_CALLBACK_GEOLOCATION_STATUS_OK) or (status == SIGFOX_CLOUD_CALLBACK_GEOLOCATION_STATUS_FALLBACK_OF_WIFI)):
                     # GPS location.
-                    if (source == SIGFOX_CALLBACK_GEOLOCATION_SOURCE_GPS):
+                    if (source == SIGFOX_CLOUD_CALLBACK_GEOLOCATION_SOURCE_GPS):
                         geolocation_source = DATABASE_FIELD_GEOLOCATION_SOURCE_GPS
                         data_type = DatabaseFieldDataType.GEOLOCATION_GPS.value
                         radius = DATABASE_FIELD_GEOLOCATION_RADIUS_GPS
                     # Atlas WiFi location.
-                    elif (source == SIGFOX_CALLBACK_GEOLOCATION_SOURCE_WIFI):
+                    elif (source == SIGFOX_CLOUD_CALLBACK_GEOLOCATION_SOURCE_WIFI):
                         geolocation_source = DATABASE_FIELD_GEOLOCATION_SOURCE_SIGFOX_ATLAS_WIFI
                         data_type = DatabaseFieldDataType.GEOLOCATION_SIGFOX_ATLAS_WIFI.value
                     # Atlas Native location.
-                    elif (source == SIGFOX_CALLBACK_GEOLOCATION_SOURCE_NETWORK):
+                    elif (source == SIGFOX_CLOUD_CALLBACK_GEOLOCATION_SOURCE_NETWORK):
                         geolocation_source = DATABASE_FIELD_GEOLOCATION_SOURCE_SIGFOX_ATLAS_NATIVE
                         # Set the data type according to the payload type (override the status field which is always set to fallback for WiFi devices).
                         if (is_wifi_payload == True):
@@ -377,24 +377,24 @@ class SigfoxEpServer:
                         DATABASE_FIELD_GEOLOCATION_SOURCE: geolocation_source,
                         DATABASE_FIELD_GEOLOCATION_RADIUS: float(radius)
                     }
-                    if (source == SIGFOX_CALLBACK_GEOLOCATION_SOURCE_WIFI):
+                    if (source == SIGFOX_CLOUD_CALLBACK_GEOLOCATION_SOURCE_WIFI):
                         record.add_field(0x00, 0xFF, DATABASE_FIELD_WIFI_SCAN_STATUS, 0x00)
                     record.tags = self._ep_class.get_tags(sigfox_ep_id)
                     record.limited_retention = True
                     self._database.write_record(record)
             # Service acknowledge callback.
-            elif (callback_type == SIGFOX_CALLBACK_TYPE_SERVICE_ACKNOWLEDGE):
+            elif (callback_type == SIGFOX_CLOUD_CALLBACK_TYPE_SERVICE_ACKNOWLEDGE):
                 # Check mandatory JSON fields.
-                if ((SIGFOX_CALLBACK_JSON_KEY_DL_PAYLOAD not in json_in) or
-                    (SIGFOX_CALLBACK_JSON_KEY_DL_SUCCESS not in json_in) or
-                    (SIGFOX_CALLBACK_JSON_KEY_DL_STATUS not in json_in)):
+                if ((SIGFOX_CLOUD_CALLBACK_JSON_KEY_DL_PAYLOAD not in json_in) or
+                    (SIGFOX_CLOUD_CALLBACK_JSON_KEY_DL_SUCCESS not in json_in) or
+                    (SIGFOX_CLOUD_CALLBACK_JSON_KEY_DL_STATUS not in json_in)):
                     Log.debug_print("[SIGFOX EP SERVER] * ERROR: missing headers in callback JSON (specific fields)")
                     http_return_code = 424
                     raise Exception
                 # Parse fields.
-                dl_payload = json_in[SIGFOX_CALLBACK_JSON_KEY_DL_PAYLOAD].upper()
-                dl_success = json_in[SIGFOX_CALLBACK_JSON_KEY_DL_SUCCESS]
-                dl_status = json_in[SIGFOX_CALLBACK_JSON_KEY_DL_STATUS]
+                dl_payload = json_in[SIGFOX_CLOUD_CALLBACK_JSON_KEY_DL_PAYLOAD].upper()
+                dl_success = json_in[SIGFOX_CLOUD_CALLBACK_JSON_KEY_DL_SUCCESS]
+                dl_status = json_in[SIGFOX_CLOUD_CALLBACK_JSON_KEY_DL_STATUS]
                 Log.debug_print("[SIGFOX EP SERVER] * Service acknowledge callback: timestamp=" + str(timestamp) + " sigfox_ep_id=" + sigfox_ep_id + " dl_payload=" + dl_payload + " dl_success=" + dl_success + " dl_status=" + dl_status)
                 # Log downlink network status in database.
                 record.database = self._ep_database

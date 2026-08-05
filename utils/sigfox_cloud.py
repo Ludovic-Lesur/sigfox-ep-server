@@ -33,6 +33,10 @@ SIGFOX_CLOUD_API_JSON_KEY_UL_PAYLOAD = "data"
 SIGFOX_CLOUD_API_JSON_KEY_ID = "id"
 SIGFOX_CLOUD_API_JSON_KEY_MESSAGE_COUNTER = "seqNumber"
 SIGFOX_CLOUD_API_JSON_KEY_CONTRACT = "contract"
+SIGFOX_CLOUD_API_JSON_KEY_OPTIONS = "options"
+SIGFOX_CLOUD_API_JSON_KEY_GEOLOCATION = "geolocation"
+SIGFOX_CLOUD_API_JSON_KEY_PARAMETERS = "parameters"
+SIGFOX_CLOUD_API_JSON_KEY_LEVEL = "level"
 SIGFOX_CLOUD_API_JSON_KEY_PAGING = "paging"
 SIGFOX_CLOUD_API_JSON_KEY_NEXT_PAGE_REQUEST = "next"
 
@@ -58,6 +62,9 @@ SIGFOX_CLOUD_CALLBACK_JSON_KEY_DL_SUCCESS = "dl_success"
 SIGFOX_CLOUD_CALLBACK_JSON_KEY_DL_STATUS = "dl_status"
 SIGFOX_CLOUD_CALLBACK_JSON_TRUE = "true"
 SIGFOX_CLOUD_CALLBACK_JSON_FALSE = "false"
+
+SIGFOX_CLOUD_CALLBACK_GEOLOCATION_LEVEL_NETWORK = 1
+SIGFOX_CLOUD_CALLBACK_GEOLOCATION_LEVEL_WIFI = 2
 
 SIGFOX_CLOUD_CALLBACK_GEOLOCATION_SOURCE_GPS = 1
 SIGFOX_CLOUD_CALLBACK_GEOLOCATION_SOURCE_NETWORK = 2
@@ -94,9 +101,8 @@ class SigfoxCloud:
             return
         return
     
-    def api_request(self, request: str, parameters: str, delay_seconds: int) -> [str, str]:
+    def api_request(self, request: str, parameters: str, delay_seconds: int) -> str:
         # Local variables.
-        status = False
         response = None
         # Optional delay for rate limiting.
         if (delay_seconds > 0):
@@ -104,11 +110,9 @@ class SigfoxCloud:
         # Perform request.
         try:
             response = requests.get((SIGFOX_CLOUD_API_ADDRESS + request), auth=(self._user, self._password), params=parameters, timeout=SIGFOX_CLOUD_API_REQUEST_TIMEOUT_SECONDS)
-            if (response.status_code == 200):
-                status = True
         except:
-            return [status, response]
-        return [status, response]
+            return response
+        return response
     
 # Init shared class instance.
 sigfox_cloud = SigfoxCloud()

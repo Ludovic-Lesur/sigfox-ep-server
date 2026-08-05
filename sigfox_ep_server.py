@@ -219,7 +219,50 @@ class SigfoxEpServer:
                     self._database.write_record(record)
             return dl_payload
         return dl_payload
-    
+
+    def _is_atlas_wifi_message(self, sigfox_ep_id:str, ul_payload: str) -> bool:
+        # Local variables.
+        atlas_wifi_message = False
+        log_message = "invalid UL payload size"
+        try:
+            # Check UL payload size.
+            if ((len(ul_payload) // 2) == SIGFOX_UL_PAYLOAD_SIZE_ATLAS_WIFI):
+                log_message = "invalid I/G bit"
+                # Check I/G bit of the first byte.
+                if (((int(ul_payload[0:2], 16)) & 0x01) == 0):
+                    log_message = "no WiFi option in contract"
+                    # Check if the device has an Atlas WiFi contract.
+                    # Get device informations.
+                    response = sigfox_cloud.api_request(SIGFOX_CLOUD_API_REQUEST_DEVICES, { SIGFOX_CLOUD_API_JSON_KEY_ID: sigfox_ep_id }, 0)
+                    if ((response == None) or (response.status_code != 200)):
+                        raise Exception
+                    device_info = json.loads(response.text)
+                    # Get contract ID.
+                    contract_id = (device_info.get(SIGFOX_CLOUD_API_JSON_KEY_DATA)[0]).get(SIGFOX_CLOUD_API_JSON_KEY_CONTRACT).get(SIGFOX_CLOUD_API_JSON_KEY_ID)
+                    # Get contract informations.
+                    response = sigfox_cloud.api_request((SIGFOX_CLOUD_API_REQUEST_CONTRACT_INFOS + str(contract_id)), None, 0)
+                    if ((response == None) or (response.status_code != 200)):
+                        raise Exception
+                    contract_info = json.loads(response.text)
+                    # Get contract options.
+                    contract_options = contract_info.get(SIGFOX_CLOUD_API_JSON_KEY_OPTIONS)
+                    # Get geolocation level.
+                    geolocation_level = SIGFOX_CLOUD_CALLBACK_GEOLOCATION_LEVEL_NETWORK
+                    for idx in range(len(contract_options)):
+                        option = contract_options[idx]
+                        if (option.get(SIGFOX_CLOUD_API_JSON_KEY_ID) == SIGFOX_CLOUD_API_JSON_KEY_GEOLOCATION):
+                            geolocation_level = option.get(SIGFOX_CLOUD_API_JSON_KEY_PARAMETERS).get(SIGFOX_CLOUD_API_JSON_KEY_LEVEL)
+                            Log.debug_print("[SIGFOX EP SERVER] * API REQUEST: Geolocation level = " + str(geolocation_level) + " (index " + str(idx) + ")")
+                            break
+                    # Check geolocation level.
+                    if (geolocation_level == SIGFOX_CLOUD_CALLBACK_GEOLOCATION_LEVEL_WIFI):
+                        log_message = "all checks passed"
+                        atlas_wifi_message = True
+        except:
+            return atlas_wifi_message
+        Log.debug_print("[SIGFOX EP SERVER] * Atlas WiFi message = " + str(atlas_wifi_message) + " (" + log_message + ")")
+        return atlas_wifi_message
+
     def execute_callback(self, json_in: str) -> None:
         # Local variables.
         timestamp_now = int(time.time())
@@ -313,7 +356,6 @@ class SigfoxEpServer:
                 # Parse fields.
                 message_counter = int(json_in[SIGFOX_CLOUD_CALLBACK_JSON_KEY_MESSAGE_COUNTER])
                 ul_payload = json_in[SIGFOX_CLOUD_CALLBACK_JSON_KEY_UL_PAYLOAD].upper()
-                ul_payload_size = (len(ul_payload) // 2)
                 geolocation = json_in[SIGFOX_CLOUD_CALLBACK_JSON_KEY_GEOLOCATION]
                 latitude = float(geolocation[SIGFOX_CLOUD_CALLBACK_JSON_KEY_GEOLOCATION_LATITUDE])
                 longitude = float(geolocation[SIGFOX_CLOUD_CALLBACK_JSON_KEY_GEOLOCATION_LONGITUDE])
@@ -321,15 +363,6 @@ class SigfoxEpServer:
                 source = int(geolocation[SIGFOX_CLOUD_CALLBACK_JSON_KEY_GEOLOCATION_SOURCE])
                 status = int(geolocation[SIGFOX_CLOUD_CALLBACK_JSON_KEY_GEOLOCATION_STATUS])
                 Log.debug_print("[SIGFOX EP SERVER] * Data advanced callback: timestamp=" + str(timestamp) + " sigfox_ep_id=" + sigfox_ep_id + " ul_payload=" + ul_payload + " latitude=" + str(latitude) + " longitude=" + str(longitude) + " radius=" + str(radius) + " source=" + str(source) + " status=" + str(status))
-                # Determine if the uplink data is an Atlas WiFi payload.
-                is_wifi_payload = True
-                if (ul_payload_size == SIGFOX_UL_PAYLOAD_SIZE_ATLAS_WIFI):
-                    # Check I/G bit of the first byte.
-                    first_byte = int(ul_payload[0:2], 16)
-                    if ((first_byte & 0x01) != 0):
-                        is_wifi_payload = False
-                else:
-                    is_wifi_payload = False
                 # Check status.
                 if ((status == SIGFOX_CLOUD_CALLBACK_GEOLOCATION_STATUS_OK) or (status == SIGFOX_CLOUD_CALLBACK_GEOLOCATION_STATUS_FALLBACK_OF_WIFI)):
                     # GPS location.
@@ -345,7 +378,7 @@ class SigfoxEpServer:
                     elif (source == SIGFOX_CLOUD_CALLBACK_GEOLOCATION_SOURCE_NETWORK):
                         geolocation_source = DATABASE_FIELD_GEOLOCATION_SOURCE_SIGFOX_ATLAS_NATIVE
                         # Set the data type according to the payload type (override the status field which is always set to fallback for WiFi devices).
-                        if (is_wifi_payload == True):
+                        if (self._is_atlas_wifi_message(sigfox_ep_id, ul_payload) == True):
                             data_type = DatabaseFieldDataType.GEOLOCATION_SIGFOX_ATLAS_NATIVE_FALLBACK_OF_WIFI.value
                         else:
                             data_type = DatabaseFieldDataType.GEOLOCATION_SIGFOX_ATLAS_NATIVE.value

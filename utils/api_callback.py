@@ -56,36 +56,36 @@ class ApiCallback:
     def restore_all_data(self, timestamp_start_epoch_ms: int, timestamp_stop_epoch_ms: int) -> None:
         # Get devices list.
         sigfox_ep_id_list = ep.get_sigfox_ep_id_list()
+        # Build parameters.
+        parameters = None
+        if (int(timestamp_start_epoch_ms) != 0) and (int(timestamp_stop_epoch_ms) != 0):
+            # Retrieve messages in specified time range.
+            parameters = {
+                SIGFOX_CLOUD_API_JSON_KEY_START_TIME: timestamp_start_epoch_ms,
+                SIGFOX_CLOUD_API_JSON_KEY_STOP_TIME: timestamp_stop_epoch_ms
+            }
         # Devices loop.
         for sigfox_ep_id in sigfox_ep_id_list:
-            # Build request.
-            messages_list_request = SIGFOX_CLOUD_API_REQUEST_DEVICES + sigfox_ep_id + "/" + SIGFOX_CLOUD_API_REQUEST_MESSAGES
-            messages_list_request_parameters = None
-            # Build parameters.
-            if (int(timestamp_start_epoch_ms) != 0) and (int(timestamp_stop_epoch_ms) != 0):
-                # Retrieve messages in specified time range.
-                messages_list_request_parameters = {
-                    SIGFOX_CLOUD_API_JSON_KEY_START_TIME: timestamp_start_epoch_ms,
-                    SIGFOX_CLOUD_API_JSON_KEY_STOP_TIME: timestamp_stop_epoch_ms
-                }
             print("[API CALLBACK] * Reading all messages of Sigfox EP ID " + sigfox_ep_id)
+            # Build request.
+            request = SIGFOX_CLOUD_API_REQUEST_DEVICES + sigfox_ep_id + "/" + SIGFOX_CLOUD_API_REQUEST_MESSAGES
             # Paging loop.
-            while (str(messages_list_request) != SIGFOX_CLOUD_API_REQUEST_NONE):
+            while (str(request) != SIGFOX_CLOUD_API_REQUEST_NONE):
                 # API request.
-                status, messages_list_request_response = sigfox_cloud.api_request(messages_list_request, messages_list_request_parameters, API_CALLBACK_SIGFOX_CLOUD_API_REQUEST_DELAY_SECONDS)
-                if (status == False):
+                response = sigfox_cloud.api_request(request, parameters, API_CALLBACK_SIGFOX_CLOUD_API_REQUEST_DELAY_SECONDS)
+                if ((response == None) or (response.status_code != 200)):
                     return
                 # Open JSON structure.
-                sigfox_cloud_api_json = json.loads(messages_list_request_response.text)
-                messages_list = sigfox_cloud_api_json.get(SIGFOX_CLOUD_API_JSON_KEY_DATA)
+                messages_list_json = json.loads(response.text)
+                messages_list = messages_list_json.get(SIGFOX_CLOUD_API_JSON_KEY_DATA)
                 # Check if there are messages to process.
                 if (len(messages_list) == 0):
-                    messages_list_request = SIGFOX_CLOUD_API_REQUEST_NONE
+                    request = SIGFOX_CLOUD_API_REQUEST_NONE
                     break
                 else:
                     # Get next page request.
-                    paging = sigfox_cloud_api_json.get(SIGFOX_CLOUD_API_JSON_KEY_PAGING)
-                    messages_list_request = paging.get(SIGFOX_CLOUD_API_JSON_KEY_NEXT_PAGE_REQUEST)
+                    paging = messages_list_json.get(SIGFOX_CLOUD_API_JSON_KEY_PAGING)
+                    request = paging.get(SIGFOX_CLOUD_API_JSON_KEY_NEXT_PAGE_REQUEST)
                 # Send callbacks to server.
                 self._send_sigfox_ep_server_callback(sigfox_ep_id, messages_list)
         return

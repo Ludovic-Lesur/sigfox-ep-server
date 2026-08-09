@@ -147,7 +147,7 @@ class MeteoFox:
                     record.add_field(humidity_percent, METEOFOX_ERROR_VALUE_HUMIDITY, DATABASE_FIELD_HUMIDITY, float(humidity_percent))
                     record.add_field(source_voltage, source_voltage_error_value, DATABASE_FIELD_SOURCE_VOLTAGE, float(source_voltage / source_voltage_divider))
                     record.add_field(storage_voltage_mv, METEOFOX_ERROR_VALUE_STORAGE_VOLTAGE, DATABASE_FIELD_STORAGE_VOLTAGE, float(storage_voltage_mv / 1000.0))
-                    record.add_field(mcu_temperature_one_complement, temperature_error_value, DATABASE_FIELD_MCU_TEMPERATURE, float(Common.one_complement_to_value(mcu_temperature_one_complement, 7)))
+                    record.add_field(mcu_temperature_one_complement, METEOFOX_ERROR_VALUE_MCU_TEMPERATURE, DATABASE_FIELD_MCU_TEMPERATURE, float(Common.one_complement_to_value(mcu_temperature_one_complement, 7)))
                     record.add_field(mcu_voltage_mv, METEOFOX_ERROR_VALUE_MCU_VOLTAGE, DATABASE_FIELD_MCU_VOLTAGE, float(mcu_voltage_mv / 1000.0))
                     record_list.append(copy.copy(record))
                     data_type = DatabaseFieldDataType.PERIODIC_MONITORING.value

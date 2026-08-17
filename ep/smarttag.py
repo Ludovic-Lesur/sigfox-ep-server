@@ -26,15 +26,15 @@ SMARTTAG_HEADER_PERIODIC_TEMP_HUM_ACC = 0x06
 SMARTTAG_HEADER_EVENT_ON = 0x04
 SMARTTAG_HEADER_EVENT_OFF = 0x02
 SMARTTAG_HEADER_EVENT_BUTTON = 0x01
-SMARTTAG_HEADER_EVENT_LUX = 0x03
+SMARTTAG_HEADER_EVENT_FUSE = 0x03
 SMARTTAG_HEADER_EVENT_ACC = 0x05
 
 SMARTTAG_ERROR_VALUE_LPI = 0xFF
-SMARTTAG_ERROR_VALUE_OPEN_MESSAGE_CNT = 0xFF
+SMARTTAG_ERROR_VALUE_FUSE_EVENT_PERIOD_COUNTER = 0xFF
+SMARTTAG_ERROR_VALUE_FUSE_FLAG = 0xFF
 SMARTTAG_ERROR_VALUE_TEMPERATURE = 0xFF
 SMARTTAG_ERROR_VALUE_HUMIDITY = 0xFF
 SMARTTAG_ERROR_VALUE_LUX = 0xFF
-SMARTTAG_ERROR_VALUE_LUX_FLAG = 0xFF
 SMARTTAG_ERROR_VALUE_EVENT_COUNT = 0xFF
 SMARTTAG_ERROR_VALUE_AXIS_FLAG = 0xFF
 SMARTTAG_ERROR_VALUE_INTERRUPT_COUNT = 0xFF
@@ -77,11 +77,11 @@ class SmartTag:
         if (len(ul_payload) == (2 * SMARTTAG_UL_PAYLOAD_SIZE)):
             # Init data.
             lpi = SMARTTAG_ERROR_VALUE_LPI
-            open_message_cnt = SMARTTAG_ERROR_VALUE_OPEN_MESSAGE_CNT
+            fuse_event_period_counter = SMARTTAG_ERROR_VALUE_FUSE_EVENT_PERIOD_COUNTER
             temperature = SMARTTAG_ERROR_VALUE_TEMPERATURE
             humidity = SMARTTAG_ERROR_VALUE_HUMIDITY
             lux = SMARTTAG_ERROR_VALUE_LUX
-            lux_flag = SMARTTAG_ERROR_VALUE_LUX_FLAG
+            fuse_flag = SMARTTAG_ERROR_VALUE_FUSE_FLAG
             high_threshold_event_count = SMARTTAG_ERROR_VALUE_EVENT_COUNT
             high_threshold_interrupt_count = SMARTTAG_ERROR_VALUE_INTERRUPT_COUNT
             high_threshold_x_flag = SMARTTAG_ERROR_VALUE_AXIS_FLAG
@@ -100,7 +100,7 @@ class SmartTag:
                 data_type = DatabaseFieldDataType.PERIODIC_MONITORING.value
                 # Parse fields.
                 lpi = ((int(ul_payload[0:2], 16) >> 3) & 0x01)
-                open_message_cnt = ((int(ul_payload[0:2], 16) >> 0) & 0x07)
+                fuse_event_period_counter = ((int(ul_payload[0:2], 16) >> 0) & 0x07)
                 temperature = int(ul_payload[2:4], 16)
                 humidity = int(ul_payload[4:6], 16)
                 lux = int(ul_payload[6:8], 16)
@@ -110,26 +110,26 @@ class SmartTag:
                 data_type = DatabaseFieldDataType.PERIODIC_MONITORING.value
                 # Parse fields.
                 lpi = ((int(ul_payload[0:2], 16) >> 3) & 0x01)
-                open_message_cnt = ((int(ul_payload[0:2], 16) >> 0) & 0x07)
+                fuse_event_period_counter = ((int(ul_payload[0:2], 16) >> 0) & 0x07)
                 temperature = int(ul_payload[2:4], 16)
                 humidity = int(ul_payload[4:6], 16)
                 motion_history = int(ul_payload[6:8], 16)
                 high_threshold_event_count = ((motion_history >> 4) & 0x0F)
                 low_threshold_event_count = ((motion_history >> 0) & 0x0F)
             # Start, stop; button and light events.
-            elif ((header == SMARTTAG_HEADER_EVENT_ON) or (header == SMARTTAG_HEADER_EVENT_OFF) or (header == SMARTTAG_HEADER_EVENT_BUTTON) or (header == SMARTTAG_HEADER_EVENT_LUX)):
+            elif ((header == SMARTTAG_HEADER_EVENT_ON) or (header == SMARTTAG_HEADER_EVENT_OFF) or (header == SMARTTAG_HEADER_EVENT_BUTTON) or (header == SMARTTAG_HEADER_EVENT_FUSE)):
                 # Set message type.
                 if (header == SMARTTAG_HEADER_EVENT_ON):
                     data_type = DatabaseFieldDataType.EVENT_STARTUP.value
                 elif (header == SMARTTAG_HEADER_EVENT_OFF):
                     data_type = DatabaseFieldDataType.EVENT_SHUTDOWN.value
                 elif (header == SMARTTAG_HEADER_EVENT_BUTTON):
-                    data_type = DatabaseFieldDataType.EVENT_BUTTON_PRESSED.value
+                    data_type = DatabaseFieldDataType.EVENT_BUTTON.value
                 else:
-                    data_type = DatabaseFieldDataType.EVENT_LIGHT_THRESHOLD.value
+                    data_type = DatabaseFieldDataType.EVENT_FUSE.value
                 # Parse fields.
                 lpi = ((int(ul_payload[0:2], 16) >> 3) & 0x01)
-                open_message_cnt = ((int(ul_payload[0:2], 16) >> 0) & 0x07)
+                fuse_event_period_counter = ((int(ul_payload[0:2], 16) >> 0) & 0x07)
                 temperature = int(ul_payload[2:4], 16)
                 humidity = int(ul_payload[4:6], 16)
                 lux = int(ul_payload[6:8], 16)
@@ -137,7 +137,7 @@ class SmartTag:
             elif (header == SMARTTAG_HEADER_EVENT_ACC):
                 # Parse fields.
                 lpi = ((int(ul_payload[0:2], 16) >> 3) & 0x01)
-                lux_flag = ((int(ul_payload[0:2], 16) >> 2) & 0x01)
+                fuse_flag = ((int(ul_payload[0:2], 16) >> 2) & 0x01)
                 temperature = int(ul_payload[2:4], 16)
                 high_threshold_event = int(ul_payload[4:6], 16)
                 high_threshold_interrupt_count = ((high_threshold_event >> 0) & 0x1F)
@@ -163,7 +163,7 @@ class SmartTag:
                 DATABASE_FIELD_LAST_DATA_TIME: timestamp
             }
             record.add_field(lpi, SMARTTAG_ERROR_VALUE_LPI, DATABASE_FIELD_STORAGE_VOLTAGE_LOW_FLAG, lpi)
-            record.add_field(open_message_cnt, SMARTTAG_ERROR_VALUE_OPEN_MESSAGE_CNT, DATABASE_FIELD_OPENING_DETECTION_MESSAGE_COUNTER, open_message_cnt)
+            record.add_field(fuse_event_period_counter, SMARTTAG_ERROR_VALUE_FUSE_EVENT_PERIOD_COUNTER, DATABASE_FIELD_FUSE_EVENT_PERIOD_COUNTER, fuse_event_period_counter)
             record_list.append(copy.copy(record))
             # Create sensor record.
             record.measurement = DATABASE_MEASUREMENT_SENSOR
@@ -173,7 +173,7 @@ class SmartTag:
             record.add_field(temperature, SMARTTAG_ERROR_VALUE_TEMPERATURE, DATABASE_FIELD_TEMPERATURE, float((temperature / 2.0) - 20.0))
             record.add_field(humidity, SMARTTAG_ERROR_VALUE_HUMIDITY, DATABASE_FIELD_HUMIDITY, float(humidity / 2.0))
             record.add_field(lux, SMARTTAG_ERROR_VALUE_LUX, DATABASE_FIELD_LIGHT, float(lux))
-            record.add_field(lux_flag, SMARTTAG_ERROR_VALUE_LUX_FLAG, DATABASE_FIELD_LIGHT_THRESHOLD_FLAG, lux_flag)
+            record.add_field(fuse_flag, SMARTTAG_ERROR_VALUE_FUSE_FLAG, DATABASE_FIELD_FUSE_FLAG, fuse_flag)
             record.add_field(high_threshold_event_count, SMARTTAG_ERROR_VALUE_EVENT_COUNT, DATABASE_FIELD_ACCELEROMETER_HIGH_THRESHOLD_EVENT_COUNT, high_threshold_event_count)
             record.add_field(high_threshold_interrupt_count, SMARTTAG_ERROR_VALUE_INTERRUPT_COUNT, DATABASE_FIELD_ACCELEROMETER_HIGH_THRESHOLD_INTERRUPT_COUNT, high_threshold_interrupt_count)
             record.add_field(high_threshold_x_flag, SMARTTAG_ERROR_VALUE_AXIS_FLAG, DATABASE_FIELD_ACCELEROMETER_HIGH_THRESHOLD_X_FLAG, high_threshold_x_flag)

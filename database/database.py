@@ -44,6 +44,7 @@ DATABASE_FIELD_ERROR = "error"
 DATABASE_FIELD_LAST_STARTUP_TIME = "last_startup_time"
 DATABASE_FIELD_LAST_SHUTDOWN_TIME = "last_shutdown_time"
 DATABASE_FIELD_LAST_DATA_TIME = "last_data_time"
+DATABASE_FIELD_FUSE_FLAG = "fuse_flag"
 DATABASE_FIELD_DATA_TYPE = "data_type"
 
 DATABASE_FIELD_DATA_TYPE_UNKNOWN = 0
@@ -73,8 +74,8 @@ class DatabaseFieldDataType(Enum):
     EVENT_SHUTDOWN = auto()                                             # 102
     EVENT_ERROR_STACK = auto()                                          # 103
     EVENT_ACTION_LOG = auto()                                           # 104
-    EVENT_BUTTON_PRESSED = auto()                                       # 105
-    EVENT_LIGHT_THRESHOLD = auto()                                      # 106
+    EVENT_BUTTON = auto()                                               # 105
+    EVENT_FUSE = auto()                                                 # 106
     EVENT_ACCELEROMETER_THRESHOLD = auto()                              # 107
     EVENT_ACCELEROMETER_START = auto()                                  # 108
     EVENT_ACCELEROMETER_STOP = auto()                                   # 109
@@ -200,7 +201,6 @@ DATABASE_FIELD_AIR_QUALITY_ACQUISITION_STATUS = "air_quality_acquisition_status"
 DATABASE_FIELD_AIR_QUALITY_ACQUISITION_TIME = "air_quality_acquisition_time"
 # Light.
 DATABASE_FIELD_LIGHT = "light"
-DATABASE_FIELD_LIGHT_THRESHOLD_FLAG = "light_threshold_flag"
 DATABASE_FIELD_SUNSHINE_LIGHT = "sunshine_light"
 DATABASE_FIELD_SUNSHINE_UV_INDEX = "sunshine_uv_index"
 # Pressure.
@@ -247,7 +247,7 @@ DATABASE_FIELD_WIFI_SCAN_STATUS = "wifi_scan_status"
 DATABASE_FIELD_WIFI_SCAN_TIME = "wifi_scan_time"
 DATABASE_FIELD_WIFI_SCAN_TIMEOUT_TIME = "wifi_scan_timeout_time"
 # Opening detection.
-DATABASE_FIELD_OPENING_DETECTION_MESSAGE_COUNTER = "opening_detection_message_counter"
+DATABASE_FIELD_FUSE_EVENT_PERIOD_COUNTER = "fuse_event_period_counter"
 
 # Tags name.
 DATABASE_TAG_SIGFOX_EP_ID = "sigfox_ep_id"

@@ -44,6 +44,7 @@ DATABASE_FIELD_ERROR = "error"
 DATABASE_FIELD_LAST_STARTUP_TIME = "last_startup_time"
 DATABASE_FIELD_LAST_SHUTDOWN_TIME = "last_shutdown_time"
 DATABASE_FIELD_LAST_DATA_TIME = "last_data_time"
+DATABASE_FIELD_FUSE_EVENT_PERIOD_COUNTER = "fuse_event_period_counter"
 DATABASE_FIELD_FUSE_FLAG = "fuse_flag"
 DATABASE_FIELD_DATA_TYPE = "data_type"
 
@@ -246,8 +247,6 @@ DATABASE_FIELD_GPS_ANTENNA_VOLTAGE = "gps_antenna_voltage"
 DATABASE_FIELD_WIFI_SCAN_STATUS = "wifi_scan_status"
 DATABASE_FIELD_WIFI_SCAN_TIME = "wifi_scan_time"
 DATABASE_FIELD_WIFI_SCAN_TIMEOUT_TIME = "wifi_scan_timeout_time"
-# Opening detection.
-DATABASE_FIELD_FUSE_EVENT_PERIOD_COUNTER = "fuse_event_period_counter"
 
 # Tags name.
 DATABASE_TAG_SIGFOX_EP_ID = "sigfox_ep_id"

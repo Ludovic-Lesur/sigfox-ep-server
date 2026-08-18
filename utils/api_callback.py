@@ -105,6 +105,8 @@ print("")
 # Read timestamps
 timestamp_start_epoch_ms = input("Retrieve data from (EPOCH ms) = ")
 timestamp_stop_epoch_ms = input("Retrieve data to (EPOCH ms) = ")
+if (timestamp_stop_epoch_ms == "now"):
+    timestamp_stop_epoch_ms = str(int(time.time() * 1000))
 print("")
 
 api_callback = ApiCallback(sigfox_ep_server_address)

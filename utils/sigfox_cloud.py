@@ -109,7 +109,10 @@ class SigfoxCloud:
             time.sleep(delay_seconds)
         # Perform request.
         try:
-            response = requests.get((SIGFOX_CLOUD_API_ADDRESS + request), auth=(self._user, self._password), params=parameters, timeout=SIGFOX_CLOUD_API_REQUEST_TIMEOUT_SECONDS)
+            # Add the cloud address if required.
+            if (SIGFOX_CLOUD_API_ADDRESS not in request):
+                request = (SIGFOX_CLOUD_API_ADDRESS + request)
+            response = requests.get(request, auth=(self._user, self._password), params=parameters, timeout=SIGFOX_CLOUD_API_REQUEST_TIMEOUT_SECONDS)
         except:
             return response
         return response

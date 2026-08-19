@@ -99,8 +99,8 @@ class MeteoFox:
         # Other frames format depends on software version.
         else:
             # Read software version.
-            sw_version_major_query = database.read_field(where_clause, DATABASE_METEOFOX, DATABASE_MEASUREMENT_METADATA, DATABASE_FIELD_SW_VERSION_MAJOR, False)
-            sw_version_minor_query = database.read_field(where_clause, DATABASE_METEOFOX, DATABASE_MEASUREMENT_METADATA, DATABASE_FIELD_SW_VERSION_MINOR, False)
+            sw_version_major_query = database.read_field(DATABASE_METEOFOX, where_clause, DATABASE_MEASUREMENT_METADATA, DATABASE_FIELD_SW_VERSION_MAJOR, False)
+            sw_version_minor_query = database.read_field(DATABASE_METEOFOX, where_clause, DATABASE_MEASUREMENT_METADATA, DATABASE_FIELD_SW_VERSION_MINOR, False)
             # Check results.
             if ((sw_version_major_query is not None) and (sw_version_minor_query is not None)):
                 sw_version_major = int(sw_version_major_query)
@@ -195,7 +195,7 @@ class MeteoFox:
                     # Compute sea level pressure.
                     if ((pressure_atmospheric_absolute_pa != METEOFOX_ERROR_VALUE_PRESSURE) and (temperature_one_complement != temperature_error_value)):
                         try:
-                            altitude_query = database.read_field(where_clause, DATABASE_METEOFOX, DATABASE_MEASUREMENT_GEOLOCATION, DATABASE_FIELD_GEOLOCATION_ALTITUDE, True)
+                            altitude_query = database.read_field(DATABASE_METEOFOX, where_clause, DATABASE_MEASUREMENT_GEOLOCATION, DATABASE_FIELD_GEOLOCATION_ALTITUDE, True)
                             if (altitude_query):
                                 altitude = int(altitude_query)
                                 Log.debug_print("[METEOFOX] * Computing sea-level pressure at altitude " + str(altitude) + "m")

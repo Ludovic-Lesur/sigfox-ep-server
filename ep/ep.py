@@ -77,7 +77,7 @@ class Ep:
                 raise Exception
         except:
             value = 0
-        return f"{value:08X}"
+        return f"{value:08x}"
     
 # Init shared class instance.
 ep = Ep()

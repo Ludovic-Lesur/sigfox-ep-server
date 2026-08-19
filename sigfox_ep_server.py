@@ -253,7 +253,7 @@ class SigfoxEpServer:
                         DATABASE_FIELD_SIGFOX_DOWNLINK_HASH: self._downlink_hash,
                         DATABASE_FIELD_SIGFOX_DOWNLINK_RECORD_TIME: dl_message_record_time,
                         DATABASE_FIELD_SIGFOX_DOWNLINK_SERVER_TIME: timestamp_now,
-                        DATABASE_FIELD_SIGFOX_DOWNLINK_PAYLOAD: dl_payload.upper(),
+                        DATABASE_FIELD_SIGFOX_DOWNLINK_PAYLOAD: dl_payload.lower(),
                     }
                     record.tags = self._ep_class.get_tags(sigfox_ep_id)
                     record.limited_retention = True
@@ -338,7 +338,7 @@ class SigfoxEpServer:
                     raise Exception
                 # Extract common fields.
                 message_counter = int(json_in[SIGFOX_CLOUD_CALLBACK_JSON_KEY_MESSAGE_COUNTER])
-                ul_payload = json_in[SIGFOX_CLOUD_CALLBACK_JSON_KEY_UL_PAYLOAD].upper()
+                ul_payload = json_in[SIGFOX_CLOUD_CALLBACK_JSON_KEY_UL_PAYLOAD].lower()
                 # Data uplink callback.
                 if (callback_type == SIGFOX_CLOUD_CALLBACK_TYPE_DATA_UPLINK):
                     # Update fields.
@@ -396,7 +396,7 @@ class SigfoxEpServer:
                     raise Exception
                 # Parse fields.
                 message_counter = int(json_in[SIGFOX_CLOUD_CALLBACK_JSON_KEY_MESSAGE_COUNTER])
-                ul_payload = json_in[SIGFOX_CLOUD_CALLBACK_JSON_KEY_UL_PAYLOAD].upper()
+                ul_payload = json_in[SIGFOX_CLOUD_CALLBACK_JSON_KEY_UL_PAYLOAD].lower()
                 geolocation = json_in[SIGFOX_CLOUD_CALLBACK_JSON_KEY_GEOLOCATION]
                 latitude = float(geolocation[SIGFOX_CLOUD_CALLBACK_JSON_KEY_GEOLOCATION_LATITUDE])
                 longitude = float(geolocation[SIGFOX_CLOUD_CALLBACK_JSON_KEY_GEOLOCATION_LONGITUDE])
@@ -466,7 +466,7 @@ class SigfoxEpServer:
                     http_return_code = 424
                     raise Exception
                 # Parse fields.
-                dl_payload = json_in[SIGFOX_CLOUD_CALLBACK_JSON_KEY_DL_PAYLOAD].upper()
+                dl_payload = json_in[SIGFOX_CLOUD_CALLBACK_JSON_KEY_DL_PAYLOAD].lower()
                 dl_success = json_in[SIGFOX_CLOUD_CALLBACK_JSON_KEY_DL_SUCCESS]
                 dl_status = json_in[SIGFOX_CLOUD_CALLBACK_JSON_KEY_DL_STATUS]
                 Log.debug_print("[SIGFOX EP SERVER] * Service acknowledge callback: timestamp=" + str(timestamp) + " sigfox_ep_id=" + sigfox_ep_id + " dl_payload=" + dl_payload + " dl_success=" + dl_success + " dl_status=" + dl_status)

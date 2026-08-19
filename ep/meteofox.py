@@ -267,5 +267,5 @@ class MeteoFox:
                 payload_bytes[6] = dl_timestamp.minute
                 payload_bytes[7] = dl_timestamp.second
             # Convert to string.
-            dl_payload = payload_bytes.hex().upper()
+            dl_payload = payload_bytes.hex().lower()
         return dl_payload

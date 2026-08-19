@@ -8,10 +8,11 @@
 from database.database import *
 import json
 from typing import Dict, List, Optional, Type
+from utils.configuration import *
 
 ### EP LIST local macros ###
 
-EP_LIST_FILE_NAME = "/home/ludo/git/sigfox-ep-server/sigfox_ep_list.json"
+EP_LIST_FILE_NAME = os.path.join(SIGFOX_EP_SERVER_PATH, "sigfox_ep_list.json")
 
 ### EP LIST classes ###
 

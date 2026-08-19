@@ -84,10 +84,31 @@ git clone https://github.com/Ludovic-Lesur/sigfox-ep-server.git
 cd sigfox-ep-server
 ```
 
+### Configuration file
+
+Create the following `sigfox_ep_server.json` configuration file in the `sigfox-ep-server` root folder:
+
+```bash
+{
+    "path": <sigfox-ep-server path>,
+    "http_port": <port>,
+    "api_key": <api_key>,
+    "sigfox_cloud": {
+        "user": <user>,
+        "password": <password>
+    }
+}
+```
+
 ### Service file
 
 ```bash
 sudo cp sigfox_ep_server.service /lib/systemd/system
+```
+
+Edit the copied service file by replacing the `<user>` and `<absolute_path>` fields.
+
+```bash
 sudo systemctl daemon-reload
 sudo service sigfox_ep_server start
 ```
@@ -107,7 +128,7 @@ sudo service sigfox_ep_server start
 
 ```bash
 cd git/sigfox_ep_server
-sudo scp -P <port> sigfox_ep_list.json ludo@<server>:/home/ludo/git/sigfox-ep-server
+sudo scp -P <port> sigfox_ep_list.json <user>@<server>:<sigfox-ep-server path>
 ```
 
 ## API
@@ -118,7 +139,7 @@ All requests must include the following header:
 
 | Header | Value |
 |---|---|
-| `X-API-Key` | API key defined in the local `sigfox_ep_server_api_key.json` file |
+| `X-API-Key` | API key defined in the `sigfox_ep_server.json` configuration file |
 
 ### Read the last data of a device
 

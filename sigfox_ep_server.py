@@ -30,7 +30,7 @@ from utils.sigfox_cloud import *
 
 SIGFOX_UL_PAYLOAD_SIZE_ATLAS_WIFI = 12
 
-SIGFOX_DOWNLINK_MESSAGES_FILE_NAME = "/home/ludo/git/sigfox-ep-server/sigfox_downlink_messages.json"
+SIGFOX_DOWNLINK_MESSAGES_FILE_NAME = os.path.join(SIGFOX_EP_SERVER_PATH, "sigfox_downlink_messages.json")
 SIGFOX_DOWNLINK_MESSAGES_HEADER = "downlink_messages_list"
 SIGFOX_DOWNLINK_MESSAGES_HEADER_RECORD_TIME = "record_time"
 SIGFOX_DOWNLINK_MESSAGES_HEADER_EP_ID = "ep_id"
@@ -41,7 +41,6 @@ SIGFOX_DL_PAYLOAD_SIZE_BYTES = 8
 
 SIGFOX_EP_SERVER_API_RATE_LIMIT_REQUESTS = 10
 SIGFOX_EP_SERVER_API_RATE_LIMIT_WINDOW_SECONDS = 60
-SIGFOX_EP_SERVER_API_KEY_FILE_NAME = "/home/ludo/git/sigfox-ep-server/sigfox_ep_server_api_key.json"
 SIGFOX_EP_SERVER_API_KEY_JSON_KEY = "api_key"
 SIGFOX_EP_SERVER_API_KEY_EP = "ep"
 SIGFOX_EP_SERVER_API_KEY_LATEST = "latest"
@@ -86,13 +85,11 @@ class SigfoxEpServer:
         self._downlink_hash = 0
         self._ep_class = None
         self._ep_database = None
-        self._api_key = None
+        self._api_key = SIGFOX_EP_SERVER_API_KEY
         # Update Git version in database.
         self._update_git_version()
         # Init downlink messages file.
         self._init_downlink_messages_file()
-        # Load API key.
-        self._load_api_key()
         
     def _update_git_version(self) -> None:
         # Local variables.
@@ -155,20 +152,6 @@ class SigfoxEpServer:
             downlink_messages_file = open(SIGFOX_DOWNLINK_MESSAGES_FILE_NAME, "w+")
             json.dump(downlink_messages_json, downlink_messages_file, indent = 4)
             downlink_messages_file.close()
-            
-    def _load_api_key(self) -> None:
-        # Check if API key file exists.
-        Log.debug_print("")
-        try:
-            api_key_file = open(SIGFOX_EP_SERVER_API_KEY_FILE_NAME, "r")
-            api_key_json = json.load(api_key_file)
-            api_key_file.close()
-            if SIGFOX_EP_SERVER_API_KEY_JSON_KEY not in api_key_json:
-                raise Exception
-            self._api_key = api_key_json[SIGFOX_EP_SERVER_API_KEY_JSON_KEY]
-            Log.debug_print("[SIGFOX EP SERVER] * API key loaded successfully")
-        except:
-            Log.debug_print("[SIGFOX EP SERVER] * WARNING: API key file not found or invalid, REST API disabled")
 
     def _set_ep_class_and_database(self, sigfox_ep_id: str) -> None:
         # ATXFox.

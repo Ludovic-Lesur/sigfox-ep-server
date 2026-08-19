@@ -8,12 +8,9 @@
 import json
 import requests
 import time
+from utils.configuration import *
 
 ### SIGFOX CLOUD MACROS ###
-
-SIGFOX_CLOUD_CREDENTIALS_FILE_NAME = "/home/ludo/git/sigfox-ep-server/sigfox_cloud_credentials.json"
-SIGFOX_CLOUD_CREDENTIALS_JSON_KEY_USER = "user"
-SIGFOX_CLOUD_CREDENTIALS_JSON_KEY_PASSWORD = "password"
 
 SIGFOX_CLOUD_API_REQUEST_TIMEOUT_SECONDS = 10
 
@@ -83,23 +80,8 @@ class SigfoxCloud:
     
     def __init__(self) -> None:
         # Init context.
-        self._user = None
-        self._password = None
-        # Open credentials file.
-        try:
-            # Open file.
-            credentials_file = open(SIGFOX_CLOUD_CREDENTIALS_FILE_NAME, "r")
-            credentials_json = json.load(credentials_file)
-            credentials_file.close()
-            # Check mandatory fields.
-            if ((SIGFOX_CLOUD_CREDENTIALS_JSON_KEY_USER not in credentials_json) or (SIGFOX_CLOUD_CREDENTIALS_JSON_KEY_PASSWORD not in credentials_json)):
-                raise Exception
-            # Update credentials.
-            self._user = credentials_json[SIGFOX_CLOUD_CREDENTIALS_JSON_KEY_USER]
-            self._password = credentials_json[SIGFOX_CLOUD_CREDENTIALS_JSON_KEY_PASSWORD]
-        except:
-            return
-        return
+        self._user = SIGFOX_CLOUD_USER
+        self._password = SIGFOX_CLOUD_PASSWORD
     
     def api_request(self, request: str, parameters: str, delay_seconds: int) -> str:
         # Local variables.

@@ -1,12 +1,12 @@
 [Unit]
-Description=Sigfox End-Point Server startup script
+Description=Sigfox End-Point Server service file
 After=multi-user.target
 
 [Service]
 Type=simple
-User=ludo
-WorkingDirectory=/home/ludo/git/sigfox-ep-server
-ExecStart=/usr/bin/python3 /home/ludo/git/sigfox-ep-server/sigfox_ep_server.py
+User=<user>
+WorkingDirectory=<absolute_path>/sigfox-ep-server
+ExecStart=/usr/bin/python3 <absolute_path>/sigfox-ep-server/sigfox_ep_server.py
 Restart=always
 RuntimeMaxSec=3600
 

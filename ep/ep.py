@@ -27,7 +27,6 @@ class Ep:
             sigfox_ep_list_file = open(EP_LIST_FILE_NAME, "r")
             ep_list_json = json.load(sigfox_ep_list_file)
             sigfox_ep_list_file.close()
-            Log.debug_print("[SIGFOX EP SERVER] * Downlink messages file found")
             # Check content.
             if not isinstance(ep_list_json, dict):
                 raise Exception

@@ -88,7 +88,7 @@ cd sigfox-ep-server
 
 Create the following `sigfox_ep_server.json` configuration file in the `sigfox-ep-server` root folder:
 
-```bash
+```json
 {
     "path": <sigfox-ep-server path>,
     "http_port": <port>,

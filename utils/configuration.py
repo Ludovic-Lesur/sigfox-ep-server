@@ -7,6 +7,7 @@
 
 import json
 import os
+from log import *
 
 ### CONFIGURATION local macros ###
 
@@ -40,5 +41,6 @@ try:
     SIGFOX_EP_SERVER_API_KEY = _config_json[SIGFOX_EP_SERVER_CONFIG_JSON_KEY_API_KEY]
     SIGFOX_CLOUD_USER = _config_json[SIGFOX_EP_SERVER_CONFIG_JSON_KEY_SIGFOX_CLOUD][SIGFOX_EP_SERVER_CONFIG_JSON_KEY_USER]
     SIGFOX_CLOUD_PASSWORD = _config_json[SIGFOX_EP_SERVER_CONFIG_JSON_KEY_SIGFOX_CLOUD][SIGFOX_EP_SERVER_CONFIG_JSON_KEY_PASSWORD]
-except:
-    pass
+except Exception as e:
+    Log.debug_print("[SIGFOX EP SERVER] * ERROR: Failed to load configuration file (" + str(e) + ")")
+    exit(1)

@@ -7,6 +7,7 @@
 
 import subprocess
 
+from collections import deque
 from database.database import *
 from ep.atxfox import *
 from ep.common import *
@@ -19,6 +20,9 @@ from ep.smarttag import *
 from ep.trackfox import *
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from log import *
+import time
+import threading
+from urllib.parse import urlparse, parse_qs
 from utils.configuration import *
 from utils.sigfox_cloud import *
 
@@ -35,7 +39,44 @@ SIGFOX_DOWNLINK_MESSAGES_HEADER_PERMANENT = "permanent"
 
 SIGFOX_DL_PAYLOAD_SIZE_BYTES = 8
 
+SIGFOX_EP_SERVER_API_RATE_LIMIT_REQUESTS = 10
+SIGFOX_EP_SERVER_API_RATE_LIMIT_WINDOW_SECONDS = 60
+SIGFOX_EP_SERVER_API_KEY_FILE_NAME = "/home/ludo/git/sigfox-ep-server/sigfox_ep_server_api_key.json"
+SIGFOX_EP_SERVER_API_KEY_JSON_KEY = "api_key"
+SIGFOX_EP_SERVER_API_KEY_EP = "ep"
+SIGFOX_EP_SERVER_API_KEY_LATEST = "latest"
+SIGFOX_EP_SERVER_API_KEY_MEASUREMENT = "measurement"
+SIGFOX_EP_SERVER_API_KEY_FIELD = "field"
+SIGFOX_EP_SERVER_API_KEY_TAGS = "tags"
+SIGFOX_EP_SERVER_API_KEY_TIMESTAMP = "timestamp"
+SIGFOX_EP_SERVER_API_KEY_VALUE = "value"
+
 ### SIGFOX EP SERVER classes ###
+
+class RateLimiter:
+
+    def __init__(self, max_requests: int, window_seconds: int) -> None:
+        self._max_requests = max_requests
+        self._window_seconds = window_seconds
+        self._requests = deque()
+        self._lock = threading.Lock()
+
+    def is_allowed(self) -> bool:
+        now = time.time()
+        with self._lock:
+            while (self._requests and self._requests[0] < (now - self._window_seconds)):
+                self._requests.popleft()
+            if len(self._requests) >= self._max_requests:
+                return False
+            self._requests.append(now)
+            return True
+
+    def retry_after(self) -> int:
+        now = time.time()
+        with self._lock:
+            if not self._requests:
+                return 0
+            return max(0, int(self._window_seconds - (now - self._requests[0])) + 1)
 
 class SigfoxEpServer:
     
@@ -45,10 +86,13 @@ class SigfoxEpServer:
         self._downlink_hash = 0
         self._ep_class = None
         self._ep_database = None
+        self._api_key = None
         # Update Git version in database.
         self._update_git_version()
         # Init downlink messages file.
         self._init_downlink_messages_file()
+        # Load API key.
+        self._load_api_key()
         
     def _update_git_version(self) -> None:
         # Local variables.
@@ -112,6 +156,20 @@ class SigfoxEpServer:
             json.dump(downlink_messages_json, downlink_messages_file, indent = 4)
             downlink_messages_file.close()
             
+    def _load_api_key(self) -> None:
+        # Check if API key file exists.
+        Log.debug_print("")
+        try:
+            api_key_file = open(SIGFOX_EP_SERVER_API_KEY_FILE_NAME, "r")
+            api_key_json = json.load(api_key_file)
+            api_key_file.close()
+            if SIGFOX_EP_SERVER_API_KEY_JSON_KEY not in api_key_json:
+                raise Exception
+            self._api_key = api_key_json[SIGFOX_EP_SERVER_API_KEY_JSON_KEY]
+            Log.debug_print("[SIGFOX EP SERVER] * API key loaded successfully")
+        except:
+            Log.debug_print("[SIGFOX EP SERVER] * WARNING: API key file not found or invalid, REST API disabled")
+
     def _set_ep_class_and_database(self, sigfox_ep_id: str) -> None:
         # ATXFox.
         if (sigfox_ep_id in ATXFOX_SIGFOX_EP_ID_LIST):
@@ -456,7 +514,63 @@ class SigfoxEpServerHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         Log.debug_print("")
         Log.debug_print("[SIGFOX EP SERVER] * GET request received")
-        self.send_response(400)
+        # Check API key.
+        api_key = self.headers.get("X-API-Key")
+        if ((sigfox_ep_server._api_key is None) or (api_key != sigfox_ep_server._api_key)):
+            self.send_response(401)
+            self.end_headers()
+            return
+        # Check rate limiting.
+        if not rate_limiter.is_allowed():
+            self.send_response(429)
+            self.send_header("Retry-After", str(rate_limiter.retry_after()))
+            self.end_headers()
+            return
+        # Parse URL.
+        parsed = urlparse(self.path)
+        parts = parsed.path.strip("/").split("/")
+        params = parse_qs(parsed.query)
+        if ((len(parts) == 3) and (parts[0] == SIGFOX_EP_SERVER_API_KEY_EP) and (parts[2] == SIGFOX_EP_SERVER_API_KEY_LATEST)):
+            ep = parts[1]
+            measurement = params.get(SIGFOX_EP_SERVER_API_KEY_MEASUREMENT, [None])[0]
+            field = params.get(SIGFOX_EP_SERVER_API_KEY_FIELD, [None])[0]
+            # Check if database exists.
+            ep_database = (ep + "_db")
+            if ep_database not in DATABASE_LIST:
+                self.send_response(404)
+                self.end_headers()
+                return
+            # Check mandatory fields.
+            if not measurement or not field:
+                self.send_response(400)
+                self.end_headers()
+                return
+            # Extract tags.
+            reserved_parameters = {SIGFOX_EP_SERVER_API_KEY_MEASUREMENT, SIGFOX_EP_SERVER_API_KEY_FIELD}
+            tag_filter = {
+                k: v[0] for k, v in params.items() if k not in reserved_parameters
+            }
+            # Perform InfluxDB request.
+            where_parts  = [f'{k}=\'{v}\'' for k, v in tag_filter.items()]
+            where_clause = " AND ".join(where_parts)
+            retention_flag = (measurement != DATABASE_MEASUREMENT_METADATA)
+            value, timestamp = sigfox_ep_server._database.read_field(ep_database, where_clause, measurement, field, limited_retention=retention_flag)
+            # Build output JSON.
+            json_out = {
+                SIGFOX_EP_SERVER_API_KEY_EP: ep,
+                SIGFOX_EP_SERVER_API_KEY_TAGS: tag_filter,
+                SIGFOX_EP_SERVER_API_KEY_MEASUREMENT: measurement,
+                SIGFOX_EP_SERVER_API_KEY_FIELD: field,
+                SIGFOX_EP_SERVER_API_KEY_TIMESTAMP: timestamp,
+                SIGFOX_EP_SERVER_API_KEY_VALUE: value
+            }
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps(json_out).encode())
+        else:
+            self.send_response(404)
+            self.end_headers()
 
     def do_HEAD(self):
         Log.debug_print("")
@@ -500,6 +614,7 @@ if __name__ == "__main__":
     Log.debug_print("")
     # Init server.
     sigfox_ep_server = SigfoxEpServer()
+    rate_limiter = RateLimiter(SIGFOX_EP_SERVER_API_RATE_LIMIT_REQUESTS, SIGFOX_EP_SERVER_API_RATE_LIMIT_WINDOW_SECONDS)
     # Start server.
     sigfox_ep_server_handler = HTTPServer(("", SIGFOX_EP_SERVER_HTTP_PORT), SigfoxEpServerHandler)
     sigfox_ep_server_handler.timeout = 10

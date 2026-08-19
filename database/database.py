@@ -282,9 +282,9 @@ DATABASE_JSON_KEY_TIME = "time"
 DATABASE_JSON_KEY_MEASUREMENT = "measurement"
 DATABASE_JSON_KEY_FIELDS = "fields"
 DATABASE_JSON_KEY_TAGS = "tags"
-
-DATABASE_FIELD_NAME = "name"
-DATABASE_FIELD_LAST = "last"
+DATABASE_JSON_KEY_LATEST = "latest"
+DATABASE_JSON_KEY_NAME = "name"
+DATABASE_JSON_KEY_LAST = "last"
 
 ### DATABASE classes ###
 
@@ -359,7 +359,7 @@ class Database:
             retention_policy_infinite_found = False
             # Check if database exists.
             for influxdb_database in influxdb_database_list :
-                if (influxdb_database[DATABASE_FIELD_NAME].find(database) >= 0) :
+                if (influxdb_database[DATABASE_JSON_KEY_NAME].find(database) >= 0) :
                     Log.debug_print("[DATABASE] * " + database + " database found")
                     database_found = True
                     break
@@ -372,10 +372,10 @@ class Database:
             retention_policy_list = list(self._influxdb_client.query(f'SHOW RETENTION POLICIES ON "{database}"').get_points())
             # Check if retention policy exists.
             for rp in retention_policy_list:
-                if (rp.get(DATABASE_FIELD_NAME) == retention_policy_name):
+                if (rp.get(DATABASE_JSON_KEY_NAME) == retention_policy_name):
                     Log.debug_print("[DATABASE] * " + retention_policy_name + " retention policy found")
                     retention_policy_found = True
-                if (rp.get(DATABASE_FIELD_NAME) == DATABASE_RETENTION_POLICY_10_YEARS_NAME):
+                if (rp.get(DATABASE_JSON_KEY_NAME) == DATABASE_RETENTION_POLICY_10_YEARS_NAME):
                     Log.debug_print("[DATABASE] * " + DATABASE_RETENTION_POLICY_10_YEARS_NAME + " retention policy found")
                     retention_policy_infinite_found = True
             # Create or modify database retention policy.
@@ -446,9 +446,10 @@ class Database:
         for record in record_list:
             self.write_record(record)
         
-    def read_field(self, database: str, where_clause: str, measurement: str, field: str, limited_retention: bool) -> Any:
+    def read_field(self, database: str, where_clause: str, measurement: str, field: str, limited_retention: bool) -> tuple:
         # Local variables.
         result = None
+        timestamp = None
         rp = "" if (limited_retention == True) else (DATABASE_RETENTION_POLICY_10_YEARS_NAME + ".")
         # Build query.
         query = "SELECT last(" + field + ") FROM " + rp + measurement + " WHERE " + where_clause
@@ -460,5 +461,6 @@ class Database:
         points = self._influxdb_client.query(query)
         Log.debug_print("[DATABASE] * Result: " + str(points))
         for p in points.get_points():
-            result = p[DATABASE_FIELD_LAST]
-        return result
+            result = p[DATABASE_JSON_KEY_LAST]
+            timestamp = p[DATABASE_JSON_KEY_TIME]
+        return result, timestamp

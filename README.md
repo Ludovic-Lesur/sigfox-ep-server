@@ -1,4 +1,6 @@
-## System update
+## Installation
+
+### System update
 
 ```bash
 sudo apt-get update
@@ -6,9 +8,7 @@ sudo apt-get upgrade
 sudo apt-get autoremove
 ```
 
-## Influx DB
-
-### Installation
+### Influx DB
 
 ```bash
 wget -qO- https://repos.influxdata.com/influxdb.key | sudo apt-key add -
@@ -23,21 +23,22 @@ sudo systemctl start influxdb
 
 Edit the `/etc/influxdb/influxdb.conf` configuration file: in the **HTTP** section, uncomment `enabled = true`, `bind address` and `auth_enabled` lines.
 
-### Data requests
+Examples of data requests:
 
 ```bash
 influx
 USE meteofox_db
-SELECT rainfall FROM weather WHERE sigfox_ep_id='5477'
-INSERT weather,sigfox_ep_id=549D,site=Labege rainfall=0.0 1597831208000000000
-INSERT electrical,sigfox_ep_id=4761,system=Test_bench,node_address=33,\
-       node=LVRM_1,board_id=0 output_current=0.0 1701853317000000000
-INSERT monitoring,sigfox_ep_id=53B5,site=Proto_HW1.0 storage_voltage=2620.0 1597831208000000000
+SELECT rainfall FROM weather WHERE sigfox_ep_id='00005477'
+INSERT weather,sigfox_ep_id=0000549D,site=Labege \
+       rainfall=0.0 1597831208000000000
+INSERT electrical,sigfox_ep_id=00004761,system=Test_bench,node_address=33,\
+       node=LVRM_1,board_id=0 \
+       output_current=0.0 1701853317000000000
+INSERT monitoring,sigfox_ep_id=000053B5,site=Proto_HW1.0 \
+       storage_voltage=2620.0 1597831208000000000
 ```
 
-## Grafana
-
-### Installation
+### Grafana
 
 ```bash
 sudo apt-get install -y software-properties-common
@@ -50,7 +51,7 @@ sudo service grafana-server start
 
 Edit the `/etc/grafana/grafana.ini` configuration file: in the **Server** section, uncomment `protocol = http` and set `http_port=<grafana_port>`.
 
-### Plugins
+Required plugins installation:
 
 ```bash
 sudo grafana-cli plugins install grafana-clock-panel
@@ -58,13 +59,15 @@ sudo grafana-cli plugins install grafana-worldmap-panel
 sudo grafana-cli plugins install fatcloud-windrose-panel
 ```
 
-### Images
+Copy the images to be used in Grafana in the dedicated folder:
 
 ```bash
 sudo cp ./grafana/images/x.png /usr/share/grafana/public/img/
 ```
 
-## Python libraries
+### Server
+
+Install the required Python packages:
 
 ```bash
 sudo apt install python3-pip
@@ -73,14 +76,25 @@ pip3 install HTTPServer
 pip3 install influxdb
 ```
 
-## Service file
+Install the server:
+
+```bash
+cd git
+git clone https://github.com/Ludovic-Lesur/sigfox-ep-server.git
+cd sigfox-ep-server
+```
+
+### Service file
 
 ```bash
 sudo cp sigfox_ep_server.service /lib/systemd/system
 sudo systemctl daemon-reload
+sudo service sigfox_ep_server start
 ```
 
-## Server update
+## Update
+
+### Server
 
 ```bash
 cd git/sigfox_ep_server
@@ -89,9 +103,24 @@ git pull
 sudo service sigfox_ep_server start
 ```
 
-## Devices list update
+### Devices list
 
 ```bash
 cd git/sigfox_ep_server
 sudo scp -P <port> sigfox_ep_list.json ludo@<server>:/home/ludo/git/sigfox-ep-server
 ```
+
+## API
+
+### Read the last data of a device
+
+```bash
+GET /ep/<ep>/latest?<parameters>
+```
+
+| Parameters | Type | Description | Values |
+|---|---|---|---|
+| `<ep>` | string | Group of the device | `atxfox` `dinfox` `homefox` `meteofox` `sensit` `smarttag` `trackfox` |
+| `<tag>` | string | Tag(s) to identify the device | |
+| `measurement` | string | Measurement of the field to read | See [database class](https://github.com/Ludovic-Lesur/sigfox-ep-server/blob/master/database/database.py) |
+| `field` | string | Data field to read | See [database class](https://github.com/Ludovic-Lesur/sigfox-ep-server/blob/master/database/database.py) |

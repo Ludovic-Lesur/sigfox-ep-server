@@ -112,6 +112,14 @@ sudo scp -P <port> sigfox_ep_list.json ludo@<server>:/home/ludo/git/sigfox-ep-se
 
 ## API
 
+### Authentication
+
+All requests must include the following header:
+
+| Header | Value |
+|---|---|
+| `X-API-Key` | API key defined in the local `sigfox_ep_server_api_key.json` file |
+
 ### Read the last data of a device
 
 ```bash

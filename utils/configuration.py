@@ -11,7 +11,7 @@ from log import *
 
 ### CONFIGURATION local macros ###
 
-SIGFOX_EP_SERVER_CONFIG_FILE_NAME = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "sigfox_ep_server.json")
+SIGFOX_EP_SERVER_CONFIG_FILE_NAME = os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), "sigfox_ep_server.json")
 
 SIGFOX_EP_SERVER_CONFIG_JSON_KEY_PATH = "path"
 SIGFOX_EP_SERVER_CONFIG_JSON_KEY_HTTP_PORT = "http_port"

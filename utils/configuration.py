@@ -7,7 +7,7 @@
 
 import json
 import os
-from log import *
+from utils.log import *
 
 ### CONFIGURATION local macros ###
 

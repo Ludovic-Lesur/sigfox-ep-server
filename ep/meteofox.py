@@ -10,7 +10,7 @@ import math
 from database.database import *
 from ep.common import *
 from ep.ep import *
-from log import *
+from utils.log import *
 from utils.sigfox_cloud import *
 from datetime import datetime, timedelta
 

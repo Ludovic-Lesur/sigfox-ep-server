@@ -8,7 +8,7 @@
 from database.database import *
 from ep.common import *
 from ep.ep import *
-from log import *
+from utils.log import *
 
 ### SMARTTAG public macros ###
 

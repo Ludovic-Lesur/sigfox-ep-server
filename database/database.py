@@ -9,7 +9,7 @@ import json
 
 from enum import Enum, auto
 from influxdb import InfluxDBClient
-from log import *
+from utils.log import *
 from typing import List, Dict, Any
 
 ### DATABASE public macros ###

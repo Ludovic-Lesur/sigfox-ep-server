@@ -8,7 +8,7 @@
 import copy
 
 from database.database import *
-from log import *
+from utils.log import *
 
 ### COMMON public macros ###
 

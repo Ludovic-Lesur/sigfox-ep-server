@@ -19,11 +19,12 @@ from ep.sensit import *
 from ep.smarttag import *
 from ep.trackfox import *
 from http.server import BaseHTTPRequestHandler, HTTPServer
-from log import *
+import argparse
 import time
 import threading
 from urllib.parse import urlparse, parse_qs
 from utils.configuration import *
+from utils.log import *
 from utils.sigfox_cloud import *
 
 ### SIGFOX EP SERVER macros ###
@@ -599,7 +600,14 @@ class SigfoxEpServerHandler(BaseHTTPRequestHandler):
 ### SIGFOX EP SERVER main function ###
 
 if __name__ == "__main__":
+    # Parse arguments.
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--debug", action="store_true", default=False, help="Enable debug logs")
+    args = parser.parse_args()
+    if args.debug:
+        Log.enable()
     # Start print.
+    Log.debug_print("")
     Log.debug_print("**************************************************")
     Log.debug_print("------------ Sigfox End-Point Server -------------")
     Log.debug_print("**************************************************")

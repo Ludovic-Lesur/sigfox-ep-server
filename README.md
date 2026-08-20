@@ -4,6 +4,11 @@
 <img src="https://github.com/Ludovic-Lesur/sigfox-ep-server/wiki/images/sigfox-ep-server-architecture.drawio.png"/>
 </p>
 
+Related repositories:
+
+* [sigfox-ep-ul-interface](https://github.com/Ludovic-Lesur/sigfox-ep-ul-interface)
+* [sigfox-ep-dl-interface](https://github.com/Ludovic-Lesur/sigfox-ep-dl-interface)
+
 ## Installation
 
 ### System update
@@ -42,33 +47,6 @@ INSERT electrical,sigfox_ep_id=00004761,system=Test_bench,node_address=33,\
        output_current=0.0 1701853317000000000
 INSERT monitoring,sigfox_ep_id=000053B5,site=Proto_HW1.0 \
        storage_voltage=2620.0 1597831208000000000
-```
-
-### Grafana
-
-```bash
-sudo apt-get install -y software-properties-common
-sudo add-apt-repository "deb https://packages.grafana.com/oss/deb stable main"
-wget -q -O - https://packages.grafana.com/gpg.key | sudo apt-key add -
-sudo apt-get update
-sudo apt-get install grafana
-sudo service grafana-server start
-```
-
-Edit the `/etc/grafana/grafana.ini` configuration file: in the **Server** section, uncomment `protocol = http` and set `http_port=<grafana_port>`.
-
-Required plugins installation:
-
-```bash
-sudo grafana-cli plugins install grafana-clock-panel
-sudo grafana-cli plugins install grafana-worldmap-panel
-sudo grafana-cli plugins install fatcloud-windrose-panel
-```
-
-Copy the images to be used in Grafana in the dedicated folder:
-
-```bash
-sudo cp ./grafana/images/x.png /usr/share/grafana/public/img/
 ```
 
 ### Server

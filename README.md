@@ -1,3 +1,9 @@
+## Architecture
+
+<p align="center">
+<img src="https://github.com/Ludovic-Lesur/sigfox-ep-server/wiki/images/sigfox-ep-server-architecture.drawio.png"/>
+</p>
+
 ## Installation
 
 ### System update

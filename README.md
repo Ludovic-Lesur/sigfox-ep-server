@@ -79,6 +79,7 @@ pip3 install influxdb
 Install the server:
 
 ```bash
+mkdir git
 cd git
 git clone https://github.com/Ludovic-Lesur/sigfox-ep-server.git
 cd sigfox-ep-server
@@ -86,7 +87,7 @@ cd sigfox-ep-server
 
 ### Configuration file
 
-Create the following `sigfox_ep_server.json` configuration file in the `sigfox-ep-server` root folder:
+In the `sigfox-ep-server` root folder, create the `sigfox_ep_server.json` configuration file, according to the following structure:
 
 ```json
 {
@@ -97,6 +98,24 @@ Create the following `sigfox_ep_server.json` configuration file in the `sigfox-e
         "user": <user>,
         "password": <password>
     }
+}
+```
+
+### Devices tree
+
+In the `sigfox-ep-server` root folder, create the `sigfox_ep_list.json` file containing the list of registered devices, according to the following structure:
+
+```json
+{
+    "<ep1>": [
+        { "sigfox_ep_id": "<id1>", "<tag>": "<value1>" },
+        { "sigfox_ep_id": "<id2>", "<tag>": "<value2>" }
+    ],
+    "<ep2>": [
+        { "sigfox_ep_id": "<id3>", "<tag>": "<value3>" },
+        { "sigfox_ep_id": "<id4>", "<tag>": "<value4>" }
+    ],
+    ...
 }
 ```
 
@@ -124,10 +143,10 @@ git pull
 sudo service sigfox_ep_server start
 ```
 
-### Devices list
+### Configuration and devices tree
 
 ```bash
-cd git/sigfox_ep_server
+sudo scp -P <port> sigfox_ep_server.json <user>@<server>:<sigfox-ep-server path>
 sudo scp -P <port> sigfox_ep_list.json <user>@<server>:<sigfox-ep-server path>
 ```
 

@@ -30,15 +30,13 @@ from utils.sigfox_cloud import *
 ### SIGFOX EP SERVER macros ###
 
 SIGFOX_UL_PAYLOAD_SIZE_ATLAS_WIFI = 12
-
-SIGFOX_DOWNLINK_MESSAGES_FILE_NAME = os.path.join(SIGFOX_EP_SERVER_PATH, "sigfox_downlink_messages.json")
-SIGFOX_DOWNLINK_MESSAGES_HEADER = "downlink_messages_list"
-SIGFOX_DOWNLINK_MESSAGES_HEADER_RECORD_TIME = "record_time"
-SIGFOX_DOWNLINK_MESSAGES_HEADER_EP_ID = "ep_id"
-SIGFOX_DOWNLINK_MESSAGES_HEADER_DL_PAYLOAD = "dl_payload"
-SIGFOX_DOWNLINK_MESSAGES_HEADER_PERMANENT = "permanent"
-
 SIGFOX_DL_PAYLOAD_SIZE_BYTES = 8
+
+SIGFOX_EP_DL_MESSAGES_JSON_KEY = "dl_messages_list"
+SIGFOX_EP_DL_MESSAGES_JSON_KEY_RECORD_TIME = "record_time"
+SIGFOX_EP_DL_MESSAGES_JSON_KEY_SIGFOX_EP_ID = "sigfox_ep_id"
+SIGFOX_EP_DL_MESSAGES_JSON_KEY_DL_PAYLOAD = "dl_payload"
+SIGFOX_EP_DL_MESSAGES_JSON_KEY_PERMANENT = "permanent"
 
 SIGFOX_EP_SERVER_API_RATE_LIMIT_REQUESTS = 10
 SIGFOX_EP_SERVER_API_RATE_LIMIT_WINDOW_SECONDS = 60
@@ -86,11 +84,28 @@ class SigfoxEpServer:
         self._ep_class = None
         self._ep_database = None
         self._api_key = SIGFOX_EP_SERVER_API_KEY
+        # Init downlink messages file.
+        self._check_dl_messages_file()
         # Update Git version in database.
         self._update_git_version()
-        # Init downlink messages file.
-        self._init_downlink_messages_file()
-        
+
+    def _check_dl_messages_file(self) -> None:
+        # Check if file already exists.
+        Log.debug_print("")
+        try:
+            # Open file.
+            dl_messages_file = open(SIGFOX_EP_DL_MESSAGES_FILE_PATH, "r")
+            dl_messages_json = json.load(dl_messages_file)
+            dl_messages_file.close()
+            # Check header.
+            if (SIGFOX_EP_DL_MESSAGES_JSON_KEY not in dl_messages_json):
+                raise Exception
+            Log.debug_print("[SIGFOX EP SERVER] * Downlink messages file found")
+        except Exception as e:
+            # Stop server.
+            Log.debug_print("[SIGFOX EP SERVER] * ERROR: Failed to load downlink messages file (" + str(e) + ")")
+            exit(1)
+
     def _update_git_version(self) -> None:
         # Local variables.
         timestamp_now = int(time.time())
@@ -130,28 +145,6 @@ class SigfoxEpServer:
             self._database.write_record(record)
         except:
             return
-        
-    def _init_downlink_messages_file(self) -> None:
-        # Check if file already exists.
-        Log.debug_print("")
-        try:
-            # Open file.
-            downlink_messages_file = open(SIGFOX_DOWNLINK_MESSAGES_FILE_NAME, "r")
-            downlink_messages_json = json.load(downlink_messages_file)
-            downlink_messages_file.close()
-            # Check header.
-            if (SIGFOX_DOWNLINK_MESSAGES_HEADER not in downlink_messages_json):
-                raise Exception
-            Log.debug_print("[SIGFOX EP SERVER] * Downlink messages file found")
-        except:
-            # Create file.
-            Log.debug_print("[SIGFOX EP SERVER] * Creating downlink messages file")
-            downlink_messages_json = {
-                SIGFOX_DOWNLINK_MESSAGES_HEADER: []
-            }
-            downlink_messages_file = open(SIGFOX_DOWNLINK_MESSAGES_FILE_NAME, "w+")
-            json.dump(downlink_messages_json, downlink_messages_file, indent = 4)
-            downlink_messages_file.close()
 
     def _set_ep_class_and_database(self, sigfox_ep_id: str) -> None:
         # ATXFox.
@@ -191,51 +184,51 @@ class SigfoxEpServer:
     def _compute_dl_payload(self, sigfox_ep_id: str):
         # Local variables.
         timestamp_now = int(time.time())
+        record = Record()
         dl_message_found = False
         dl_message_record_time = timestamp_now
-        record = Record()
         # Initialize with default payload if there is any.
         dl_payload = self._ep_class.get_default_dl_payload(sigfox_ep_id)
         # Open downlink messages file.
         try:
             # Load JSON data.
-            downlink_messages_file = open(SIGFOX_DOWNLINK_MESSAGES_FILE_NAME, "r")
-            downlink_messages_json = json.load(downlink_messages_file)
-            downlink_messages_file.close()
+            dl_messages_file = open(SIGFOX_EP_DL_MESSAGES_FILE_PATH, "r")
+            dl_messages_json = json.load(dl_messages_file)
+            dl_messages_file.close()
             # Check header.
-            if (SIGFOX_DOWNLINK_MESSAGES_HEADER not in downlink_messages_json):
+            if (SIGFOX_EP_DL_MESSAGES_JSON_KEY not in dl_messages_json):
                 Log.debug_print("[SIGFOX EP SERVER] * ERROR: downlink messages file header not found")
                 raise Exception
             # Messages loop (since the JSON file is written in chronological order, the oldest element is the first one during reading).
-            downlink_messages = downlink_messages_json[SIGFOX_DOWNLINK_MESSAGES_HEADER]
-            for dl_message_idx, dl_message in enumerate(downlink_messages):
+            dl_messages = dl_messages_json[SIGFOX_EP_DL_MESSAGES_JSON_KEY]
+            for dl_message_idx, dl_message in enumerate(dl_messages):
                 # Check fields.
-                if ((SIGFOX_DOWNLINK_MESSAGES_HEADER_RECORD_TIME not in dl_message) or
-                    (SIGFOX_DOWNLINK_MESSAGES_HEADER_EP_ID not in dl_message) or
-                    (SIGFOX_DOWNLINK_MESSAGES_HEADER_DL_PAYLOAD not in dl_message) or
-                    (SIGFOX_DOWNLINK_MESSAGES_HEADER_PERMANENT not in dl_message)):
+                if ((SIGFOX_EP_DL_MESSAGES_JSON_KEY_RECORD_TIME not in dl_message) or
+                    (SIGFOX_EP_DL_MESSAGES_JSON_KEY_SIGFOX_EP_ID not in dl_message) or
+                    (SIGFOX_EP_DL_MESSAGES_JSON_KEY_DL_PAYLOAD not in dl_message) or
+                    (SIGFOX_EP_DL_MESSAGES_JSON_KEY_PERMANENT not in dl_message)):
                     Log.debug_print("[SIGFOX EP SERVER] * ERROR: missing headers in downlink messages file")
                     raise Exception
                 # Compare EP-ID.
-                if (int(dl_message[SIGFOX_DOWNLINK_MESSAGES_HEADER_EP_ID], 16) == int(sigfox_ep_id, 16)):
+                if (int(dl_message[SIGFOX_EP_DL_MESSAGES_JSON_KEY_SIGFOX_EP_ID], 16) == int(sigfox_ep_id, 16)):
                     # Select the oldest non permanent message, or the oldest permanent message.
                     if (dl_message_found == False):
                         # Read record time payload and.
-                        dl_message_record_time = int(dl_message[SIGFOX_DOWNLINK_MESSAGES_HEADER_RECORD_TIME])
-                        dl_payload = dl_message[SIGFOX_DOWNLINK_MESSAGES_HEADER_DL_PAYLOAD]
+                        dl_message_record_time = int(dl_message[SIGFOX_EP_DL_MESSAGES_JSON_KEY_RECORD_TIME])
+                        dl_payload = dl_message[SIGFOX_EP_DL_MESSAGES_JSON_KEY_DL_PAYLOAD]
                         # Update flag.
                         dl_message_found = True
                     # Check mode.
-                    if (dl_message[SIGFOX_DOWNLINK_MESSAGES_HEADER_PERMANENT] == SIGFOX_CLOUD_CALLBACK_JSON_FALSE):
+                    if (dl_message[SIGFOX_EP_DL_MESSAGES_JSON_KEY_PERMANENT] == SIGFOX_CLOUD_CALLBACK_JSON_FALSE):
                         # Force reading.
-                        dl_message_record_time = int(dl_message[SIGFOX_DOWNLINK_MESSAGES_HEADER_RECORD_TIME])
-                        dl_payload = dl_message[SIGFOX_DOWNLINK_MESSAGES_HEADER_DL_PAYLOAD]
+                        dl_message_record_time = int(dl_message[SIGFOX_EP_DL_MESSAGES_JSON_KEY_RECORD_TIME])
+                        dl_payload = dl_message[SIGFOX_EP_DL_MESSAGES_JSON_KEY_DL_PAYLOAD]
                         # Remove message from the file.
-                        del downlink_messages[dl_message_idx]
+                        del dl_messages[dl_message_idx]
                         # Update file.
-                        downlink_messages_file = open(SIGFOX_DOWNLINK_MESSAGES_FILE_NAME, "w+")
-                        json.dump(downlink_messages_json, downlink_messages_file, indent = 4)
-                        downlink_messages_file.close()
+                        dl_messages_file = open(SIGFOX_EP_DL_MESSAGES_FILE_PATH, "w+")
+                        json.dump(dl_messages_json, dl_messages_file, indent = 4)
+                        dl_messages_file.close()
                         break
             raise Exception
         except:

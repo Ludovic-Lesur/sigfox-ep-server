@@ -82,7 +82,6 @@ Install the server:
 mkdir git
 cd git
 git clone https://github.com/Ludovic-Lesur/sigfox-ep-server.git
-cd sigfox-ep-server
 ```
 
 ### Configuration file
@@ -91,13 +90,14 @@ In the `sigfox-ep-server` root folder, create the `sigfox_ep_server.json` config
 
 ```json
 {
-    "path": <sigfox-ep-server path>,
+    "path": "<sigfox-ep-server path>",
     "http_port": <port>,
-    "api_key": <api_key>,
+    "api_key": "<api_key>",
     "sigfox_cloud": {
-        "user": <user>,
-        "password": <password>
-    }
+        "user": "<user>",
+        "password": "<password>"
+    },
+    "dl_messages_file_path": "<sigfox_ep_dl_messages.json path>"
 }
 ```
 
@@ -122,6 +122,7 @@ In the `sigfox-ep-server` root folder, create the `sigfox_ep_list.json` file con
 ### Service file
 
 ```bash
+cd git/sigfox_ep_server
 sudo cp sigfox_ep_server.service /lib/systemd/system
 ```
 

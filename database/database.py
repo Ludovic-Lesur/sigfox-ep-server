@@ -452,7 +452,9 @@ class Database:
         timestamp = None
         rp = "" if (limited_retention == True) else (DATABASE_RETENTION_POLICY_10_YEARS_NAME + ".")
         # Build query.
-        query = "SELECT last(" + field + ") FROM " + rp + measurement + " WHERE " + where_clause
+        query = ("SELECT last(" + field + ") FROM " + rp + measurement)
+        if where_clause:
+            query = (query + " WHERE " + where_clause)
         # Switch database.
         Log.debug_print("[DATABASE] * Switching and reading database " + database)
         self._influxdb_client.switch_database(database)

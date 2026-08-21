@@ -1,13 +1,17 @@
+## Description
+
+This project is a Python server dedicated to Sigfox applications, implementing the following features:
+
+* **Sigfox cloud callbacks** processing: uplink, bidirectional, data advanced and service.
+* Dynamic **radio payloads parsing** for multiple device types.
+* **Data storage** in **InfluxDB**.
+* Dynamic **downlink messages processing** (managed with the [sigfox-ep-dl-interface](https://github.com/Ludovic-Lesur/sigfox-ep-dl-interface))
+
 ## Architecture
 
 <p align="center">
 <img src="https://github.com/Ludovic-Lesur/sigfox-ep-server/wiki/images/sigfox-ep-server-architecture.drawio.png"/>
 </p>
-
-Related repositories:
-
-* [sigfox-ep-ul-interface](https://github.com/Ludovic-Lesur/sigfox-ep-ul-interface)
-* [sigfox-ep-dl-interface](https://github.com/Ludovic-Lesur/sigfox-ep-dl-interface)
 
 ## Installation
 

@@ -526,14 +526,13 @@ class SigfoxEpServerHandler(BaseHTTPRequestHandler):
             tag_filter = {
                 k: v[0] for k, v in params.items() if k not in reserved_parameters
             }
-            # Check if at least one tag has been given.
-            if not tag_filter:
-                self.send_response(400)
-                self.end_headers()
-                return
+            # Check if a tag has been given.
+            if tag_filter:
+                where_parts  = [f'"{k}"=\'{v}\'' for k, v in tag_filter.items()]
+                where_clause = " AND ".join(where_parts)
+            else:
+                where_clause = None
             # Perform InfluxDB request.
-            where_parts  = [f'"{k}"=\'{v}\'' for k, v in tag_filter.items()]
-            where_clause = " AND ".join(where_parts)
             retention_flag = (measurement != DATABASE_MEASUREMENT_METADATA)
             value, timestamp = sigfox_ep_server._database.read_field(ep_database, where_clause, measurement, field, limited_retention=retention_flag)
             # Check if data has been found.

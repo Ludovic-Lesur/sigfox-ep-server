@@ -260,7 +260,7 @@ class MeteoFox:
                             wind_direction_average_raw = ((int(ul_payload[19:23], 16) >> 1) & 0x01FF)
                             wind_direction_average_degrees = float(wind_direction_average_raw)
                             # Rainfall.
-                            rainfall_raw = (int(ul_payload[22:24], 16) & 0x01FF)
+                            rainfall_raw = (int(ul_payload[21:24], 16) & 0x01FF)
                             rainfall_unit = ((rainfall_raw >> 8) & 0x01)
                             rainfall_value = (rainfall_raw & 0x0FF)
                             if (rainfall_unit == 0):

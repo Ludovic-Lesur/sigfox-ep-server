@@ -231,7 +231,7 @@ class MeteoFox:
                         else:
                             sunshine_light = float(sunshine_light_value * 10.0)
                         # Sunshine UV index.
-                        sunshine_uv_index = float(((int(ul_payload[8:11], 16) >> 2) & 0xFF) / 10.0)
+                        sunshine_uv_index = float(((int(ul_payload[8:11], 16) >> 2) & 0x7F) / 10.0)
                         sunshine_uv_index_error_value = METEOFOX_ERROR_VALUE_SUNSHINE_UV_INDEX_V3
                         # Absolute pressure.
                         pressure_atmospheric_absolute_pa = (int(ul_payload[10:14], 16) & 0x3FFF)
@@ -252,9 +252,9 @@ class MeteoFox:
                         # Check UL payload size.
                         if (len(ul_payload) == (2 * ul_payload_size_weather_cm)):
                             # Wind speed.
-                            wind_speed_average_raw = ((int(ul_payload[14:17], 16) >> 1) & 0x3FFF)
+                            wind_speed_average_raw = ((int(ul_payload[14:17], 16) >> 1) & 0x7FF)
                             wind_speed_average_kmh = float(wind_speed_average_raw / 10.0)
-                            wind_speed_peak_raw = ((int(ul_payload[16:20], 16) >> 2) & 0x3FFF)
+                            wind_speed_peak_raw = ((int(ul_payload[16:20], 16) >> 2) & 0x7FF)
                             wind_speed_peak_kmh = float(wind_speed_peak_raw / 10.0)
                             # Wind direction.
                             wind_direction_average_raw = ((int(ul_payload[19:23], 16) >> 1) & 0x01FF)

@@ -87,7 +87,7 @@ class HomeFox:
         elif (len(ul_payload) == (2 * HOMEFOX_UL_PAYLOAD_SIZE_MONITORING)):
             # Parse fields.
             storage_voltage_mv = int(ul_payload[0:4], 16)
-            temperature_tenth_degrees_one_complement = int(ul_payload[5:8], 16)
+            temperature_tenth_degrees_signed_magnitude = int(ul_payload[5:8], 16)
             humidity_percent = int(ul_payload[8:10], 16)
             status = int(ul_payload[10:12], 16)
             # Create sensor record.
@@ -95,7 +95,7 @@ class HomeFox:
             record.fields = {
                 DATABASE_FIELD_LAST_DATA_TIME: timestamp
             }
-            record.add_field(temperature_tenth_degrees_one_complement, HOMEFOX_ERROR_VALUE_TEMPERATURE, DATABASE_FIELD_TEMPERATURE, float(Common.one_complement_to_value(temperature_tenth_degrees_one_complement, 11) / 10.0))
+            record.add_field(temperature_tenth_degrees_signed_magnitude, HOMEFOX_ERROR_VALUE_TEMPERATURE, DATABASE_FIELD_TEMPERATURE, float(Common.signed_magnitude_to_value(temperature_tenth_degrees_signed_magnitude, 11) / 10.0))
             record.add_field(humidity_percent, HOMEFOX_ERROR_VALUE_HUMIDITY, DATABASE_FIELD_HUMIDITY, float(humidity_percent))
             record_list.append(copy.copy(record))
             # Create monitoring record.

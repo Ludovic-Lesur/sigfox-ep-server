@@ -25,10 +25,10 @@ COMMON_UL_PAYLOAD_SIZE_GPS_TIMEOUT = 2
 class Common:
 
     @staticmethod
-    def one_complement_to_value(one_complement_data: int, sign_bit_position: int) -> int:
+    def signed_magnitude_to_value(signed_magnitude_data: int, sign_bit_position: int) -> int:
         mask = ((1 << sign_bit_position) - 1)
-        value = (one_complement_data & mask);
-        if ((one_complement_data & (1 << sign_bit_position)) != 0):
+        value = (signed_magnitude_data & mask);
+        if ((signed_magnitude_data & (1 << sign_bit_position)) != 0):
             value = (-1) * value
         return value
     

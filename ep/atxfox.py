@@ -84,7 +84,7 @@ class ATXFox:
             output_current_range = int(ul_payload[4:6], 16)
             output_current_ua = int(ul_payload[6:12], 16)
             mcu_voltage_mv = int(ul_payload[12:16], 16)
-            mcu_temperature_one_complement = int(ul_payload[16:18], 16)
+            mcu_temperature_signed_magnitude = int(ul_payload[16:18], 16)
             # Create electrical record.
             record.measurement = DATABASE_MEASUREMENT_ELECTRICAL
             record.fields = {
@@ -100,7 +100,7 @@ class ATXFox:
                 DATABASE_FIELD_LAST_DATA_TIME: timestamp
             }
             record.add_field(mcu_voltage_mv, ATXFOX_ERROR_VALUE_MCU_VOLTAGE, DATABASE_FIELD_MCU_VOLTAGE, float(mcu_voltage_mv / 1000.0))
-            record.add_field(mcu_temperature_one_complement, ATXFOX_ERROR_VALUE_MCU_TEMPERATURE, DATABASE_FIELD_MCU_TEMPERATURE, float(Common.one_complement_to_value(mcu_temperature_one_complement, 7)))
+            record.add_field(mcu_temperature_signed_magnitude, ATXFOX_ERROR_VALUE_MCU_TEMPERATURE, DATABASE_FIELD_MCU_TEMPERATURE, float(Common.signed_magnitude_to_value(mcu_temperature_signed_magnitude, 7)))
             record_list.append(copy.copy(record))
             data_type = DatabaseFieldDataType.PERIODIC_MONITORING.value
         else:

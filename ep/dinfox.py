@@ -104,7 +104,7 @@ class DINFox:
         temperature_tenth_degrees = DINFOX_ERROR_VALUE_TEMPERATURE
         # Check error value.
         if (dinfox_temperature != DINFOX_ERROR_VALUE_TEMPERATURE):
-            temperature_tenth_degrees = Common.one_complement_to_value(dinfox_temperature, 11)
+            temperature_tenth_degrees = Common.signed_magnitude_to_value(dinfox_temperature, 11)
         return float(temperature_tenth_degrees / 10.0)
     
     @staticmethod

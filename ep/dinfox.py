@@ -19,7 +19,7 @@ DINFOX_SIGFOX_EP_ID_LIST = ep.get_tags_list(DINFOX_DEVICE_TYPE_NAME, DATABASE_TA
 
 DINFOX_TAG_SYSTEM = ep.get_tags_list(DINFOX_DEVICE_TYPE_NAME, DATABASE_TAG_SYSTEM)
 
-DINFOX_NODE_NAME = [ "LVRM", "BPSM", "DDRM", "UHFM", "GPSM", "SM", "DIM", "RRM", "DMM", "MPMCM", "R4S8CR", "BCM" ]
+DINFOX_NODE_NAME = [ "lvrm", "bpsm", "ddrm", "uhfm", "gpsm", "sm", "dim", "rrm", "dmm", "mpmcm", "r4s8cr", "bcm" ]
 
 DINFOX_BOARD_ID_LVRM = 0
 DINFOX_BOARD_ID_BPSM = 1

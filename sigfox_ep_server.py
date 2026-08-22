@@ -366,20 +366,20 @@ class SigfoxEpServer:
                     record_list.append(copy.copy(record))
                     # Write data base.
                     self._database.write_records(record_list)
-                    # Check bidirectional flag.
-                    if (bidirectional_flag == SIGFOX_CLOUD_CALLBACK_JSON_TRUE):
-                        # Use uplink message counter as downlink message hash.
-                        self._downlink_hash = message_counter
-                        # Compute DL payload.
-                        dl_payload = self._compute_dl_payload(sigfox_ep_id)
-                        # Check result.
-                        if (dl_payload is not None):
-                            # Check size.
-                            if (len(dl_payload) == (2 * SIGFOX_DL_PAYLOAD_SIZE_BYTES)):
-                                # Build response.
-                                http_return_code = 200
-                                json_out = {sigfox_ep_id: {"downlinkData": dl_payload}}
-                                Log.debug_print("[SIGFOX EP SERVER] * Bidirectional request response: dl_payload=" + dl_payload)
+                # Check bidirectional flag.
+                if (bidirectional_flag == SIGFOX_CLOUD_CALLBACK_JSON_TRUE):
+                    # Use uplink message counter as downlink message hash.
+                    self._downlink_hash = message_counter
+                    # Compute DL payload.
+                    dl_payload = self._compute_dl_payload(sigfox_ep_id)
+                    # Check result.
+                    if (dl_payload is not None):
+                        # Check size.
+                        if (len(dl_payload) == (2 * SIGFOX_DL_PAYLOAD_SIZE_BYTES)):
+                            # Build response.
+                            http_return_code = 200
+                            json_out = {sigfox_ep_id: {"downlinkData": dl_payload}}
+                            Log.debug_print("[SIGFOX EP SERVER] * Bidirectional request response: dl_payload=" + dl_payload)
             # Data advanced callback.
             elif (callback_type == SIGFOX_CLOUD_CALLBACK_TYPE_DATA_ADVANCED):
                 # Check mandatory JSON fields.

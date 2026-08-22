@@ -18,8 +18,8 @@ SENSIT_SIGFOX_EP_ID_LIST = ep.get_tags_list(SENSIT_DEVICE_TYPE_NAME, DATABASE_TA
 ### SENSIT local macros ###
 
 SENSIT_TAG_SITE = ep.get_tags_list(SENSIT_DEVICE_TYPE_NAME, DATABASE_TAG_SITE)
-
-SENSIT_VERSION = ep.get_tags_list(SENSIT_DEVICE_TYPE_NAME, DATABASE_TAG_VERSION)
+SENSIT_TAG_LOCATION = ep.get_tags_list(SENSIT_DEVICE_TYPE_NAME, DATABASE_TAG_LOCATION)
+SENSIT_TAG_VERSION = ep.get_tags_list(SENSIT_DEVICE_TYPE_NAME, DATABASE_TAG_VERSION)
 
 SENSIT_UL_PAYLOAD_SIZE_MONITORING = 4
 SENSIT_UL_PAYLOAD_SIZE_CONFIGURATION = 12
@@ -42,11 +42,19 @@ class Sensit:
         return site
     
     @staticmethod
+    def _get_location(sigfox_ep_id: str) -> str:
+        # Default is unknown.
+        location = COMMON_UNKNOWN
+        if (sigfox_ep_id in SENSIT_SIGFOX_EP_ID_LIST):
+            location = SENSIT_TAG_LOCATION[SENSIT_SIGFOX_EP_ID_LIST.index(sigfox_ep_id)]
+        return location
+
+    @staticmethod
     def _get_version(sigfox_ep_id: str) -> str:
         # Default is unknown.
         version = COMMON_UNKNOWN
         if (sigfox_ep_id in SENSIT_SIGFOX_EP_ID_LIST):
-            version = SENSIT_VERSION[SENSIT_SIGFOX_EP_ID_LIST.index(sigfox_ep_id)]
+            version = SENSIT_TAG_VERSION[SENSIT_SIGFOX_EP_ID_LIST.index(sigfox_ep_id)]
         return version
     
     @staticmethod
@@ -54,7 +62,8 @@ class Sensit:
         # Local variables.
         tags = {
             DATABASE_TAG_SIGFOX_EP_ID: sigfox_ep_id,
-            DATABASE_TAG_SITE: Sensit._get_site(sigfox_ep_id)
+            DATABASE_TAG_SITE: Sensit._get_site(sigfox_ep_id),
+            DATABASE_TAG_LOCATION: Sensit._get_location(sigfox_ep_id)
         }
         return tags
     
@@ -80,7 +89,7 @@ class Sensit:
             temperature_degrees = SENSIT_ERROR_VALUE_TEMPERATURE
             humidity_percent = SENSIT_ERROR_VALUE_HUMIDITY
             # Check version.
-            if (sensit_version.find("V3") >= 0):
+            if (sensit_version.find("v3") >= 0):
                 storage_voltage_mv = (((int(ul_payload[0:2], 16) >> 3) & 0x1F) * 50) + 2700
                 mode = ((int(ul_payload[2:4], 16) >> 3) & 0x0F)
             else:
@@ -88,7 +97,7 @@ class Sensit:
                 mode = (int(ul_payload[0:2], 16) & 0x07)
             # Check mode.
             if (mode == 0x01):
-                if (sensit_version.find("V3") >= 0):
+                if (sensit_version.find("v3") >= 0):
                     temperature_degrees = ((((int(ul_payload[2:4], 16) << 8) & 0x300) + (int(ul_payload[4:6], 16))) - 200.0) / (8.0)
                 else:
                     temperature_degrees = ((((int(ul_payload[2:4], 16) << 2) & 0x3C0) + (int(ul_payload[4:6], 16) & 0x3F)) - 200.0) / (8.0)

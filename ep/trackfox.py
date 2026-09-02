@@ -126,9 +126,9 @@ class TrackFox:
     def get_default_dl_payload(sigfox_ep_id: str) -> str:
         # Local variables.
         dl_payload = []
-        # Unused parameter.
-        _ = sigfox_ep_id
-        # No downlink payload defined.
+        # Check ID.
+        if (sigfox_ep_id in TRACKFOX_SIGFOX_EP_ID_LIST):
+            dl_payload = "0000000000000000"
         return dl_payload
 
     @staticmethod

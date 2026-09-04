@@ -22,6 +22,7 @@ TRACKFOX_TAG_ASSET = ep.get_tags_list(TRACKFOX_DEVICE_TYPE_NAME, DATABASE_TAG_AS
 TRACKFOX_UL_PAYLOAD_SIZE_MONITORING = 7
 TRACKFOX_UL_PAYLOAD_SIZE_GEOLOCATION_ERROR = 4
 TRACKFOX_UL_PAYLOAD_SIZE_ERROR_STACK = 10
+TRACKFOX_UL_PAYLOAD_SIZE_CONFIGURATION = 9
 
 TRACKFOX_ERROR_VALUE_TEMPERATURE = 0x7FF
 TRACKFOX_ERROR_VALUE_HUMIDITY = 0xFF
@@ -118,6 +119,39 @@ class TrackFox:
             }
             record_list.append(copy.copy(record))
             data_type = DatabaseFieldDataType.GEOLOCATION_ERROR.value
+        # Configuration frame.
+        elif (len(ul_payload) == (2 * TRACKFOX_UL_PAYLOAD_SIZE_CONFIGURATION)):
+            # Parse fields.
+            monitoring_period_minutes = int(ul_payload[0:2], 16)
+            start_detection_windows = int(ul_payload[2:4], 16)
+            start_detection_threshold_irq = int(ul_payload[4:6], 16)
+            stop_detection_threshold_minutes = int(ul_payload[6:8], 16)
+            geoloc_period_moving_minutes = int(ul_payload[8:10], 16)
+            geoloc_period_stopped_hours = int(ul_payload[10:12], 16)
+            byte6 = int(ul_payload[12:14], 16)
+            adaptative_tx_power_flag = ((byte6 >> 1) & 0x01)
+            adaptative_ul_bit_rate_flag = ((byte6 >> 0) & 0x01)
+            gps_timeout_seconds = int(ul_payload[14:16], 16)
+            byte8 = int(ul_payload[16:18], 16)
+            gps_altitude_stability_filter_moving = ((byte8 >> 4) & 0x0F)
+            gps_altitude_stability_filter_stopped = ((byte8 >> 0) & 0x0F)
+            # Create configuration record.
+            record.measurement = DATABASE_MEASUREMENT_METADATA
+            record.fields = {
+                DATABASE_FIELD_MONITORING_PERIOD: float(monitoring_period_minutes * 60),
+                DATABASE_FIELD_START_DETECTION_WINDOWS: float(start_detection_windows),
+                DATABASE_FIELD_START_DETECTION_THRESHOLD: float(start_detection_threshold_irq),
+                DATABASE_FIELD_STOP_DETECTION_THRESHOLD: float(stop_detection_threshold_minutes * 60),
+                DATABASE_FIELD_GEOLOCATION_PERIOD_MOVING: float(geoloc_period_moving_minutes * 60),
+                DATABASE_FIELD_GEOLOCATION_PERIOD_STOPPED: float(geoloc_period_stopped_hours * 3600),
+                DATABASE_FIELD_ADAPTATIVE_TX_POWER_FLAG: adaptative_tx_power_flag,
+                DATABASE_FIELD_ADAPTATIVE_UL_BIT_RATE_FLAG: adaptative_ul_bit_rate_flag,
+                DATABASE_FIELD_GPS_TIMEOUT: float(gps_timeout_seconds),
+                DATABASE_FIELD_GPS_ALTITUDE_STABILITY_FILTER_MOVING: float(gps_altitude_stability_filter_moving),
+                DATABASE_FIELD_GPS_ALTITUDE_STABILITY_FILTER_STOPPED: float(gps_altitude_stability_filter_stopped)
+            }
+            record_list.append(copy.copy(record))
+            data_type = DatabaseFieldDataType.PERIODIC_CONFIGURATION.value
         else:
             Log.debug_print("[TRACKFOX] * Invalid UL payload")
         return [data_type, record_list]

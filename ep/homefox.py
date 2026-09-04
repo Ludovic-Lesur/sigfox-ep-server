@@ -90,6 +90,14 @@ class HomeFox:
             temperature_tenth_degrees_signed_magnitude = int(ul_payload[5:8], 16)
             humidity_percent = int(ul_payload[8:10], 16)
             status = int(ul_payload[10:12], 16)
+            # Parse status bits.
+            daily_downlink = ((status >> 6) & 0x01)
+            lse_status = ((status >> 5) & 0x01)
+            lsi_status = ((status >> 4) & 0x01)
+            accelerometer_enable = ((status >> 3) & 0x01)
+            air_quality_enable = ((status >> 2) & 0x01)
+            temperature_humidity_ens21x_enable = ((status >> 1) & 0x01)
+            temperature_humidity_sht3x_enable = ((status >> 0) & 0x01)
             # Create sensor record.
             record.measurement = DATABASE_MEASUREMENT_HOME
             record.fields = {
@@ -102,7 +110,14 @@ class HomeFox:
             record.measurement = DATABASE_MEASUREMENT_MONITORING
             record.fields = {
                 DATABASE_FIELD_LAST_DATA_TIME: timestamp,
-                DATABASE_FIELD_STATUS: status
+                DATABASE_FIELD_STATUS: status,
+                DATABASE_FIELD_SIGFOX_DOWNLINK_DAILY_FLAG: daily_downlink,
+                DATABASE_FIELD_CLOCK_LSE_STATUS: lse_status,
+                DATABASE_FIELD_CLOCK_LSI_STATUS: lsi_status,
+                DATABASE_FIELD_ACCELEROMETER_ENABLED_FLAG: accelerometer_enable,
+                DATABASE_FIELD_AIR_QUALITY_ENABLED_FLAG: air_quality_enable,
+                DATABASE_FIELD_TEMPERATURE_HUMIDITY_ENS21X_ENABLED_FLAG: temperature_humidity_ens21x_enable,
+                DATABASE_FIELD_TEMPERATURE_HUMIDITY_SHT3X_ENABLED_FLAG: temperature_humidity_sht3x_enable
             }
             record.add_field(storage_voltage_mv, HOMEFOX_ERROR_VALUE_STORAGE_VOLTAGE, DATABASE_FIELD_STORAGE_VOLTAGE, float(storage_voltage_mv / 1000.0))
             record_list.append(copy.copy(record))

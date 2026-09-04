@@ -44,14 +44,24 @@ DATABASE_FIELD_ERROR = "error"
 DATABASE_FIELD_LAST_STARTUP_TIME = "last_startup_time"
 DATABASE_FIELD_LAST_SHUTDOWN_TIME = "last_shutdown_time"
 DATABASE_FIELD_LAST_DATA_TIME = "last_data_time"
+DATABASE_FIELD_MONITORING_PERIOD = "monitoring_period"
+DATABASE_FIELD_CONFIGURATION_UPDATED_FLAG = "configuration_updated_flag"
+# Clocks.
+DATABASE_FIELD_CLOCK_LSI_STATUS = "clock_lsi_status"
+DATABASE_FIELD_CLOCK_LSE_STATUS = "clock_lse_status"
+DATABASE_FIELD_CLOCK_HSE_STATUS = "clock_hse_status"
+DATABASE_FIELD_CLOCK_RTC_CALIBRATION_FIRST_FLAG = "clock_rtc_calibration_first_flag"
+DATABASE_FIELD_CLOCK_RTC_CALIBRATION_DAILY_FLAG = "clock_rtc_calibration_daily_flag"
+# Fuse.
 DATABASE_FIELD_FUSE_EVENT_PERIOD_COUNTER = "fuse_event_period_counter"
 DATABASE_FIELD_FUSE_FLAG = "fuse_flag"
-DATABASE_FIELD_ADAPTATIVE_TX_POWER_FLAG = "adaptative_tx_power_flag"
-DATABASE_FIELD_ADAPTATIVE_UL_BIT_RATE_FLAG = "adaptative_ul_bit_rate_flag"
-DATABASE_FIELD_MONITORING_PERIOD = "monitoring_period"
-DATABASE_FIELD_START_DETECTION_WINDOWS = "start_detection_windows"
-DATABASE_FIELD_START_DETECTION_THRESHOLD = "start_detection_threshold"
-DATABASE_FIELD_STOP_DETECTION_THRESHOLD = "stop_detection_threshold"
+# Tracking.
+DATABASE_FIELD_TRACKING_STATE = "tracking_state"
+DATABASE_FIELD_TRACKING_START_DETECTION_WINDOWS = "tracking_start_detection_windows"
+DATABASE_FIELD_TRACKING_START_DETECTION_THRESHOLD = "tracking_start_detection_threshold"
+DATABASE_FIELD_TRACKING_STOP_DETECTION_THRESHOLD = "tracking_stop_detection_threshold"
+DATABASE_FIELD_TRACKING_MOVING_FLAG = "tracking_moving_flag"
+DATABASE_FIELD_TRACKING_ALARM_FLAG = "tracking_alarm_flag"
 
 DATABASE_FIELD_DATA_TYPE = "data_type"
 
@@ -108,6 +118,8 @@ DATABASE_FIELD_NODE_REGISTER_ADDRESS = "node_register_address"
 DATABASE_FIELD_NODE_REGISTER_VALUE = "node_register_value"
 # Sigfox uplink.
 DATABASE_FIELD_SIGFOX_UPLINK_MESSAGE_COUNTER = "sigfox_uplink_message_counter"
+DATABASE_FIELD_SIGFOX_UPLINK_ADAPTATIVE_TX_POWER_FLAG = "sigfox_uplink_adaptative_tx_power_flag"
+DATABASE_FIELD_SIGFOX_UPLINK_ADAPTATIVE_UL_BIT_RATE_FLAG = "sigfox_uplink_adaptative_ul_bit_rate_flag"
 # Sigfox downlink.
 DATABASE_FIELD_SIGFOX_DOWNLINK_RECORD_TIME = "sigfox_downlink_record_time"
 DATABASE_FIELD_SIGFOX_DOWNLINK_SERVER_TIME = "sigfox_downlink_server_time"
@@ -116,6 +128,7 @@ DATABASE_FIELD_SIGFOX_DOWNLINK_HASH = "sigfox_downlink_hash"
 DATABASE_FIELD_SIGFOX_DOWNLINK_PAYLOAD = "sigfox_downlink_payload"
 DATABASE_FIELD_SIGFOX_DOWNLINK_SUCCESS = "sigfox_downlink_success"
 DATABASE_FIELD_SIGFOX_DOWNLINK_STATUS = "sigfox_downlink_status"
+DATABASE_FIELD_SIGFOX_DOWNLINK_DAILY_FLAG = "sigfox_downlink_daily_flag"
 # Input.
 DATABASE_FIELD_INPUT_VOLTAGE = "input_voltage"
 # Source.
@@ -197,9 +210,12 @@ DATABASE_FIELD_MAINS_FREQUENCY_MEAN = "mains_frequency_mean"
 DATABASE_FIELD_MAINS_FREQUENCY_MAX = "mains_frequency_max"
 # Temperature.
 DATABASE_FIELD_TEMPERATURE = "temperature"
+DATABASE_FIELD_TEMPERATURE_HUMIDITY_ENS21X_ENABLED_FLAG = "temperature_humidity_ens21x_enabled_flag"
+DATABASE_FIELD_TEMPERATURE_HUMIDITY_SHT3X_ENABLED_FLAG = "temperature_humidity_sht3x_enabled_flag"
 # Humidity.
 DATABASE_FIELD_HUMIDITY = "humidity"
 # Air quality.
+DATABASE_FIELD_AIR_QUALITY_ENABLED_FLAG = "air_quality_enabled_flag"
 DATABASE_FIELD_AIR_QUALITY_TVOC = "air_quality_tvoc"
 DATABASE_FIELD_AIR_QUALITY_ECO2 = "air_quality_eco2"
 DATABASE_FIELD_AIR_QUALITY_INDEX_UBA = "air_quality_index_uba"
@@ -221,6 +237,8 @@ DATABASE_FIELD_WIND_DIRECTION_AVERAGE = "wind_direction_average"
 # Rainfall.
 DATABASE_FIELD_RAINFALL = "rainfall"
 # Accelerometer.
+DATABASE_FIELD_ACCELEROMETER_ENABLED_FLAG = "accelerometer_enabled_flag"
+DATABASE_FIELD_ACCELEROMETER_CONTROL_STATE = "accelerometer_control_state"
 DATABASE_FIELD_ACCELEROMETER_X_FLAG = "accelerometer_x_flag"
 DATABASE_FIELD_ACCELEROMETER_Y_FLAG = "accelerometer_y_flag"
 DATABASE_FIELD_ACCELEROMETER_Z_FLAG = "accelerometer_z_flag"
@@ -246,12 +264,14 @@ DATABASE_FIELD_GEOLOCATION_SOURCE_SIGFOX_ATLAS_WIFI = 1
 DATABASE_FIELD_GEOLOCATION_SOURCE_SIGFOX_ATLAS_NATIVE = 2
 DATABASE_FIELD_GEOLOCATION_PERIOD_MOVING = "geolocation_period_moving"
 DATABASE_FIELD_GEOLOCATION_PERIOD_STOPPED = "geolocation_period_stopped"
+DATABASE_FIELD_GEOLOCATION_DAILY_FLAG = "geolocation_daily_flag"
 # GPS.
 DATABASE_FIELD_GPS_ACQUISITION_STATUS = "gps_acquisition_status"
 DATABASE_FIELD_GPS_ACQUISITION_TIME = "gps_acquisition_time"
 DATABASE_FIELD_GPS_ACQUISITION_TIMEOUT_TIME = "gps_acquisition_timeout_time"
 DATABASE_FIELD_GPS_VOLTAGE = "gps_voltage"
 DATABASE_FIELD_GPS_ANTENNA_VOLTAGE = "gps_antenna_voltage"
+DATABASE_FIELD_GPS_BACKUP_CONTROL_STATE = "gps_backup_control_state"
 DATABASE_FIELD_GPS_TIMEOUT = "gps_timeout"
 DATABASE_FIELD_GPS_ALTITUDE_STABILITY_FILTER_MOVING = "gps_altitude_stability_filter_moving"
 DATABASE_FIELD_GPS_ALTITUDE_STABILITY_FILTER_STOPPED = "gps_altitude_stability_filter_stopped"

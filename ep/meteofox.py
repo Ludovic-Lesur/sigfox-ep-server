@@ -106,7 +106,7 @@ class MeteoFox:
         data_type = DATABASE_FIELD_DATA_TYPE_UNKNOWN
         record_list = []
         record = Record()
-        where_clause = DATABASE_TAG_SITE + "='" + MeteoFox._get_site(sigfox_ep_id) + "'"
+        where_clause = (DATABASE_TAG_SITE + "='" + MeteoFox._get_site(sigfox_ep_id) + "'")
         # Common properties.
         record.database = DATABASE_METEOFOX
         record.timestamp = timestamp
@@ -192,10 +192,27 @@ class MeteoFox:
                         mcu_voltage_volts = float(mcu_voltage_mv / 1000.0)
                         # Status.
                         status = int(ul_payload[16:18], 16)
+                    # Parse status bits.
+                    daily_downlink = ((status >> 7) & 0x01)
+                    daily_geoloc = ((status >> 6) & 0x01)
+                    daily_rtc_calibration = ((status >> 5) & 0x01)
+                    first_rtc_calibration = ((status >> 4) & 0x01)
+                    lse_status = ((status >> 3) & 0x01)
+                    lsi_status = ((status >> 2) & 0x01)
+                    hse_status = ((status >> 1) & 0x01)
+                    station_mode = ((status >> 0) & 0x01)
                     # Create monitoring record.
                     record.measurement = DATABASE_MEASUREMENT_MONITORING
                     record.fields = {
                         DATABASE_FIELD_STATUS: status,
+                        DATABASE_FIELD_SIGFOX_DOWNLINK_DAILY_FLAG: daily_downlink,
+                        DATABASE_FIELD_GEOLOCATION_DAILY_FLAG: daily_geoloc,
+                        DATABASE_FIELD_CLOCK_RTC_CALIBRATION_DAILY_FLAG: daily_rtc_calibration,
+                        DATABASE_FIELD_CLOCK_RTC_CALIBRATION_FIRST_FLAG: first_rtc_calibration,
+                        DATABASE_FIELD_CLOCK_LSE_STATUS: lse_status,
+                        DATABASE_FIELD_CLOCK_LSI_STATUS: lsi_status,
+                        DATABASE_FIELD_CLOCK_HSE_STATUS: hse_status,
+                        DATABASE_FIELD_MODE: station_mode,
                         DATABASE_FIELD_LAST_DATA_TIME: timestamp
                     }
                     record.add_field(temperature_signed_magnitude, temperature_error_value, DATABASE_FIELD_TEMPERATURE, float(temperature_degrees))

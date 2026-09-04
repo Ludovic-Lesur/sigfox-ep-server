@@ -28,6 +28,7 @@ TRACKFOX_ERROR_VALUE_TEMPERATURE = 0x7FF
 TRACKFOX_ERROR_VALUE_HUMIDITY = 0xFF
 TRACKFOX_ERROR_VALUE_SOURCE_VOLTAGE = 0xFFF
 TRACKFOX_ERROR_VALUE_STORAGE_VOLTAGE = 0xFFFF
+TRACKFOX_ERROR_VALUE_STATUS_BIT = 0xFF
 
 ### TRACKFOX classes ###
 
@@ -56,6 +57,7 @@ class TrackFox:
         data_type = DATABASE_FIELD_DATA_TYPE_UNKNOWN
         record_list = []
         record = Record()
+        where_clause = (DATABASE_TAG_ASSET + "='" + TrackFox._get_asset(sigfox_ep_id) + "'")
         # Unused parameter.
         _ = database
         # Common properties.
@@ -75,85 +77,130 @@ class TrackFox:
         # Error stack frame.
         elif (len(ul_payload) == (2 * TRACKFOX_UL_PAYLOAD_SIZE_ERROR_STACK)):
             data_type = Common.get_record_error_stack(record, timestamp, ul_payload, (TRACKFOX_UL_PAYLOAD_SIZE_ERROR_STACK // 2), record_list)
-        # Monitoring frame.
-        elif (len(ul_payload) == (2 * TRACKFOX_UL_PAYLOAD_SIZE_MONITORING)):
-            # Parse fields.
-            temperature_tenth_degrees_signed_magnitude = int(ul_payload[0:3], 16)
-            humidity_percent = int(ul_payload[3:5], 16)
-            source_voltage_ten_mv = int(ul_payload[5:8], 16)
-            storage_voltage_mv = int(ul_payload[8:12], 16)
-            status = int(ul_payload[12:14], 16)
-            # Create monitoring record.
-            record.measurement = DATABASE_MEASUREMENT_MONITORING
-            record.fields = {
-                DATABASE_FIELD_LAST_DATA_TIME: timestamp,
-                DATABASE_FIELD_STATUS: status
-            }
-            record.add_field(temperature_tenth_degrees_signed_magnitude, TRACKFOX_ERROR_VALUE_TEMPERATURE, DATABASE_FIELD_TEMPERATURE, float(Common.signed_magnitude_to_value(temperature_tenth_degrees_signed_magnitude, 11) / 10.0))
-            record.add_field(humidity_percent, TRACKFOX_ERROR_VALUE_HUMIDITY, DATABASE_FIELD_HUMIDITY, float(humidity_percent))
-            record.add_field(source_voltage_ten_mv, TRACKFOX_ERROR_VALUE_SOURCE_VOLTAGE, DATABASE_FIELD_SOURCE_VOLTAGE, float(source_voltage_ten_mv / 100.0))
-            record.add_field(storage_voltage_mv, TRACKFOX_ERROR_VALUE_STORAGE_VOLTAGE, DATABASE_FIELD_STORAGE_VOLTAGE, float(storage_voltage_mv / 1000.0))
-            record_list.append(copy.copy(record))
-            # Set message type.
-            if (((status >> 2) & 0x01) == 0):
-                data_type = DatabaseFieldDataType.PERIODIC_MONITORING.value
-            else:
-                if (((status >> 3) & 0x01) == 0):
-                    data_type = DatabaseFieldDataType.EVENT_ACCELEROMETER_STOP.value
-                else:
-                    data_type = DatabaseFieldDataType.EVENT_ACCELEROMETER_START.value
-        # Geolocation error frame.
-        elif (len(ul_payload) == (2 * TRACKFOX_UL_PAYLOAD_SIZE_GEOLOCATION_ERROR)):
-            # Parse fields
-            gps_acquisition_status = int(ul_payload[0:2], 16)
-            gps_acquisition_time_seconds = int(ul_payload[2:4], 16)
-            wifi_scan_status = int(ul_payload[4:6], 16)
-            wifi_scan_time_seconds = int(ul_payload[6:8], 16)
-            # Create geoloc record.
-            record.measurement = DATABASE_MEASUREMENT_GEOLOCATION
-            record.fields = {
-                DATABASE_FIELD_GPS_ACQUISITION_STATUS: gps_acquisition_status,
-                DATABASE_FIELD_GPS_ACQUISITION_TIMEOUT_TIME: float(gps_acquisition_time_seconds),
-                DATABASE_FIELD_WIFI_SCAN_STATUS: wifi_scan_status,
-                DATABASE_FIELD_WIFI_SCAN_TIMEOUT_TIME: float(wifi_scan_time_seconds)
-            }
-            record_list.append(copy.copy(record))
-            data_type = DatabaseFieldDataType.GEOLOCATION_ERROR.value
-        # Configuration frame.
-        elif (len(ul_payload) == (2 * TRACKFOX_UL_PAYLOAD_SIZE_CONFIGURATION)):
-            # Parse fields.
-            monitoring_period_minutes = int(ul_payload[0:2], 16)
-            start_detection_windows = int(ul_payload[2:4], 16)
-            start_detection_threshold_irq = int(ul_payload[4:6], 16)
-            stop_detection_threshold_minutes = int(ul_payload[6:8], 16)
-            geoloc_period_moving_minutes = int(ul_payload[8:10], 16)
-            geoloc_period_stopped_hours = int(ul_payload[10:12], 16)
-            byte6 = int(ul_payload[12:14], 16)
-            adaptative_tx_power_flag = ((byte6 >> 1) & 0x01)
-            adaptative_ul_bit_rate_flag = ((byte6 >> 0) & 0x01)
-            gps_timeout_seconds = int(ul_payload[14:16], 16)
-            byte8 = int(ul_payload[16:18], 16)
-            gps_altitude_stability_filter_moving = ((byte8 >> 4) & 0x0F)
-            gps_altitude_stability_filter_stopped = ((byte8 >> 0) & 0x0F)
-            # Create configuration record.
-            record.measurement = DATABASE_MEASUREMENT_METADATA
-            record.fields = {
-                DATABASE_FIELD_MONITORING_PERIOD: float(monitoring_period_minutes * 60),
-                DATABASE_FIELD_START_DETECTION_WINDOWS: float(start_detection_windows),
-                DATABASE_FIELD_START_DETECTION_THRESHOLD: float(start_detection_threshold_irq),
-                DATABASE_FIELD_STOP_DETECTION_THRESHOLD: float(stop_detection_threshold_minutes * 60),
-                DATABASE_FIELD_GEOLOCATION_PERIOD_MOVING: float(geoloc_period_moving_minutes * 60),
-                DATABASE_FIELD_GEOLOCATION_PERIOD_STOPPED: float(geoloc_period_stopped_hours * 3600),
-                DATABASE_FIELD_ADAPTATIVE_TX_POWER_FLAG: adaptative_tx_power_flag,
-                DATABASE_FIELD_ADAPTATIVE_UL_BIT_RATE_FLAG: adaptative_ul_bit_rate_flag,
-                DATABASE_FIELD_GPS_TIMEOUT: float(gps_timeout_seconds),
-                DATABASE_FIELD_GPS_ALTITUDE_STABILITY_FILTER_MOVING: float(gps_altitude_stability_filter_moving),
-                DATABASE_FIELD_GPS_ALTITUDE_STABILITY_FILTER_STOPPED: float(gps_altitude_stability_filter_stopped)
-            }
-            record_list.append(copy.copy(record))
-            data_type = DatabaseFieldDataType.PERIODIC_CONFIGURATION.value
+        # Other frames format depends on software version.
         else:
-            Log.debug_print("[TRACKFOX] * Invalid UL payload")
+            # Read software version.
+            sw_version_major_query, _ = database.read_field(DATABASE_TRACKFOX, where_clause, DATABASE_MEASUREMENT_METADATA, DATABASE_FIELD_SW_VERSION_MAJOR, False)
+            sw_version_minor_query, _ = database.read_field(DATABASE_TRACKFOX, where_clause, DATABASE_MEASUREMENT_METADATA, DATABASE_FIELD_SW_VERSION_MINOR, False)
+            # Check results.
+            if ((sw_version_major_query is not None) and (sw_version_minor_query is not None)):
+                sw_version_major = int(sw_version_major_query)
+                sw_version_minor = int(sw_version_minor_query)
+                Log.debug_print("[TRACKING] * Parsing frame for firmware version sw" + str(sw_version_major) + "." + str(sw_version_minor))
+                # Monitoring frame.
+                if (len(ul_payload) == (2 * TRACKFOX_UL_PAYLOAD_SIZE_MONITORING)):
+                    # Parse fields.
+                    temperature_tenth_degrees_signed_magnitude = int(ul_payload[0:3], 16)
+                    humidity_percent = int(ul_payload[3:5], 16)
+                    source_voltage_ten_mv = int(ul_payload[5:8], 16)
+                    storage_voltage_mv = int(ul_payload[8:12], 16)
+                    status = int(ul_payload[12:14], 16)
+                    # Set error value.
+                    configuration_updated = TRACKFOX_ERROR_VALUE_STATUS_BIT
+                    daily_downlink = TRACKFOX_ERROR_VALUE_STATUS_BIT
+                    tracker_mode = TRACKFOX_ERROR_VALUE_STATUS_BIT
+                    # Check version.
+                    if (sw_version_major >= 8):
+                        # Parse status bits.
+                        configuration_updated = ((status >> 7) & 0x01)
+                        daily_downlink = ((status >> 6) & 0x01)
+                        gps_backup_state = ((status >> 5) & 0x01)
+                        accelerometer_state = ((status >> 4) & 0x01)
+                        tracker_state = ((status >> 3) & 0x01)
+                        lse_status = ((status >> 2) & 0x01)
+                        moving_flag = ((status >> 1) & 0x01)
+                        alarm_flag = ((status >> 0) & 0x01)
+                    else:
+                        # Parse status bits.
+                        gps_backup_state = ((status >> 7) & 0x01)
+                        accelerometer_state = ((status >> 6) & 0x01)
+                        tracker_state = ((status >> 5) & 0x01)
+                        lse_status = ((status >> 4) & 0x01)
+                        moving_flag = ((status >> 3) & 0x01)
+                        alarm_flag = ((status >> 2) & 0x01)
+                        tracker_mode = ((status >> 0) & 0x03)
+                    # Create monitoring record.
+                    record.measurement = DATABASE_MEASUREMENT_MONITORING
+                    record.fields = {
+                        DATABASE_FIELD_LAST_DATA_TIME: timestamp,
+                        DATABASE_FIELD_STATUS: status,
+                        DATABASE_FIELD_GPS_BACKUP_CONTROL_STATE: gps_backup_state,
+                        DATABASE_FIELD_ACCELEROMETER_CONTROL_STATE: accelerometer_state,
+                        DATABASE_FIELD_TRACKING_STATE: tracker_state,
+                        DATABASE_FIELD_CLOCK_LSE_STATUS: lse_status,
+                        DATABASE_FIELD_TRACKING_MOVING_FLAG: moving_flag,
+                        DATABASE_FIELD_TRACKING_ALARM_FLAG: alarm_flag
+                    }
+                    record.add_field(temperature_tenth_degrees_signed_magnitude, TRACKFOX_ERROR_VALUE_TEMPERATURE, DATABASE_FIELD_TEMPERATURE, float(Common.signed_magnitude_to_value(temperature_tenth_degrees_signed_magnitude, 11) / 10.0))
+                    record.add_field(humidity_percent, TRACKFOX_ERROR_VALUE_HUMIDITY, DATABASE_FIELD_HUMIDITY, float(humidity_percent))
+                    record.add_field(source_voltage_ten_mv, TRACKFOX_ERROR_VALUE_SOURCE_VOLTAGE, DATABASE_FIELD_SOURCE_VOLTAGE, float(source_voltage_ten_mv / 100.0))
+                    record.add_field(storage_voltage_mv, TRACKFOX_ERROR_VALUE_STORAGE_VOLTAGE, DATABASE_FIELD_STORAGE_VOLTAGE, float(storage_voltage_mv / 1000.0))
+                    record.add_field(configuration_updated, TRACKFOX_ERROR_VALUE_STATUS_BIT, DATABASE_FIELD_CONFIGURATION_UPDATED_FLAG, configuration_updated)
+                    record.add_field(daily_downlink, TRACKFOX_ERROR_VALUE_STATUS_BIT, DATABASE_FIELD_SIGFOX_DOWNLINK_DAILY_FLAG, daily_downlink)
+                    record.add_field(tracker_mode, TRACKFOX_ERROR_VALUE_STATUS_BIT, DATABASE_FIELD_MODE, tracker_mode)
+                    record_list.append(copy.copy(record))
+                    # Set message type.
+                    if (alarm_flag == 0):
+                        data_type = DatabaseFieldDataType.PERIODIC_MONITORING.value
+                    else:
+                        if (moving_flag == 0):
+                            data_type = DatabaseFieldDataType.EVENT_ACCELEROMETER_STOP.value
+                        else:
+                            data_type = DatabaseFieldDataType.EVENT_ACCELEROMETER_START.value
+                # Geolocation error frame.
+                elif (len(ul_payload) == (2 * TRACKFOX_UL_PAYLOAD_SIZE_GEOLOCATION_ERROR)):
+                    # Parse fields
+                    gps_acquisition_status = int(ul_payload[0:2], 16)
+                    gps_acquisition_time_seconds = int(ul_payload[2:4], 16)
+                    wifi_scan_status = int(ul_payload[4:6], 16)
+                    wifi_scan_time_seconds = int(ul_payload[6:8], 16)
+                    # Create geoloc record.
+                    record.measurement = DATABASE_MEASUREMENT_GEOLOCATION
+                    record.fields = {
+                        DATABASE_FIELD_GPS_ACQUISITION_STATUS: gps_acquisition_status,
+                        DATABASE_FIELD_GPS_ACQUISITION_TIMEOUT_TIME: float(gps_acquisition_time_seconds),
+                        DATABASE_FIELD_WIFI_SCAN_STATUS: wifi_scan_status,
+                        DATABASE_FIELD_WIFI_SCAN_TIMEOUT_TIME: float(wifi_scan_time_seconds)
+                    }
+                    record_list.append(copy.copy(record))
+                    data_type = DatabaseFieldDataType.GEOLOCATION_ERROR.value
+                # Configuration frame.
+                elif (len(ul_payload) == (2 * TRACKFOX_UL_PAYLOAD_SIZE_CONFIGURATION)):
+                    # Parse fields.
+                    monitoring_period_minutes = int(ul_payload[0:2], 16)
+                    start_detection_windows = int(ul_payload[2:4], 16)
+                    start_detection_threshold_irq = int(ul_payload[4:6], 16)
+                    stop_detection_threshold_minutes = int(ul_payload[6:8], 16)
+                    geoloc_period_moving_minutes = int(ul_payload[8:10], 16)
+                    geoloc_period_stopped_hours = int(ul_payload[10:12], 16)
+                    byte6 = int(ul_payload[12:14], 16)
+                    adaptative_tx_power_flag = ((byte6 >> 1) & 0x01)
+                    adaptative_ul_bit_rate_flag = ((byte6 >> 0) & 0x01)
+                    gps_timeout_seconds = int(ul_payload[14:16], 16)
+                    byte8 = int(ul_payload[16:18], 16)
+                    gps_altitude_stability_filter_moving = ((byte8 >> 4) & 0x0F)
+                    gps_altitude_stability_filter_stopped = ((byte8 >> 0) & 0x0F)
+                    # Create configuration record.
+                    record.measurement = DATABASE_MEASUREMENT_METADATA
+                    record.fields = {
+                        DATABASE_FIELD_MONITORING_PERIOD: float(monitoring_period_minutes * 60),
+                        DATABASE_FIELD_TRACKING_START_DETECTION_WINDOWS: float(start_detection_windows),
+                        DATABASE_FIELD_TRACKING_START_DETECTION_THRESHOLD: float(start_detection_threshold_irq),
+                        DATABASE_FIELD_TRACKING_STOP_DETECTION_THRESHOLD: float(stop_detection_threshold_minutes * 60),
+                        DATABASE_FIELD_GEOLOCATION_PERIOD_MOVING: float(geoloc_period_moving_minutes * 60),
+                        DATABASE_FIELD_GEOLOCATION_PERIOD_STOPPED: float(geoloc_period_stopped_hours * 3600),
+                        DATABASE_FIELD_SIGFOX_UPLINK_ADAPTATIVE_TX_POWER_FLAG: adaptative_tx_power_flag,
+                        DATABASE_FIELD_SIGFOX_UPLINK_ADAPTATIVE_UL_BIT_RATE_FLAG: adaptative_ul_bit_rate_flag,
+                        DATABASE_FIELD_GPS_TIMEOUT: float(gps_timeout_seconds),
+                        DATABASE_FIELD_GPS_ALTITUDE_STABILITY_FILTER_MOVING: float(gps_altitude_stability_filter_moving),
+                        DATABASE_FIELD_GPS_ALTITUDE_STABILITY_FILTER_STOPPED: float(gps_altitude_stability_filter_stopped)
+                    }
+                    record_list.append(copy.copy(record))
+                    data_type = DatabaseFieldDataType.PERIODIC_CONFIGURATION.value
+                else:
+                    Log.debug_print("[TRACKFOX] * Invalid UL payload")
+            else:
+                Log.debug_print("[TRACKFOX] * Firmware version not available for parsing")
         return [data_type, record_list]
     
     @staticmethod

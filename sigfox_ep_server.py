@@ -47,6 +47,7 @@ SIGFOX_EP_SERVER_API_KEY_FIELD = "field"
 SIGFOX_EP_SERVER_API_KEY_TAGS = "tags"
 SIGFOX_EP_SERVER_API_KEY_TIMESTAMP = "timestamp"
 SIGFOX_EP_SERVER_API_KEY_VALUE = "value"
+SIGFOX_EP_SERVER_DOWNLINK_HASH_NOT_FOUND = 0xFFFF
 
 ### SIGFOX EP SERVER classes ###
 
@@ -80,7 +81,7 @@ class SigfoxEpServer:
     def __init__(self) -> None :
         # Init context.
         self._database = Database()
-        self._downlink_hash = 0
+        self._downlink_hash = {}
         self._ep_class = None
         self._ep_database = None
         self._api_key = SIGFOX_EP_SERVER_API_KEY
@@ -243,7 +244,7 @@ class SigfoxEpServer:
                     record.measurement = DATABASE_MEASUREMENT_SIGFOX_DOWNLINK
                     record.timestamp = timestamp_now
                     record.fields = {
-                        DATABASE_FIELD_SIGFOX_DOWNLINK_HASH: self._downlink_hash,
+                        DATABASE_FIELD_SIGFOX_DOWNLINK_HASH: self._downlink_hash.get(sigfox_ep_id, SIGFOX_EP_SERVER_DOWNLINK_HASH_NOT_FOUND),
                         DATABASE_FIELD_SIGFOX_DOWNLINK_RECORD_TIME: dl_message_record_time,
                         DATABASE_FIELD_SIGFOX_DOWNLINK_SERVER_TIME: timestamp_now,
                         DATABASE_FIELD_SIGFOX_DOWNLINK_PAYLOAD: dl_payload.lower(),
@@ -347,7 +348,7 @@ class SigfoxEpServer:
                     # Update fields.
                     callback_type_str = "Data bidirectional"
                     bidirectional_flag = json_in[SIGFOX_CLOUD_CALLBACK_JSON_KEY_BIDIRECTIONAL_FLAG]
-                Log.debug_print("[SIGFOX EP SERVER] * " + callback_type_str + " callback: timestamp=" + str(timestamp) + " sigfox_ep_id=" + sigfox_ep_id + " message_counter=" + str(message_counter) + " ul_payload=" + ul_payload + " bidirectional_flag=" + bidirectional_flag)
+                Log.debug_print("[SIGFOX EP SERVER] * " + callback_type_str + " callback: timestamp=" + str(timestamp) + " sigfox_ep_id=" + sigfox_ep_id + " message_counter=" + str(message_counter) + " ul_payload=" + ul_payload + " bidirectional_flag=" + str(bidirectional_flag))
                 # Parse UL payload.
                 [data_type, record_list] = self._ep_class.get_record_list(self._database, timestamp, sigfox_ep_id, ul_payload)
                 # Check parsing status.
@@ -369,7 +370,7 @@ class SigfoxEpServer:
                 # Check bidirectional flag.
                 if (bidirectional_flag == SIGFOX_CLOUD_CALLBACK_JSON_TRUE):
                     # Use uplink message counter as downlink message hash.
-                    self._downlink_hash = message_counter
+                    self._downlink_hash[sigfox_ep_id] = message_counter
                     # Compute DL payload.
                     dl_payload = self._compute_dl_payload(sigfox_ep_id)
                     # Check result.
@@ -462,13 +463,13 @@ class SigfoxEpServer:
                 dl_payload = json_in[SIGFOX_CLOUD_CALLBACK_JSON_KEY_DL_PAYLOAD].lower()
                 dl_success = json_in[SIGFOX_CLOUD_CALLBACK_JSON_KEY_DL_SUCCESS]
                 dl_status = json_in[SIGFOX_CLOUD_CALLBACK_JSON_KEY_DL_STATUS]
-                Log.debug_print("[SIGFOX EP SERVER] * Service acknowledge callback: timestamp=" + str(timestamp) + " sigfox_ep_id=" + sigfox_ep_id + " dl_payload=" + dl_payload + " dl_success=" + dl_success + " dl_status=" + dl_status)
+                Log.debug_print("[SIGFOX EP SERVER] * Service acknowledge callback: timestamp=" + str(timestamp) + " sigfox_ep_id=" + sigfox_ep_id + " dl_payload=" + dl_payload + " dl_success=" + str(dl_success) + " dl_status=" + str(dl_status))
                 # Log downlink network status in database.
                 record.database = self._ep_database
                 record.measurement = DATABASE_MEASUREMENT_SIGFOX_DOWNLINK
                 record.timestamp = timestamp_now
                 record.fields = {
-                    DATABASE_FIELD_SIGFOX_DOWNLINK_HASH: self._downlink_hash,
+                    DATABASE_FIELD_SIGFOX_DOWNLINK_HASH: self._downlink_hash.get(sigfox_ep_id, SIGFOX_EP_SERVER_DOWNLINK_HASH_NOT_FOUND),
                     DATABASE_FIELD_SIGFOX_DOWNLINK_NETWORK_TIME: timestamp_now,
                     DATABASE_FIELD_SIGFOX_DOWNLINK_PAYLOAD: dl_payload,
                     DATABASE_FIELD_SIGFOX_DOWNLINK_SUCCESS: dl_success,
@@ -477,6 +478,8 @@ class SigfoxEpServer:
                 record.tags = self._ep_class.get_tags(sigfox_ep_id)
                 record.limited_retention = True
                 self._database.write_record(record)
+                # Cleanup once acknowledge has been handled.
+                self._downlink_hash.pop(sigfox_ep_id, None)
             # Invalid callback type.
             else:
                 Log.debug_print("[SIGFOX EP SERVER] * ERROR: invalid callback type")

@@ -22,6 +22,7 @@ METEOFOX_SIGFOX_EP_ID_LIST = ep.get_tags_list(METEOFOX_DEVICE_TYPE_NAME, DATABAS
 ### METEOFOX local macros ###
 
 METEOFOX_TAG_SITE = ep.get_tags_list(METEOFOX_DEVICE_TYPE_NAME, DATABASE_TAG_SITE)
+METEOFOX_ALTITUDE = ep.get_tags_list(METEOFOX_DEVICE_TYPE_NAME, DATABASE_FIELD_GEOLOCATION_ALTITUDE)
 
 METEOFOX_UL_PAYLOAD_SIZE_MONITORING = 9
 
@@ -74,6 +75,8 @@ METEOFOX_ERROR_VALUE_STORAGE_VOLTAGE = 0xFFF
 METEOFOX_ERROR_VALUE_MCU_TEMPERATURE = 0x7F
 METEOFOX_ERROR_VALUE_MCU_VOLTAGE = 0xFFF
 
+METEOFOX_ERROR_VALUE_ALTITUDE = 0xFFFFFFFF
+
 ### METEOFOX classes ###
 
 class MeteoFox:
@@ -82,7 +85,7 @@ class MeteoFox:
     def _compute_sea_level_pressure(absolute_pressure_pa: float, altitude_m: float, temperature_degrees: float) -> float:
         temperature_kelvin = (temperature_degrees + 273.15)
         return float(absolute_pressure_pa * math.exp(-5.255 * math.log((temperature_kelvin) / (temperature_kelvin + 0.0065 * altitude_m))))
-    
+
     @staticmethod
     def _get_site(sigfox_ep_id: str) -> str:
         # Default is unknown.
@@ -90,6 +93,14 @@ class MeteoFox:
         if (sigfox_ep_id in METEOFOX_SIGFOX_EP_ID_LIST):
             site = METEOFOX_TAG_SITE[METEOFOX_SIGFOX_EP_ID_LIST.index(sigfox_ep_id)]
         return site
+
+    @staticmethod
+    def _get_altitude(sigfox_ep_id: str) -> int:
+        # Default is error.
+        altitude = METEOFOX_ERROR_VALUE_ALTITUDE
+        if (sigfox_ep_id in METEOFOX_SIGFOX_EP_ID_LIST):
+            altitude = METEOFOX_ALTITUDE[METEOFOX_SIGFOX_EP_ID_LIST.index(sigfox_ep_id)]
+        return altitude
 
     @staticmethod
     def get_tags(sigfox_ep_id: str) -> Dict[str, Any]:
@@ -394,18 +405,11 @@ class MeteoFox:
                     # Compute sea level pressure.
                     pressure_atmospheric_sea_level_pa = pressure_atmospheric_error_value
                     pressure_atmospheric_sea_level_hpa = pressure_atmospheric_error_value
-                    if ((pressure_atmospheric_absolute_pa != pressure_atmospheric_error_value) and (temperature_signed_magnitude != temperature_error_value)):
-                        try:
-                            altitude_query, _ = database.read_field(DATABASE_METEOFOX, where_clause, DATABASE_MEASUREMENT_GEOLOCATION, DATABASE_FIELD_GEOLOCATION_ALTITUDE, True)
-                            if (altitude_query):
-                                altitude = int(altitude_query)
-                                Log.debug_print("[METEOFOX] * Computing sea-level pressure at altitude " + str(altitude) + "m")
-                                pressure_atmospheric_sea_level_pa = MeteoFox._compute_sea_level_pressure(pressure_atmospheric_absolute_pa, altitude, temperature_degrees)
-                                pressure_atmospheric_sea_level_hpa = float(pressure_atmospheric_sea_level_pa / 10.0)
-                            else:
-                                Log.debug_print("[METEOFOX] * Altitude not available for sea-level pressure computation")
-                        except:
-                            pass
+                    altitude = MeteoFox._get_altitude(sigfox_ep_id)
+                    if ((pressure_atmospheric_absolute_pa != pressure_atmospheric_error_value) and (temperature_signed_magnitude != temperature_error_value) and (altitude != METEOFOX_ERROR_VALUE_ALTITUDE)):
+                        Log.debug_print("[METEOFOX] * Computing sea-level pressure at altitude " + str(altitude) + "m")
+                        pressure_atmospheric_sea_level_pa = MeteoFox._compute_sea_level_pressure(pressure_atmospheric_absolute_pa, float(altitude), temperature_degrees)
+                        pressure_atmospheric_sea_level_hpa = float(pressure_atmospheric_sea_level_pa / 10.0)
                     # Create weather record.
                     record.measurement = DATABASE_MEASUREMENT_WEATHER
                     record.fields = {

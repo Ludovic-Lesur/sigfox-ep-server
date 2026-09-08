@@ -80,7 +80,19 @@ In the `sigfox-ep-server` root folder, create the `sigfox_ep_server.json` config
 {
     "path": "<sigfox-ep-server path>",
     "http_port": <port>,
-    "api_key": "<api_key>",
+    "api_keys": [
+        {
+            "owner": "<owner1>",
+            "key": "<api_key>",
+            "enabled": true
+        },
+        {
+            "owner": "<owner2>",
+            "key": "<api_key>",
+            "enabled": false
+        },
+        ...
+    ],
     "sigfox_cloud": {
         "user": "<user>",
         "password": "<password>"

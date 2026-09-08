@@ -84,7 +84,7 @@ class SigfoxEpServer:
         self._downlink_hash = {}
         self._ep_class = None
         self._ep_database = None
-        self._api_key = SIGFOX_EP_SERVER_API_KEY
+        self._api_keys = SIGFOX_EP_SERVER_API_KEYS
         # Init downlink messages file.
         self._check_dl_messages_file()
         # Update Git version in database.
@@ -495,10 +495,17 @@ class SigfoxEpServerHandler(BaseHTTPRequestHandler):
         Log.debug_print("[SIGFOX EP SERVER] * GET request received")
         # Check API key.
         api_key = self.headers.get("X-API-Key")
-        if ((sigfox_ep_server._api_key is None) or (api_key != sigfox_ep_server._api_key)):
+        api_key_owner = None
+        if (sigfox_ep_server._api_keys is not None):
+            for api_key_entry in sigfox_ep_server._api_keys:
+                if ((api_key == api_key_entry[SIGFOX_EP_SERVER_CONFIG_JSON_KEY_KEY]) and (api_key_entry[SIGFOX_EP_SERVER_CONFIG_JSON_KEY_ENABLED] == True)):
+                    api_key_owner = api_key_entry[SIGFOX_EP_SERVER_CONFIG_JSON_KEY_OWNER]
+                    break
+        if (api_key_owner is None):
             self.send_response(401)
             self.end_headers()
             return
+        Log.debug_print("[SIGFOX EP SERVER] * REST API request authenticated for owner: " + api_key_owner)
         # Check rate limiting.
         if not rate_limiter.is_allowed():
             self.send_response(429)

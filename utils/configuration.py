@@ -15,7 +15,10 @@ SIGFOX_EP_SERVER_CONFIG_FILE_NAME = os.path.join(os.path.dirname(os.path.dirname
 
 SIGFOX_EP_SERVER_CONFIG_JSON_KEY_PATH = "path"
 SIGFOX_EP_SERVER_CONFIG_JSON_KEY_HTTP_PORT = "http_port"
-SIGFOX_EP_SERVER_CONFIG_JSON_KEY_API_KEY = "api_key"
+SIGFOX_EP_SERVER_CONFIG_JSON_KEY_API_KEYS = "api_keys"
+SIGFOX_EP_SERVER_CONFIG_JSON_KEY_OWNER = "owner"
+SIGFOX_EP_SERVER_CONFIG_JSON_KEY_KEY = "key"
+SIGFOX_EP_SERVER_CONFIG_JSON_KEY_ENABLED = "enabled"
 SIGFOX_EP_SERVER_CONFIG_JSON_KEY_SIGFOX_CLOUD = "sigfox_cloud"
 SIGFOX_EP_SERVER_CONFIG_JSON_KEY_USER = "user"
 SIGFOX_EP_SERVER_CONFIG_JSON_KEY_PASSWORD = "password"
@@ -40,7 +43,16 @@ try:
     _config_file.close()
     SIGFOX_EP_SERVER_PATH = _config_json[SIGFOX_EP_SERVER_CONFIG_JSON_KEY_PATH]
     SIGFOX_EP_SERVER_HTTP_PORT = int(_config_json[SIGFOX_EP_SERVER_CONFIG_JSON_KEY_HTTP_PORT])
-    SIGFOX_EP_SERVER_API_KEY = _config_json[SIGFOX_EP_SERVER_CONFIG_JSON_KEY_API_KEY]
+    SIGFOX_EP_SERVER_API_KEYS = _config_json[SIGFOX_EP_SERVER_CONFIG_JSON_KEY_API_KEYS]
+    if (not isinstance(SIGFOX_EP_SERVER_API_KEYS, list)) or (len(SIGFOX_EP_SERVER_API_KEYS) == 0):
+        raise Exception("api_keys must be a non-empty list")
+    for api_key_entry in SIGFOX_EP_SERVER_API_KEYS:
+        if not isinstance(api_key_entry, dict):
+            raise Exception("each api_keys entry must be an object")
+        if ((SIGFOX_EP_SERVER_CONFIG_JSON_KEY_OWNER not in api_key_entry) or (SIGFOX_EP_SERVER_CONFIG_JSON_KEY_KEY not in api_key_entry) or (SIGFOX_EP_SERVER_CONFIG_JSON_KEY_ENABLED not in api_key_entry)):
+            raise Exception("each api_keys entry must contain owner, key and enabled")
+        if not isinstance(api_key_entry[SIGFOX_EP_SERVER_CONFIG_JSON_KEY_ENABLED], bool):
+            raise Exception("api_keys.enabled must be a boolean")
     SIGFOX_CLOUD_USER = _config_json[SIGFOX_EP_SERVER_CONFIG_JSON_KEY_SIGFOX_CLOUD][SIGFOX_EP_SERVER_CONFIG_JSON_KEY_USER]
     SIGFOX_CLOUD_PASSWORD = _config_json[SIGFOX_EP_SERVER_CONFIG_JSON_KEY_SIGFOX_CLOUD][SIGFOX_EP_SERVER_CONFIG_JSON_KEY_PASSWORD]
     SIGFOX_EP_DL_MESSAGES_FILE_PATH = _config_json[SIGFOX_EP_SERVER_CONFIG_JSON_KEY_DL_MESSAGES_FILE_PATH]

@@ -77,6 +77,8 @@ METEOFOX_ERROR_VALUE_MCU_VOLTAGE = 0xFFF
 
 METEOFOX_ERROR_VALUE_ALTITUDE = 0xFFFFFFFF
 
+METEOFOX_ERROR_VALUE_STATUS_BIT = 0xFF
+
 ### METEOFOX classes ###
 
 class MeteoFox:
@@ -203,15 +205,28 @@ class MeteoFox:
                         mcu_voltage_volts = float(mcu_voltage_mv / 1000.0)
                         # Status.
                         status = int(ul_payload[16:18], 16)
+                    # Set error value.
+                    configuration_updated = METEOFOX_ERROR_VALUE_STATUS_BIT
+                    station_mode = METEOFOX_ERROR_VALUE_STATUS_BIT
                     # Parse status bits.
-                    daily_downlink = ((status >> 7) & 0x01)
-                    daily_geoloc = ((status >> 6) & 0x01)
-                    daily_rtc_calibration = ((status >> 5) & 0x01)
-                    first_rtc_calibration = ((status >> 4) & 0x01)
-                    lse_status = ((status >> 3) & 0x01)
-                    lsi_status = ((status >> 2) & 0x01)
-                    hse_status = ((status >> 1) & 0x01)
-                    station_mode = ((status >> 0) & 0x01)
+                    if (sw_version_major >= 8):
+                        configuration_updated = ((status >> 7) & 0x01)
+                        daily_downlink = ((status >> 6) & 0x01)
+                        daily_geoloc = ((status >> 5) & 0x01)
+                        daily_rtc_calibration = ((status >> 4) & 0x01)
+                        first_rtc_calibration = ((status >> 3) & 0x01)
+                        lse_status = ((status >> 2) & 0x01)
+                        lsi_status = ((status >> 1) & 0x01)
+                        hse_status = ((status >> 0) & 0x01)
+                    else:
+                        daily_downlink = ((status >> 7) & 0x01)
+                        daily_geoloc = ((status >> 6) & 0x01)
+                        daily_rtc_calibration = ((status >> 5) & 0x01)
+                        first_rtc_calibration = ((status >> 4) & 0x01)
+                        lse_status = ((status >> 3) & 0x01)
+                        lsi_status = ((status >> 2) & 0x01)
+                        hse_status = ((status >> 1) & 0x01)
+                        station_mode = ((status >> 0) & 0x01)
                     # Create monitoring record.
                     record.measurement = DATABASE_MEASUREMENT_MONITORING
                     record.fields = {
@@ -223,9 +238,10 @@ class MeteoFox:
                         DATABASE_FIELD_CLOCK_LSE_STATUS: lse_status,
                         DATABASE_FIELD_CLOCK_LSI_STATUS: lsi_status,
                         DATABASE_FIELD_CLOCK_HSE_STATUS: hse_status,
-                        DATABASE_FIELD_MODE: station_mode,
                         DATABASE_FIELD_LAST_DATA_TIME: timestamp
                     }
+                    record.add_field(configuration_updated, METEOFOX_ERROR_VALUE_STATUS_BIT, DATABASE_FIELD_CONFIGURATION_UPDATED_FLAG, configuration_updated)
+                    record.add_field(station_mode, METEOFOX_ERROR_VALUE_STATUS_BIT, DATABASE_FIELD_MODE, station_mode)
                     record.add_field(temperature_signed_magnitude, temperature_error_value, DATABASE_FIELD_TEMPERATURE, float(temperature_degrees))
                     record.add_field(humidity_percent, humidity_error_value, DATABASE_FIELD_HUMIDITY, float(humidity_percent))
                     record.add_field(source_voltage_ten_mv, source_voltage_error_value, DATABASE_FIELD_SOURCE_VOLTAGE, float(source_voltage_volts))

@@ -91,6 +91,7 @@ class HomeFox:
             humidity_percent = int(ul_payload[8:10], 16)
             status = int(ul_payload[10:12], 16)
             # Parse status bits.
+            configuration_updated = ((status >> 7) & 0x01)
             daily_downlink = ((status >> 6) & 0x01)
             lse_status = ((status >> 5) & 0x01)
             lsi_status = ((status >> 4) & 0x01)
@@ -111,6 +112,7 @@ class HomeFox:
             record.fields = {
                 DATABASE_FIELD_LAST_DATA_TIME: timestamp,
                 DATABASE_FIELD_STATUS: status,
+                DATABASE_FIELD_CONFIGURATION_UPDATED_FLAG: configuration_updated,
                 DATABASE_FIELD_SIGFOX_DOWNLINK_DAILY_FLAG: daily_downlink,
                 DATABASE_FIELD_CLOCK_LSE_STATUS: lse_status,
                 DATABASE_FIELD_CLOCK_LSI_STATUS: lsi_status,
